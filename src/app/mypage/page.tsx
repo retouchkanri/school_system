@@ -145,6 +145,12 @@ export default async function MypageHome() {
 
   return (
     <div>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/images/visual-4.jpg"
+        alt="馬に委ねること。"
+        className="mb-6 h-36 w-full rounded-xl object-cover sm:h-48"
+      />
       <PageHeader
         title={`こんにちは、${lead.name}さん`}
         description="入学までの進捗と次のステップをご案内します"

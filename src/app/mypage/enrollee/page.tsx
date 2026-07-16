@@ -87,6 +87,12 @@ export default async function EnrolleePage() {
 
   return (
     <div>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/images/visual-7.jpg"
+        alt="馬と未来を見つめること。"
+        className="mb-6 h-36 w-full rounded-xl object-cover sm:h-48"
+      />
       <PageHeader
         title="入学者専用ページ"
         description={`${lead.name}さん、ご入学おめでとうございます。学院からのお知らせをご確認ください。`}

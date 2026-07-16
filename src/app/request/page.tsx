@@ -31,6 +31,12 @@ export default function RequestPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-brand-50 via-white to-white px-4 py-10">
       <div className="mx-auto max-w-2xl">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/images/visual-6.jpg"
+          alt="馬と話すこと。"
+          className="mb-6 h-36 w-full rounded-xl object-cover shadow-sm sm:h-44"
+        />
         <div className="mb-6 text-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/images/logo.png" alt="馬事学院/東関東馬事専門学院" className="mx-auto h-12 w-auto" />

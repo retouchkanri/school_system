@@ -1,5 +1,11 @@
 import type { Metadata } from "next";
+import { Noto_Sans_JP, Noto_Serif_JP } from "next/font/google";
+import FloatingContact from "@/components/floating-contact";
+import TopButton from "@/components/top-button";
 import "./globals.css";
+
+const notoSans = Noto_Sans_JP({ subsets: ["latin"], variable: "--font-noto-sans" });
+const notoSerif = Noto_Serif_JP({ subsets: ["latin"], variable: "--font-noto-serif" });
 
 export const metadata: Metadata = {
   title: {
@@ -11,8 +17,12 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ja">
-      <body className="min-h-screen antialiased">{children}</body>
+    <html lang="ja" className={`${notoSans.variable} ${notoSerif.variable}`}>
+      <body className="min-h-screen antialiased">
+        {children}
+        <FloatingContact />
+        <TopButton />
+      </body>
     </html>
   );
 }

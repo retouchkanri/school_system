@@ -30,10 +30,10 @@ const FEATURES = [
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-white">
-      <header className="flex w-full items-center justify-between border-b border-gray-100 bg-white px-[5vw] py-4">
+      <header className="sticky top-0 z-30 flex w-full items-center justify-between border-b border-gray-100 bg-white/95 px-[5vw] py-5 backdrop-blur">
         <Link href="/" className="flex items-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/images/logo.png" alt="馬事学院/東関東馬事専門学院" className="h-10 w-auto" />
+          <img src="/images/logo.png" alt="馬事学院/東関東馬事専門学院" className="h-12 w-auto" />
         </Link>
         <nav className="flex items-center gap-3">
           <Link href="/login" className={btnSecondary}>

@@ -79,6 +79,12 @@ export default async function StudentHomePage() {
 
   return (
     <div>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/images/visual-5.jpg"
+        alt="馬を信じること。"
+        className="mb-6 h-36 w-full rounded-xl object-cover sm:h-48"
+      />
       <PageHeader title="ホーム" description={`こんにちは、${student.name} さん`} />
 
       {pendingRequests.length > 0 && (

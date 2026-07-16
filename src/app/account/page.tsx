@@ -1,0 +1,45 @@
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getSessionProfile, roleHome } from "@/lib/auth";
+import { Card, PageHeader } from "@/components/ui";
+import AccountForm from "./account-form";
+
+const ROLE_LABELS: Record<string, string> = {
+  admin: "職員",
+  applicant: "入学希望者",
+  student: "在校生",
+  parent: "保護者",
+  supporter: "一口支援者",
+};
+
+export default async function AccountPage() {
+  const profile = await getSessionProfile();
+  if (!profile) redirect("/login");
+
+  return (
+    <div className="min-h-screen bg-white">
+      <header className="sticky top-0 z-20 border-b border-gray-200 bg-white">
+        <div className="flex w-full items-center justify-between px-[5vw] py-4">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/images/logo.png" alt="馬事学院/東関東馬事専門学院" className="h-9 w-auto" />
+          <Link
+            href={roleHome(profile.role)}
+            className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50"
+          >
+            ← ホームへ戻る
+          </Link>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-xl px-4 py-8">
+        <PageHeader
+          title="個人情報の変更"
+          description={`${ROLE_LABELS[profile.role] ?? ""}アカウントの登録情報を編集できます`}
+        />
+        <Card>
+          <AccountForm profile={profile} />
+        </Card>
+      </main>
+    </div>
+  );
+}
