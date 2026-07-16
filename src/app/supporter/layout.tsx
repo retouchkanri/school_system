@@ -1,0 +1,16 @@
+import { requireRole } from "@/lib/auth";
+import PortalLayout from "@/components/portal-layout";
+
+const NAV = [
+  { href: "/supporter", label: "月次報告" },
+  { href: "/supporter/announcements", label: "お知らせ" },
+];
+
+export default async function SupporterLayout({ children }: { children: React.ReactNode }) {
+  const profile = await requireRole("supporter");
+  return (
+    <PortalLayout profile={profile} roleLabel="一口支援者" nav={NAV} home="/supporter">
+      {children}
+    </PortalLayout>
+  );
+}

@@ -1,0 +1,177 @@
+import Link from "next/link";
+import { requireRole } from "@/lib/auth";
+import { getLeadForUser } from "@/lib/data";
+import { PROGRESS_STEPS, statusIndex } from "@/lib/constants";
+import { Card, PageHeader, ProgressTracker, btnPrimary } from "@/components/ui";
+import type { LeadStatus } from "@/lib/types";
+
+/** ステータスごとの「次にやること」定義 */
+const NEXT_ACTIONS: Record<LeadStatus, { title: string; description: string; href: string; button: string }> = {
+  material_requested: {
+    title: "資料をお送りする準備をしています",
+    description: "パンフレットの発送準備中です。お待ちいただく間に、学院紹介動画をご覧いただけます。",
+    href: "/mypage/video",
+    button: "学院紹介動画を見る",
+  },
+  material_sent: {
+    title: "資料を発送しました",
+    description: "パンフレットと合わせて、学院紹介動画をご覧ください。学院の雰囲気がよく分かります。",
+    href: "/mypage/video",
+    button: "学院紹介動画を見る",
+  },
+  video_watched: {
+    title: "動画のご視聴ありがとうございました",
+    description: "次は入学仮審査アンケートにご回答ください。あなたに合ったサポートをご提案するための大切なステップです。",
+    href: "/mypage/survey",
+    button: "仮審査アンケートに回答する",
+  },
+  survey_answered: {
+    title: "アンケートを受け付けました",
+    description: "AIによる判定を行っています。判定後、学校見学・オープンキャンパスの予約にお進みいただけます。",
+    href: "/mypage/events",
+    button: "見学・オープンキャンパスを見る",
+  },
+  ai_judged: {
+    title: "仮審査が完了しました",
+    description: "学校見学・オープンキャンパスのご予約が可能になりました。実際に馬と触れ合い、学院の生活を体験してください。",
+    href: "/mypage/events",
+    button: "見学・オープンキャンパスを予約する",
+  },
+  visit_reserved: {
+    title: "見学のご予約を受け付けました",
+    description: "参加費のお支払い状況と当日のご案内は予約ページでご確認いただけます。当日お会いできることを楽しみにしています。",
+    href: "/mypage/events",
+    button: "予約内容を確認する",
+  },
+  payment_confirmed: {
+    title: "参加費のお支払いを確認しました",
+    description: "あとは当日お越しいただくだけです。動きやすい服装でお越しください。ご不明点はお気軽にご連絡ください。",
+    href: "/mypage/events",
+    button: "予約内容を確認する",
+  },
+  visit_attended: {
+    title: "体験へのご参加ありがとうございました",
+    description: "体験の感想をぜひお聞かせください。ご本人用と保護者用の2つのアンケートがあります。",
+    href: "/mypage/experience",
+    button: "体験アンケートに回答する",
+  },
+  exp_survey_answered: {
+    title: "アンケートのご回答ありがとうございました",
+    description: "入学をご希望の方は出願手続きにお進みください。提出書類のチェックと作文の提出ができます。",
+    href: "/mypage/application",
+    button: "出願する",
+  },
+  applied: {
+    title: "出願を受け付けました",
+    description: "続いて性格・適性検査(96問)を受検してください。あなたの強みと向いている仕事が分かります。",
+    href: "/mypage/aptitude",
+    button: "適性検査を受ける",
+  },
+  aptitude_done: {
+    title: "適性検査の受検が完了しました",
+    description: "面接日程のご案内をお待ちください。面接日は出願ページでご確認いただけます。",
+    href: "/mypage/application",
+    button: "出願内容・面接日を確認する",
+  },
+  interview: {
+    title: "面接お疲れさまでした",
+    description: "選考結果の通知をお待ちください。結果は合否確認ページでご覧いただけます。",
+    href: "/mypage/result",
+    button: "合否を確認する",
+  },
+  decision_sent: {
+    title: "選考結果が届いています",
+    description: "合否確認ページで結果をご確認ください。",
+    href: "/mypage/result",
+    button: "合否を確認する",
+  },
+  enrollment_procedure: {
+    title: "入学手続きを進めましょう",
+    description: "提出物の確認、制服サイズの登録、入学規約への同意、各種お支払いを入学手続きページで行えます。",
+    href: "/mypage/enrollment",
+    button: "入学手続きへ進む",
+  },
+  admission_fee_paid: {
+    title: "入学金の入金を確認しました",
+    description: "残りの手続き(制服・教材のお支払い等)を入学手続きページでご確認ください。",
+    href: "/mypage/enrollment",
+    button: "入学手続きを確認する",
+  },
+  uniform_ordered: {
+    title: "制服の注文を受け付けました",
+    description: "入寮準備のご案内をお待ちください。手続き状況は入学手続きページでご確認いただけます。",
+    href: "/mypage/enrollment",
+    button: "入学手続きを確認する",
+  },
+  dorm_ready: {
+    title: "入寮準備が整いました",
+    description: "入学式のご案内は入学者専用ページのお知らせをご覧ください。お会いできる日を楽しみにしています。",
+    href: "/mypage/enrollee",
+    button: "入学者専用ページへ",
+  },
+  enrolled: {
+    title: "ご入学おめでとうございます🌸",
+    description: "入学者専用ページで学院からのお知らせをご確認ください。",
+    href: "/mypage/enrollee",
+    button: "入学者専用ページへ",
+  },
+};
+
+export default async function MypageHome() {
+  const profile = await requireRole("applicant");
+  const lead = await getLeadForUser(profile.id);
+
+  if (!lead) {
+    return (
+      <div>
+        <PageHeader title="マイページ" description="入学までの進捗を確認できます" />
+        <Card>
+          <div className="py-6 text-center">
+            <p className="mt-3 text-sm font-bold text-gray-800">資料請求がまだ紐づいていません</p>
+            <p className="mt-2 text-sm text-gray-500">
+              まずは資料請求フォームからお申し込みください。担当者がアカウントとの紐づけを行います。
+            </p>
+            <Link href="/request" className={`${btnPrimary} mt-5`}>
+              資料請求フォームへ
+            </Link>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  const next = NEXT_ACTIONS[lead.status];
+  const idx = statusIndex(lead.status);
+
+  return (
+    <div>
+      <PageHeader
+        title={`こんにちは、${lead.name}さん`}
+        description="入学までの進捗と次のステップをご案内します"
+      />
+
+      <Card title={`入学までの進捗 (${idx + 1}/${PROGRESS_STEPS.length})`} className="mb-6">
+        <ProgressTracker status={lead.status} />
+      </Card>
+
+      <div className="mb-6 rounded-xl border border-brand-200 bg-gradient-to-br from-brand-50 to-white p-6 shadow-sm">
+        <p className="text-xs font-bold text-brand-600">現在のステップ: {PROGRESS_STEPS[idx]?.label}</p>
+        <h2 className="mt-1 text-lg font-bold text-gray-900">{next.title}</h2>
+        <p className="mt-2 text-sm leading-relaxed text-gray-600">{next.description}</p>
+        <Link href={next.href} className={`${btnPrimary} mt-4`}>
+          {next.button} →
+        </Link>
+      </div>
+
+      {lead.ai_type && (
+        <div className="rounded-xl border border-purple-200 bg-gradient-to-br from-purple-50 to-white p-6 shadow-sm">
+          <p className="text-xs font-bold text-purple-600">AI診断結果</p>
+          <p className="mt-1 text-lg font-bold text-gray-900">
+            あなたのタイプ: <span className="text-purple-700">{lead.ai_type}</span>
+          </p>
+          <p className="mt-2 text-xs text-gray-400">仮審査アンケートの回答から診断しました</p>
+        </div>
+      )}
+    </div>
+  );
+}
