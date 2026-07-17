@@ -6,12 +6,16 @@ import {
   BOOKING_STATUS_LABELS,
   PAYMENT_STATUS_LABELS,
   PAYMENT_METHOD_LABELS,
+  BANK_TRANSFER_INFO,
+  AI_JUDGEMENT_LABELS,
+  AI_JUDGEMENT_MESSAGES,
+  EXPERIENCE_APPLICATION_URLS,
 } from "@/lib/constants";
 import { fmtDate, fmtYen, toDateInput } from "@/lib/format";
-import { Card, PageHeader, Badge, EmptyState, Table, Td, SectionTitle, btnPrimary, btnSmall, type BadgeTone } from "@/components/ui";
+import { Card, PageHeader, Badge, EmptyState, Table, Td, SectionTitle, btnPrimary, btnSecondary, btnSmall, type BadgeTone } from "@/components/ui";
 import type { BookingStatus, OpenCampusBooking, OpenCampusEvent, PaymentStatus } from "@/lib/types";
-import BookingForm, { BANK_INFO } from "./booking-form";
-import { cancelBookingAction } from "./actions";
+import BookingForm from "./booking-form";
+import { cancelBookingAction, requestIndividualConsultationAction } from "./actions";
 
 type BookingRow = OpenCampusBooking & { open_campus_events: OpenCampusEvent | null };
 
@@ -71,24 +75,7 @@ export default async function EventsPage() {
     );
   }
 
-  // 見送り判定 → 担当者からの連絡待ち
-  if (lead.ai_judgement === "rejected") {
-    return (
-      <div>
-        <PageHeader title="見学・オープンキャンパス予約" />
-        <Card>
-          <div className="py-6 text-center">
-            <p className="text-3xl">📞</p>
-            <p className="mt-3 text-sm font-bold text-gray-800">担当者からご連絡します</p>
-            <p className="mt-2 text-sm leading-relaxed text-gray-500">
-              ご回答いただいた内容をもとに、担当者よりお電話またはメールで個別にご案内いたします。
-              今しばらくお待ちください。
-            </p>
-          </div>
-        </Card>
-      </div>
-    );
-  }
+  const courseUrl = lead.desired_course ? EXPERIENCE_APPLICATION_URLS[lead.desired_course] : null;
 
   const today = toDateInput();
   const [{ data: eventsData }, { data: bookingsData }] = await Promise.all([
@@ -109,9 +96,34 @@ export default async function EventsPage() {
   return (
     <div>
       <PageHeader
-        title="見学・オープンキャンパス予約"
-        description="実際に馬と触れ合い、学院の一日を体験してください"
+        title="見学・オープンキャンパス仮予約"
+        description="実際に馬と触れ合い、学院の一日を体験してください。仮予約後、参加費のご入金をもって参加確定となります。"
       />
+
+      <div className="mb-6 rounded-xl border border-brand-200 bg-brand-50 p-5">
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge tone="brand">{AI_JUDGEMENT_LABELS[lead.ai_judgement]}</Badge>
+          <p className="text-sm font-bold text-gray-800">{AI_JUDGEMENT_MESSAGES[lead.ai_judgement]}</p>
+        </div>
+        {lead.ai_judgement === "rejected" && (
+          <form action={requestIndividualConsultationAction} className="mt-3">
+            <button type="submit" className={btnSecondary}>
+              個別相談を希望する
+            </button>
+          </form>
+        )}
+      </div>
+
+      {courseUrl && (
+        <Card title="体験入学のお申し込みについて" className="mb-6">
+          <p className="text-sm text-gray-600">
+            体験入学(お試し入学)は下記の専用フォームからもお申し込みいただけます。
+          </p>
+          <a href={courseUrl} target="_blank" rel="noopener noreferrer" className={`${btnSecondary} mt-3`}>
+            体験入学申込フォームを開く →
+          </a>
+        </Card>
+      )}
 
       <SectionTitle>開催予定のイベント</SectionTitle>
       {events.length === 0 ? (
@@ -122,7 +134,7 @@ export default async function EventsPage() {
             <Card key={ev.id}>
               <div className="flex items-start justify-between gap-2">
                 <h3 className="text-sm font-bold text-gray-900">{ev.title}</h3>
-                {activeBookingEventIds.has(ev.id) && <Badge tone="blue">予約済</Badge>}
+                {activeBookingEventIds.has(ev.id) && <Badge tone="blue">仮予約済</Badge>}
               </div>
               <dl className="mt-3 space-y-1 text-sm text-gray-700">
                 <div className="flex gap-2">
@@ -183,8 +195,8 @@ export default async function EventsPage() {
       {hasPendingBank && (
         <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-800">
           <p className="font-bold">お振込のご案内 (銀行振込を選択された方)</p>
-          <p className="mt-1">下記口座へ参加費のお振込をお願いいたします。入金確認後、決済状況が更新されます。</p>
-          <p className="mt-2 rounded bg-white px-3 py-2 font-semibold">{BANK_INFO}</p>
+          <p className="mt-1">下記口座へ参加費のお振込をお願いいたします。入金確認をもって参加確定となります。</p>
+          <p className="mt-2 rounded bg-white px-3 py-2 font-semibold">{BANK_TRANSFER_INFO}</p>
         </div>
       )}
     </div>

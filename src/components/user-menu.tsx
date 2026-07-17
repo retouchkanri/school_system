@@ -14,12 +14,14 @@ export default function UserMenu({
   homeHref,
   homeLabel,
   logout,
+  avatarUrl,
 }: {
   name: string;
   roleLabel: string;
   homeHref: string;
   homeLabel: string;
   logout: () => Promise<void>;
+  avatarUrl?: string | null;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -41,9 +43,14 @@ export default function UserMenu({
         aria-haspopup="menu"
         aria-expanded={open}
       >
-        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-600 text-sm font-bold text-white">
-          {name.trim().charAt(0)}
-        </span>
+        {avatarUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={avatarUrl} alt={name} className="h-9 w-9 rounded-full object-cover" />
+        ) : (
+          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-600 text-sm font-bold text-white">
+            {name.trim().charAt(0)}
+          </span>
+        )}
         <span className="hidden text-left sm:block">
           <span className="block text-sm font-semibold leading-tight text-gray-800">{name}</span>
           <span className="block text-[11px] leading-tight text-gray-400">{roleLabel}</span>

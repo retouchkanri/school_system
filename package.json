@@ -14,12 +14,15 @@
     "@supabase/supabase-js": "^2.110.7",
     "lucide-react": "^1.24.0",
     "next": "^15.5.20",
+    "nodemailer": "^6.9.16",
     "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "react-dom": "^19.2.7",
+    "stripe": "^17.5.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^26.1.1",
+    "@types/nodemailer": "^6.4.17",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "dotenv": "^17.4.2",

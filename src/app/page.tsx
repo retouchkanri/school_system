@@ -1,4 +1,6 @@
 import Link from "next/link";
+import SiteLogo from "@/components/site-logo";
+import HeroCarousel from "@/components/hero-carousel";
 import { btnPrimary, btnSecondary } from "@/components/ui";
 
 const FLOW = [
@@ -11,17 +13,17 @@ const FLOW = [
 
 const FEATURES = [
   {
-    img: "/images/horse-2.jpg",
+    img: "/images/feature-care.jpg",
     title: "馬とともに暮らす3年間",
     desc: "担当馬を持ち、毎日の手入れから騎乗まで。馬との信頼関係づくりがすべての学びの土台になります。",
   },
   {
-    img: "/images/campus-1.jpg",
+    img: "/images/feature-career.jpg",
     title: "騎手・厩務員への確かな進路",
     desc: "JRA・地方競馬・乗馬クラブ・牧場へ。座学と実習を組み合わせたカリキュラムで馬業界への就職を支援します。",
   },
   {
-    img: "/images/horse-1.jpg",
+    img: "/images/feature-dormlife.jpg",
     title: "全寮制だから身につく生活力",
     desc: "仲間と過ごす寮生活の中で、早起きの習慣も、協調性も、自然と身についていきます。",
   },
@@ -32,8 +34,7 @@ export default function HomePage() {
     <div className="min-h-screen bg-white">
       <header className="sticky top-0 z-30 flex w-full items-center justify-between border-b border-gray-100 bg-white/95 px-[5vw] py-5 backdrop-blur">
         <Link href="/" className="flex items-center">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/images/logo.png" alt="馬事学院/東関東馬事専門学院" className="h-12 w-auto" />
+          <SiteLogo />
         </Link>
         <nav className="flex items-center gap-3">
           <Link href="/login" className={btnSecondary}>
@@ -47,12 +48,7 @@ export default function HomePage() {
 
       <main>
         <section className="relative">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/images/hero.jpg"
-            alt="馬を愛すること。その気持ちは、きっと伝わります。"
-            className="h-[320px] w-full object-cover sm:h-[420px]"
-          />
+          <HeroCarousel />
         </section>
 
         <section className="px-[5vw] py-14 text-center">
@@ -102,7 +98,7 @@ export default function HomePage() {
 
         <section className="relative">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/images/visual-3.jpg" alt="馬を褒めること。" className="h-[260px] w-full object-cover sm:h-[340px]" />
+          <img src="/images/banner-praise.jpg" alt="馬を褒めること。" className="h-[260px] w-full object-cover sm:h-[340px]" />
         </section>
 
         <section className="px-[5vw] py-14 text-center">

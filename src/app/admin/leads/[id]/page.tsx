@@ -4,6 +4,7 @@ import { fmtDate, fmtDateTime, fmtYen } from "@/lib/format";
 import {
   VIDEO_STATUS_LABELS,
   AI_JUDGEMENT_LABELS,
+  AI_JUDGEMENT_MESSAGES,
   BOOKING_STATUS_LABELS,
   PAYMENT_METHOD_LABELS,
   PAYMENT_STATUS_LABELS,
@@ -12,8 +13,7 @@ import {
   ADMISSION_RESULT_LABELS,
   PROCEDURE_STATUS_LABELS,
   PRE_SCREENING_QUESTIONS,
-  EXPERIENCE_QUESTIONS_STUDENT,
-  EXPERIENCE_QUESTIONS_PARENT,
+  POST_VISIT_QUESTIONS,
   APPLICATION_DOCUMENTS,
   DECISION_DOCUMENTS,
   APTITUDE_TRAITS,
@@ -84,17 +84,24 @@ function AnswerList({
   questions,
   answers,
 }: {
-  questions: { id: string; text: string }[];
+  questions: { id: string; text: string; type?: string }[];
   answers: Record<string, string>;
 }) {
   return (
     <dl className="space-y-2">
-      {questions.map((q) => (
-        <div key={q.id} className="rounded-lg bg-gray-50 px-3 py-2">
-          <dt className="text-[11px] font-semibold text-gray-500">{q.text}</dt>
-          <dd className="mt-0.5 whitespace-pre-wrap text-sm text-gray-800">{answers[q.id]?.trim() || "—"}</dd>
-        </div>
-      ))}
+      {questions.map((q) => {
+        const raw = answers[q.id]?.trim() ?? "";
+        const value =
+          q.type === "stars" && raw
+            ? "★".repeat(Math.max(0, Math.min(5, Number(raw)))) + "☆".repeat(5 - Math.max(0, Math.min(5, Number(raw))))
+            : raw || "—";
+        return (
+          <div key={q.id} className="rounded-lg bg-gray-50 px-3 py-2">
+            <dt className="text-[11px] font-semibold text-gray-500">{q.text}</dt>
+            <dd className="mt-0.5 whitespace-pre-wrap text-sm text-gray-800">{value}</dd>
+          </div>
+        );
+      })}
     </dl>
   );
 }
@@ -142,8 +149,7 @@ export default async function AdminLeadDetailPage({ params }: { params: Promise<
   const procedure = procedureData as EnrollmentProcedure | null;
   const payments = (paymentsData ?? []) as Payment[];
 
-  const expStudent = expSurveys.find((s) => s.respondent === "student") ?? null;
-  const expParent = expSurveys.find((s) => s.respondent === "parent") ?? null;
+  const postVisitSurvey = expSurveys[0] ?? null;
 
   return (
     <div>
@@ -235,6 +241,7 @@ export default async function AdminLeadDetailPage({ params }: { params: Promise<
                   <Badge tone={judgementTone[lead.ai_judgement]}>{AI_JUDGEMENT_LABELS[lead.ai_judgement]}</Badge>
                   {lead.ai_type && <span className="text-sm font-bold text-brand-700">{lead.ai_type}</span>}
                 </div>
+                <p className="mt-2 text-sm font-semibold text-gray-800">{AI_JUDGEMENT_MESSAGES[lead.ai_judgement]}</p>
                 {lead.ai_summary && (
                   <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-gray-700">{lead.ai_summary}</p>
                 )}
@@ -255,33 +262,21 @@ export default async function AdminLeadDetailPage({ params }: { params: Promise<
             )}
           </Card>
 
-          <Card title="体験終了アンケート・入学確率">
+          <Card title="学校見学後アンケート・入学確率">
             {lead.ai_enrollment_probability != null && (
               <div className="mb-4 rounded-lg border border-brand-200 bg-brand-50 p-4 text-center">
                 <p className="text-xs font-semibold text-brand-600">AI予測</p>
                 <p className="mt-1 text-3xl font-bold text-brand-700">入学確率 {lead.ai_enrollment_probability}%</p>
               </div>
             )}
-            {!expStudent && !expParent ? (
-              <EmptyState message="体験アンケートは未回答です" />
+            {!postVisitSurvey ? (
+              <EmptyState message="学校見学後アンケートは未回答です" />
             ) : (
-              <div className="space-y-5">
-                {expStudent && (
-                  <div>
-                    <p className="mb-2 text-xs font-bold text-gray-500">
-                      本人回答 ({fmtDateTime(expStudent.submitted_at)})
-                    </p>
-                    <AnswerList questions={EXPERIENCE_QUESTIONS_STUDENT} answers={expStudent.answers} />
-                  </div>
-                )}
-                {expParent && (
-                  <div>
-                    <p className="mb-2 text-xs font-bold text-gray-500">
-                      保護者回答 ({fmtDateTime(expParent.submitted_at)})
-                    </p>
-                    <AnswerList questions={EXPERIENCE_QUESTIONS_PARENT} answers={expParent.answers} />
-                  </div>
-                )}
+              <div>
+                <p className="mb-2 text-xs font-bold text-gray-500">
+                  回答日時 ({fmtDateTime(postVisitSurvey.submitted_at)})
+                </p>
+                <AnswerList questions={POST_VISIT_QUESTIONS} answers={postVisitSurvey.answers} />
               </div>
             )}
           </Card>

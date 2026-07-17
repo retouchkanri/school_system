@@ -1,11 +1,13 @@
 "use server";
 
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth";
 import { adminDb } from "@/lib/supabase/admin";
 import { getLeadForUser, advanceLeadStatus } from "@/lib/data";
-import { notifyBoth } from "@/lib/notify";
-import { fmtDate, fmtYen } from "@/lib/format";
+import { notifyStaff } from "@/lib/notify";
+import { createCheckoutSession, stripeEnabled } from "@/lib/stripe";
 import type { OpenCampusBooking, OpenCampusEvent, PaymentMethod } from "@/lib/types";
 
 export interface BookingState {
@@ -14,14 +16,18 @@ export interface BookingState {
   bank?: boolean; // 銀行振込を選択した場合 true (振込案内を表示)
 }
 
-/** 見学・オープンキャンパスの予約 + 参加費決済 */
+async function siteOrigin(): Promise<string> {
+  const h = await headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
+  const proto = h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
+  return `${proto}://${host}`;
+}
+
+/** 見学・オープンキャンパスの仮予約 + 参加費決済 */
 export async function bookEventAction(_prev: BookingState, formData: FormData): Promise<BookingState> {
   const profile = await requireRole("applicant");
   const lead = await getLeadForUser(profile.id);
   if (!lead || lead.user_id !== profile.id) return { error: "リード情報が見つかりません" };
-  if (lead.ai_judgement !== "approved" && lead.ai_judgement !== "caution") {
-    return { error: "現在ご予約いただけません。担当者へお問い合わせください" };
-  }
 
   const eventId = String(formData.get("event_id") ?? "");
   const methodRaw = String(formData.get("payment_method") ?? "");
@@ -29,6 +35,9 @@ export async function bookEventAction(_prev: BookingState, formData: FormData): 
     return { error: "決済方法を選択してください" };
   }
   const method: PaymentMethod = methodRaw;
+  if (method === "credit_card" && !stripeEnabled()) {
+    return { error: "現在オンラインカード決済は準備中です。お手数ですが銀行振込をご選択ください。" };
+  }
 
   const { data: eventData } = await adminDb()
     .from("open_campus_events")
@@ -38,8 +47,6 @@ export async function bookEventAction(_prev: BookingState, formData: FormData): 
   const event = (eventData as OpenCampusEvent | null) ?? null;
   if (!event) return { error: "イベントが見つかりません" };
 
-  const paymentStatus = method === "credit_card" ? "paid" : "pending";
-
   // 既存予約チェック (キャンセル済みなら再予約として更新)
   const { data: existingData } = await adminDb()
     .from("open_campus_bookings")
@@ -48,7 +55,7 @@ export async function bookEventAction(_prev: BookingState, formData: FormData): 
     .eq("event_id", event.id)
     .maybeSingle();
   const existing = (existingData as OpenCampusBooking | null) ?? null;
-  if (existing && existing.status !== "cancelled") return { error: "このイベントはすでに予約済みです" };
+  if (existing && existing.status !== "cancelled") return { error: "このイベントはすでに仮予約済みです" };
 
   const { error: bookingError } = await adminDb()
     .from("open_campus_bookings")
@@ -58,37 +65,38 @@ export async function bookEventAction(_prev: BookingState, formData: FormData): 
         event_id: event.id,
         status: "reserved",
         payment_method: method,
-        payment_status: paymentStatus,
+        payment_status: "pending",
       },
       { onConflict: "lead_id,event_id" }
     );
-  if (bookingError) return { error: "予約の登録に失敗しました" };
+  if (bookingError) return { error: "仮予約の登録に失敗しました" };
 
-  await adminDb().from("payments").insert({
-    lead_id: lead.id,
-    type: "open_campus",
-    amount: event.fee,
-    method,
-    status: paymentStatus,
-    paid_at: method === "credit_card" ? new Date().toISOString() : null,
-  });
+  const { data: paymentData, error: paymentError } = await adminDb()
+    .from("payments")
+    .insert({ lead_id: lead.id, type: "open_campus", amount: event.fee, method, status: "pending" })
+    .select("id")
+    .single();
+  if (paymentError || !paymentData) return { error: "決済情報の作成に失敗しました" };
 
   await advanceLeadStatus(lead.id, "visit_reserved");
-
-  if (method === "credit_card") {
-    await advanceLeadStatus(lead.id, "payment_confirmed");
-    await notifyBoth(
-      lead.email,
-      lead.line_id,
-      "【東関東馬事学院】見学・オープンキャンパス予約確認",
-      `${lead.name}様\n\n以下のとおりご予約を承りました。\n\nイベント: ${event.title}\n日程: ${fmtDate(event.event_date)} ${event.start_time ?? ""}\n参加費: ${fmtYen(event.fee)} (クレジットカード決済済み)\n\n当日お会いできることを楽しみにしております。`,
-      "booking"
-    );
-  }
-
   revalidatePath("/mypage/events");
   revalidatePath("/mypage");
-  return { ok: true, bank: method === "bank_transfer" };
+
+  if (method === "credit_card") {
+    const origin = await siteOrigin();
+    const url = await createCheckoutSession({
+      paymentId: paymentData.id,
+      amount: event.fee,
+      description: `見学・オープンキャンパス参加費 (${event.title})`,
+      customerEmail: lead.email,
+      successUrl: `${origin}/mypage/events?stripe=success`,
+      cancelUrl: `${origin}/mypage/events?stripe=cancel`,
+    });
+    if (!url) return { error: "決済ページの作成に失敗しました" };
+    redirect(url);
+  }
+
+  return { ok: true, bank: true };
 }
 
 /** 予約のキャンセル */
@@ -111,4 +119,23 @@ export async function cancelBookingAction(formData: FormData): Promise<void> {
 
   revalidatePath("/mypage/events");
   revalidatePath("/mypage");
+}
+
+/** C判定などで個別相談を希望する場合、全管理者へ軽量に通知するだけのアクション (新規テーブル不要) */
+export async function requestIndividualConsultationAction(_formData: FormData): Promise<void> {
+  const profile = await requireRole("applicant");
+  const lead = await getLeadForUser(profile.id);
+  if (!lead || lead.user_id !== profile.id) return;
+
+  const { data: adminsData } = await adminDb().from("profiles").select("email").eq("role", "admin");
+  const adminEmails = ((adminsData ?? []) as { email: string | null }[]).map((a) => a.email).filter(Boolean) as string[];
+
+  await notifyStaff(
+    "【個別相談希望】仮審査アンケート回答者より",
+    `${lead.name}様(${lead.email ?? "メール未登録"} / ${lead.phone ?? "電話番号未登録"})が個別相談を希望しています。担当者よりご連絡をお願いします。`,
+    "consultation_request",
+    adminEmails
+  );
+
+  revalidatePath("/mypage/events");
 }

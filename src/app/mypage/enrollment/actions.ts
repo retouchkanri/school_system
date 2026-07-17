@@ -1,11 +1,14 @@
 "use server";
 
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth";
 import { adminDb } from "@/lib/supabase/admin";
 import { getLeadForUser, advanceLeadStatus } from "@/lib/data";
-import { UNIFORM_SIZES, BOOTS_SIZES, HELMET_SIZES } from "@/lib/constants";
-import type { AdmissionDecision, Lead, Payment, Profile } from "@/lib/types";
+import { createCheckoutSession, stripeEnabled } from "@/lib/stripe";
+import { UNIFORM_SIZES, BOOTS_SIZES, HELMET_SIZES, PAYMENT_TYPE_LABELS } from "@/lib/constants";
+import type { AdmissionDecision, Lead, Payment, PaymentType, Profile } from "@/lib/types";
 
 export interface ActionState {
   ok?: boolean;
@@ -102,7 +105,14 @@ export async function saveEnrollmentAction(_prev: ActionState, formData: FormDat
   return { ok: true };
 }
 
-/** 入学金・制服代・教材費の支払い (カード=即時決済 / 銀行振込=振込待ち) */
+async function siteOrigin(): Promise<string> {
+  const h = await headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
+  const proto = h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
+  return `${proto}://${host}`;
+}
+
+/** 入学金・制服代・教材費の支払い (カード=Stripe決済 / 銀行振込=振込待ち) */
 export async function payEnrollmentFeeAction(formData: FormData): Promise<void> {
   const profile = await requireRole("applicant");
   const lead = await getAcceptedLead(profile);
@@ -114,28 +124,53 @@ export async function payEnrollmentFeeAction(formData: FormData): Promise<void> 
   if (methodRaw !== "credit_card" && methodRaw !== "bank_transfer") return;
   const type = typeRaw as FeeType;
 
-  // 二重決済防止: 同種の支払いが既にあれば何もしない
+  const isCard = methodRaw === "credit_card";
+  if (isCard && !stripeEnabled()) {
+    redirect("/mypage/enrollment?pay_error=1");
+  }
+
+  // 同種の支払いが既にあれば: 確定済みは何もしない。カード決済が pending のまま (Stripe離脱等) は同じ支払い行で再チャレンジ。
   const { data: existingData } = await adminDb()
     .from("payments")
     .select("*")
     .eq("lead_id", lead.id)
     .eq("type", type)
-    .limit(1)
     .maybeSingle();
-  if ((existingData as Payment | null)) return;
+  const existing = existingData as Payment | null;
+  if (existing && (existing.status === "confirmed" || existing.status === "paid")) return;
+  if (existing && existing.method === "bank_transfer") return; // 振込確認待ちは変更不可
 
-  const isCard = methodRaw === "credit_card";
-  await adminDb().from("payments").insert({
-    lead_id: lead.id,
-    type,
-    amount: ENROLLMENT_FEES[type],
-    method: methodRaw,
-    status: isCard ? "paid" : "pending",
-    paid_at: isCard ? new Date().toISOString() : null,
-  });
+  let paymentId: string;
+  if (existing && existing.method === "credit_card") {
+    paymentId = existing.id;
+  } else {
+    const { data: paymentData, error: paymentError } = await adminDb()
+      .from("payments")
+      .insert({
+        lead_id: lead.id,
+        type,
+        amount: ENROLLMENT_FEES[type],
+        method: methodRaw,
+        status: "pending",
+      })
+      .select("id")
+      .single();
+    if (paymentError || !paymentData) return;
+    paymentId = paymentData.id;
+  }
 
-  if (isCard && type === "admission_fee") {
-    await advanceLeadStatus(lead.id, "admission_fee_paid");
+  if (isCard) {
+    const origin = await siteOrigin();
+    const url = await createCheckoutSession({
+      paymentId,
+      amount: ENROLLMENT_FEES[type],
+      description: PAYMENT_TYPE_LABELS[type as PaymentType],
+      customerEmail: lead.email,
+      successUrl: `${origin}/mypage/enrollment?stripe=success`,
+      cancelUrl: `${origin}/mypage/enrollment?stripe=cancel`,
+    });
+    if (!url) redirect("/mypage/enrollment?pay_error=1");
+    redirect(url);
   }
 
   revalidatePath("/mypage/enrollment");

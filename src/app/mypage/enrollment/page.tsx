@@ -6,6 +6,7 @@ import {
   PROCEDURE_STATUS_LABELS,
   PAYMENT_STATUS_LABELS,
   PAYMENT_METHOD_LABELS,
+  BANK_TRANSFER_INFO,
 } from "@/lib/constants";
 import { fmtDateTime, fmtYen } from "@/lib/format";
 import {
@@ -28,8 +29,6 @@ import type {
 import EnrollmentForm from "./enrollment-form";
 import { payEnrollmentFeeAction } from "./actions";
 
-const BANK_INFO = "千葉銀行 東金支店 普通 1234567 (口座名義: 学)トウカントウバジガクイン)";
-
 const FEES: { type: PaymentType; label: string; amount: number }[] = [
   { type: "admission_fee", label: "入学金", amount: 300000 },
   { type: "uniform", label: "制服代", amount: 85000 },
@@ -49,9 +48,14 @@ const PAYMENT_TONE: Record<PaymentStatus, BadgeTone> = {
   refunded: "gray",
 };
 
-export default async function EnrollmentPage() {
+export default async function EnrollmentPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ pay_error?: string }>;
+}) {
   const profile = await requireRole("applicant");
   const lead = await getLeadForUser(profile.id);
+  const sp = await searchParams;
 
   if (!lead) {
     return (
@@ -120,6 +124,12 @@ export default async function EnrollmentPage() {
         action={<Badge tone={PROCEDURE_TONE[status]}>{PROCEDURE_STATUS_LABELS[status]}</Badge>}
       />
 
+      {sp.pay_error && (
+        <div className="mb-6 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
+          現在オンラインカード決済は準備中です。お手数ですが銀行振込をご選択ください。
+        </div>
+      )}
+
       {status === "completed" && (
         <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 p-5 text-sm text-emerald-800">
           <p className="font-bold">✓ 手続き入力は完了しています (署名日時: {fmtDateTime(procedure?.signed_at)})</p>
@@ -147,6 +157,15 @@ export default async function EnrollmentPage() {
                   </p>
                   {payment.method === "bank_transfer" && payment.status === "pending" && (
                     <p className="text-xs text-amber-700">お振込をお待ちしています</p>
+                  )}
+                  {payment.method === "credit_card" && payment.status === "pending" && (
+                    <form action={payEnrollmentFeeAction}>
+                      <input type="hidden" name="type" value={fee.type} />
+                      <input type="hidden" name="method" value="credit_card" />
+                      <button type="submit" className={`${btnPrimary} w-full`}>
+                        決済ページへ進む
+                      </button>
+                    </form>
                   )}
                 </div>
               ) : (
@@ -176,7 +195,7 @@ export default async function EnrollmentPage() {
         <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-800">
           <p className="font-bold">お振込のご案内 (銀行振込を選択された方)</p>
           <p className="mt-1">下記口座へお振込をお願いいたします。入金確認後、お支払い状況が更新されます。</p>
-          <p className="mt-2 rounded bg-white px-3 py-2 font-semibold">{BANK_INFO}</p>
+          <p className="mt-2 rounded bg-white px-3 py-2 font-semibold">{BANK_TRANSFER_INFO}</p>
           <p className="mt-1 text-xs">※ 振込手数料はご負担ください。お名前は入学者ご本人の氏名でお願いします。</p>
         </div>
       )}

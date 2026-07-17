@@ -47,17 +47,16 @@ const NAV: { section: string; items: { href: string; label: string }[] }[] = [
       { href: "/admin/notifications", label: "送信ログ" },
     ],
   },
+  {
+    section: "システム管理",
+    items: [{ href: "/admin/users", label: "ユーザー管理" }],
+  },
 ];
 
 export default function AdminSidebar() {
   const pathname = usePathname();
   return (
-    <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col overflow-y-auto border-r border-gray-200 bg-white lg:flex">
-      <div className="border-b border-gray-100 px-5 py-4">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/images/logo.png" alt="馬事学院/東関東馬事専門学院" className="h-8 w-auto" />
-        <p className="mt-1 text-[11px] text-gray-400">職員用管理システム</p>
-      </div>
+    <aside className="fixed top-[4.25rem] bottom-0 left-0 z-30 hidden w-60 flex-col overflow-y-auto border-r border-gray-200 bg-white lg:flex">
       <nav className="flex-1 space-y-5 px-3 py-4">
         {NAV.map((group) => (
           <div key={group.section}>

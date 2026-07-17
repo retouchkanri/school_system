@@ -1,5 +1,6 @@
 import { logoutAction } from "@/app/login/actions";
 import PortalNav, { type PortalNavItem } from "@/components/portal-shell";
+import SiteLogo from "@/components/site-logo";
 import UserMenu from "@/components/user-menu";
 import type { Profile } from "@/lib/types";
 
@@ -21,8 +22,7 @@ export default function PortalLayout({
       <header className="sticky top-0 z-20 border-b border-gray-200 bg-white/95 backdrop-blur">
         <div className="flex w-full items-center justify-between px-[5vw] py-4">
           <div className="flex items-center gap-3">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/logo.png" alt="馬事学院/東関東馬事専門学院" className="h-9 w-auto" />
+            <SiteLogo />
             <span className="hidden rounded-full bg-brand-50 px-2.5 py-0.5 text-[11px] font-semibold text-brand-700 sm:inline">
               {roleLabel}ページ
             </span>

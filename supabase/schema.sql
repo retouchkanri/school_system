@@ -4,9 +4,13 @@
 -- ============================================================
 
 -- ---------- ENUMS ----------
-create type user_role as enum ('admin','applicant','student','parent','supporter');
+do $$ begin
+  create type user_role as enum ('admin','applicant','student','parent','supporter');
+exception when duplicate_object then null;
+end $$;
 
-create type lead_status as enum (
+do $$ begin
+  create type lead_status as enum (
   'material_requested',  -- 資料請求
   'material_sent',       -- 資料発送
   'video_watched',       -- 動画視聴
@@ -26,26 +30,76 @@ create type lead_status as enum (
   'dorm_ready',          -- 入寮準備
   'enrolled'             -- 入学式(入学確定)
 );
+exception when duplicate_object then null;
+end $$;
 
-create type video_status as enum ('unwatched','in_progress','completed');
-create type ai_judgement as enum ('approved','caution','rejected');
-create type booking_status as enum ('reserved','attended','cancelled','no_show');
-create type payment_method as enum ('credit_card','bank_transfer');
-create type payment_status as enum ('pending','paid','confirmed','refunded');
-create type payment_type as enum ('open_campus','admission_fee','uniform','materials');
-create type respondent_type as enum ('student','parent');
-create type application_status as enum ('draft','submitted','under_review','interview_scheduled','decided');
-create type admission_result as enum ('accepted','rejected','waitlist');
-create type procedure_status as enum ('not_started','in_progress','completed');
-create type audience_type as enum ('enrollee','student','parent','supporter','all');
-create type attendance_status as enum ('present','absent','late','early_leave');
-create type meal_type as enum ('breakfast','lunch','dinner');
-create type approval_status as enum ('pending','approved','rejected');
-create type student_state as enum ('enrolled','graduated','withdrawn');
-create type notify_channel as enum ('email','line');
+do $$ begin
+  create type video_status as enum ('unwatched','in_progress','completed');
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  create type ai_judgement as enum ('approved','caution','rejected');
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  create type booking_status as enum ('reserved','attended','cancelled','no_show');
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  create type payment_method as enum ('credit_card','bank_transfer');
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  create type payment_status as enum ('pending','paid','confirmed','refunded');
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  create type payment_type as enum ('open_campus','admission_fee','uniform','materials');
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  create type respondent_type as enum ('student','parent');
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  create type application_status as enum ('draft','submitted','under_review','interview_scheduled','decided');
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  create type admission_result as enum ('accepted','rejected','waitlist');
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  create type procedure_status as enum ('not_started','in_progress','completed');
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  create type audience_type as enum ('enrollee','student','parent','supporter','all');
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  create type attendance_status as enum ('present','absent','late','early_leave');
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  create type meal_type as enum ('breakfast','lunch','dinner');
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  create type approval_status as enum ('pending','approved','rejected');
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  create type student_state as enum ('enrolled','graduated','withdrawn');
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  create type notify_channel as enum ('email','line');
+exception when duplicate_object then null;
+end $$;
 
 -- ---------- PROFILES ----------
-create table profiles (
+create table if not exists profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   role user_role not null default 'applicant',
   full_name text not null,
@@ -56,7 +110,7 @@ create table profiles (
 );
 
 -- ---------- 馬 ----------
-create table horses (
+create table if not exists horses (
   id uuid primary key default gen_random_uuid(),
   name text not null,
   breed text,
@@ -69,7 +123,7 @@ create table horses (
 );
 
 -- ---------- ステップ1: 資料請求 (リード) ----------
-create table leads (
+create table if not exists leads (
   id uuid primary key default gen_random_uuid(),
   name text not null,
   kana text,
@@ -102,7 +156,7 @@ create table leads (
 );
 
 -- ---------- ステップ2: 動画視聴 ----------
-create table video_progress (
+create table if not exists video_progress (
   id uuid primary key default gen_random_uuid(),
   lead_id uuid not null references leads(id) on delete cascade,
   video_title text not null default '学院紹介動画',
@@ -113,7 +167,7 @@ create table video_progress (
 );
 
 -- ---------- ステップ2: 入学仮審査アンケート ----------
-create table pre_screening_surveys (
+create table if not exists pre_screening_surveys (
   id uuid primary key default gen_random_uuid(),
   lead_id uuid not null references leads(id) on delete cascade unique,
   answers jsonb not null,
@@ -121,7 +175,7 @@ create table pre_screening_surveys (
 );
 
 -- ---------- ステップ3: 学校見学・オープンキャンパス ----------
-create table open_campus_events (
+create table if not exists open_campus_events (
   id uuid primary key default gen_random_uuid(),
   title text not null,
   event_date date not null,
@@ -132,7 +186,7 @@ create table open_campus_events (
   created_at timestamptz not null default now()
 );
 
-create table open_campus_bookings (
+create table if not exists open_campus_bookings (
   id uuid primary key default gen_random_uuid(),
   lead_id uuid not null references leads(id) on delete cascade,
   event_id uuid not null references open_campus_events(id) on delete cascade,
@@ -144,7 +198,7 @@ create table open_campus_bookings (
 );
 
 -- ---------- ステップ4: 体験終了アンケート ----------
-create table experience_surveys (
+create table if not exists experience_surveys (
   id uuid primary key default gen_random_uuid(),
   lead_id uuid not null references leads(id) on delete cascade,
   respondent respondent_type not null,
@@ -154,7 +208,7 @@ create table experience_surveys (
 );
 
 -- ---------- ステップ5: 出願 ----------
-create table applications (
+create table if not exists applications (
   id uuid primary key default gen_random_uuid(),
   lead_id uuid not null references leads(id) on delete cascade unique,
   documents jsonb not null default '{}'::jsonb, -- 願書/写真/成績/作文 提出チェック
@@ -166,7 +220,7 @@ create table applications (
 );
 
 -- ---------- ステップ5: 性格・適性検査 ----------
-create table aptitude_tests (
+create table if not exists aptitude_tests (
   id uuid primary key default gen_random_uuid(),
   lead_id uuid not null references leads(id) on delete cascade unique,
   answers jsonb not null,      -- {q1: 1-5, ...}
@@ -177,7 +231,7 @@ create table aptitude_tests (
 );
 
 -- ---------- ステップ6: 合否通知 ----------
-create table admission_decisions (
+create table if not exists admission_decisions (
   id uuid primary key default gen_random_uuid(),
   lead_id uuid not null references leads(id) on delete cascade unique,
   result admission_result not null,
@@ -188,7 +242,7 @@ create table admission_decisions (
 );
 
 -- ---------- ステップ7: 入学手続き ----------
-create table enrollment_procedures (
+create table if not exists enrollment_procedures (
   id uuid primary key default gen_random_uuid(),
   lead_id uuid not null references leads(id) on delete cascade unique,
   photo_submitted boolean not null default false,      -- 顔写真
@@ -211,7 +265,7 @@ create table enrollment_procedures (
 );
 
 -- ---------- 決済 ----------
-create table payments (
+create table if not exists payments (
   id uuid primary key default gen_random_uuid(),
   lead_id uuid references leads(id) on delete cascade,
   student_id uuid,
@@ -225,7 +279,7 @@ create table payments (
 );
 
 -- ---------- ステップ8/在校生: 一斉配信 ----------
-create table announcements (
+create table if not exists announcements (
   id uuid primary key default gen_random_uuid(),
   audience audience_type not null,
   title text not null,
@@ -237,7 +291,7 @@ create table announcements (
 );
 
 -- ---------- 在校生 ----------
-create table students (
+create table if not exists students (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references profiles(id),
   parent_user_id uuid references profiles(id),
@@ -254,11 +308,14 @@ create table students (
   created_at timestamptz not null default now()
 );
 
-alter table payments add constraint payments_student_fk
+do $$ begin
+  alter table payments add constraint payments_student_fk
   foreign key (student_id) references students(id) on delete cascade;
+exception when duplicate_object then null;
+end $$;
 
 -- 1. 日常の出欠管理 / 5. 欠席・遅刻・早退
-create table attendance_records (
+create table if not exists attendance_records (
   id uuid primary key default gen_random_uuid(),
   student_id uuid not null references students(id) on delete cascade,
   date date not null,
@@ -270,7 +327,7 @@ create table attendance_records (
 );
 
 -- 2. 研修管理
-create table training_records (
+create table if not exists training_records (
   id uuid primary key default gen_random_uuid(),
   student_id uuid not null references students(id) on delete cascade,
   title text not null,
@@ -283,7 +340,7 @@ create table training_records (
 );
 
 -- 3. 授業日報(騎乗報告)
-create table riding_reports (
+create table if not exists riding_reports (
   id uuid primary key default gen_random_uuid(),
   student_id uuid not null references students(id) on delete cascade,
   horse_id uuid not null references horses(id),
@@ -296,7 +353,7 @@ create table riding_reports (
 );
 
 -- 4. 外泊届け(保護者承認)
-create table overnight_leave_requests (
+create table if not exists overnight_leave_requests (
   id uuid primary key default gen_random_uuid(),
   student_id uuid not null references students(id) on delete cascade,
   start_date date not null,
@@ -311,7 +368,7 @@ create table overnight_leave_requests (
 );
 
 -- 6. 食事管理
-create table meal_records (
+create table if not exists meal_records (
   id uuid primary key default gen_random_uuid(),
   student_id uuid not null references students(id) on delete cascade,
   date date not null,
@@ -323,7 +380,7 @@ create table meal_records (
 );
 
 -- 7/8. 一斉メール・LINE
-create table bulk_messages (
+create table if not exists bulk_messages (
   id uuid primary key default gen_random_uuid(),
   audience text not null,    -- students / parents / both
   title text not null,
@@ -336,7 +393,7 @@ create table bulk_messages (
 );
 
 -- 送信ログ (メール/LINE シミュレーション)
-create table notifications (
+create table if not exists notifications (
   id uuid primary key default gen_random_uuid(),
   channel notify_channel not null,
   recipient text not null,
@@ -347,7 +404,7 @@ create table notifications (
 );
 
 -- 定期アンケート (在校生・保護者)
-create table student_surveys (
+create table if not exists student_surveys (
   id uuid primary key default gen_random_uuid(),
   title text not null,
   description text,
@@ -357,7 +414,7 @@ create table student_surveys (
   created_at timestamptz not null default now()
 );
 
-create table student_survey_responses (
+create table if not exists student_survey_responses (
   id uuid primary key default gen_random_uuid(),
   survey_id uuid not null references student_surveys(id) on delete cascade,
   student_id uuid not null references students(id) on delete cascade,
@@ -367,7 +424,7 @@ create table student_survey_responses (
 );
 
 -- リタッチ馬 月次AI要約 (一口支援者と共有)
-create table horse_monthly_summaries (
+create table if not exists horse_monthly_summaries (
   id uuid primary key default gen_random_uuid(),
   horse_id uuid not null references horses(id) on delete cascade,
   year int not null,
@@ -380,7 +437,7 @@ create table horse_monthly_summaries (
 );
 
 -- 一口支援者
-create table supporters (
+create table if not exists supporters (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references profiles(id),
   horse_id uuid not null references horses(id) on delete cascade,
@@ -390,7 +447,7 @@ create table supporters (
 );
 
 -- フォローアップ送信ログ
-create table follow_up_logs (
+create table if not exists follow_up_logs (
   id uuid primary key default gen_random_uuid(),
   lead_id uuid not null references leads(id) on delete cascade,
   rule text not null,
@@ -444,82 +501,126 @@ alter table supporters enable row level security;
 alter table follow_up_logs enable row level security;
 
 -- profiles
+drop policy if exists "profiles_own_read" on profiles;
 create policy "profiles_own_read" on profiles for select using (id = auth.uid() or is_admin());
+drop policy if exists "profiles_own_update" on profiles;
 create policy "profiles_own_update" on profiles for update using (id = auth.uid() or is_admin());
+drop policy if exists "profiles_admin_all" on profiles;
 create policy "profiles_admin_all" on profiles for all using (is_admin());
 
 -- 資料請求フォームは未ログインでも送信可
+drop policy if exists "leads_public_insert" on leads;
 create policy "leads_public_insert" on leads for insert with check (true);
+drop policy if exists "leads_own_read" on leads;
 create policy "leads_own_read" on leads for select using (user_id = auth.uid() or is_admin());
+drop policy if exists "leads_own_update" on leads;
 create policy "leads_own_update" on leads for update using (user_id = auth.uid() or is_admin());
+drop policy if exists "leads_admin_delete" on leads;
 create policy "leads_admin_delete" on leads for delete using (is_admin());
 
 -- リード配下テーブル(本人 or 管理者)
+drop policy if exists "vp_rw" on video_progress;
 create policy "vp_rw" on video_progress for all
   using (lead_id in (select my_lead_ids()) or is_admin())
   with check (lead_id in (select my_lead_ids()) or is_admin());
+drop policy if exists "pss_rw" on pre_screening_surveys;
 create policy "pss_rw" on pre_screening_surveys for all
   using (lead_id in (select my_lead_ids()) or is_admin())
   with check (lead_id in (select my_lead_ids()) or is_admin());
+drop policy if exists "ocb_rw" on open_campus_bookings;
 create policy "ocb_rw" on open_campus_bookings for all
   using (lead_id in (select my_lead_ids()) or is_admin())
   with check (lead_id in (select my_lead_ids()) or is_admin());
+drop policy if exists "exs_rw" on experience_surveys;
 create policy "exs_rw" on experience_surveys for all
   using (lead_id in (select my_lead_ids()) or is_admin())
   with check (lead_id in (select my_lead_ids()) or is_admin());
+drop policy if exists "app_rw" on applications;
 create policy "app_rw" on applications for all
   using (lead_id in (select my_lead_ids()) or is_admin())
   with check (lead_id in (select my_lead_ids()) or is_admin());
+drop policy if exists "apt_rw" on aptitude_tests;
 create policy "apt_rw" on aptitude_tests for all
   using (lead_id in (select my_lead_ids()) or is_admin())
   with check (lead_id in (select my_lead_ids()) or is_admin());
+drop policy if exists "adm_read" on admission_decisions;
 create policy "adm_read" on admission_decisions for select
   using (lead_id in (select my_lead_ids()) or is_admin());
+drop policy if exists "adm_admin" on admission_decisions;
 create policy "adm_admin" on admission_decisions for all using (is_admin());
+drop policy if exists "enp_rw" on enrollment_procedures;
 create policy "enp_rw" on enrollment_procedures for all
   using (lead_id in (select my_lead_ids()) or is_admin())
   with check (lead_id in (select my_lead_ids()) or is_admin());
+drop policy if exists "pay_read" on payments;
 create policy "pay_read" on payments for select
   using (lead_id in (select my_lead_ids()) or student_id in (select my_student_ids()) or is_admin());
+drop policy if exists "pay_admin" on payments;
 create policy "pay_admin" on payments for all using (is_admin());
+drop policy if exists "ful_admin" on follow_up_logs;
 create policy "ful_admin" on follow_up_logs for all using (is_admin());
 
 -- イベント・お知らせは閲覧可
+drop policy if exists "oce_read" on open_campus_events;
 create policy "oce_read" on open_campus_events for select using (true);
+drop policy if exists "oce_admin" on open_campus_events;
 create policy "oce_admin" on open_campus_events for all using (is_admin());
+drop policy if exists "ann_read" on announcements;
 create policy "ann_read" on announcements for select using (auth.uid() is not null);
+drop policy if exists "ann_admin" on announcements;
 create policy "ann_admin" on announcements for all using (is_admin());
+drop policy if exists "horses_read" on horses;
 create policy "horses_read" on horses for select using (auth.uid() is not null);
+drop policy if exists "horses_admin" on horses;
 create policy "horses_admin" on horses for all using (is_admin());
 
 -- 在校生関連
+drop policy if exists "stu_read" on students;
 create policy "stu_read" on students for select
   using (user_id = auth.uid() or parent_user_id = auth.uid() or is_admin());
+drop policy if exists "stu_admin" on students;
 create policy "stu_admin" on students for all using (is_admin());
+drop policy if exists "att_read" on attendance_records;
 create policy "att_read" on attendance_records for select
   using (student_id in (select my_student_ids()) or is_admin());
+drop policy if exists "att_admin" on attendance_records;
 create policy "att_admin" on attendance_records for all using (is_admin());
+drop policy if exists "trn_read" on training_records;
 create policy "trn_read" on training_records for select
   using (student_id in (select my_student_ids()) or is_admin());
+drop policy if exists "trn_admin" on training_records;
 create policy "trn_admin" on training_records for all using (is_admin());
+drop policy if exists "rid_rw" on riding_reports;
 create policy "rid_rw" on riding_reports for all
   using (student_id in (select my_student_ids()) or is_admin())
   with check (student_id in (select my_student_ids()) or is_admin());
+drop policy if exists "ovn_rw" on overnight_leave_requests;
 create policy "ovn_rw" on overnight_leave_requests for all
   using (student_id in (select my_student_ids()) or is_admin())
   with check (student_id in (select my_student_ids()) or is_admin());
+drop policy if exists "meal_read" on meal_records;
 create policy "meal_read" on meal_records for select
   using (student_id in (select my_student_ids()) or is_admin());
+drop policy if exists "meal_admin" on meal_records;
 create policy "meal_admin" on meal_records for all using (is_admin());
+drop policy if exists "blk_admin" on bulk_messages;
 create policy "blk_admin" on bulk_messages for all using (is_admin());
+drop policy if exists "ntf_admin" on notifications;
 create policy "ntf_admin" on notifications for all using (is_admin());
+drop policy if exists "ssv_read" on student_surveys;
 create policy "ssv_read" on student_surveys for select using (auth.uid() is not null);
+drop policy if exists "ssv_admin" on student_surveys;
 create policy "ssv_admin" on student_surveys for all using (is_admin());
+drop policy if exists "ssr_rw" on student_survey_responses;
 create policy "ssr_rw" on student_survey_responses for all
   using (student_id in (select my_student_ids()) or is_admin())
   with check (student_id in (select my_student_ids()) or is_admin());
+drop policy if exists "hms_read" on horse_monthly_summaries;
 create policy "hms_read" on horse_monthly_summaries for select
   using ((shared and auth.uid() is not null) or is_admin());
+drop policy if exists "hms_admin" on horse_monthly_summaries;
 create policy "hms_admin" on horse_monthly_summaries for all using (is_admin());
+drop policy if exists "sup_read" on supporters;
 create policy "sup_read" on supporters for select using (user_id = auth.uid() or is_admin());
+drop policy if exists "sup_admin" on supporters;
 create policy "sup_admin" on supporters for all using (is_admin());

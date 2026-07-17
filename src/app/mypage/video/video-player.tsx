@@ -68,7 +68,7 @@ export default function VideoPlayer({ initialCompleted }: { initialCompleted: bo
       {/* 疑似動画プレイヤー */}
       <div className="relative overflow-hidden rounded-xl bg-emerald-950 shadow-md">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/images/visual-2.jpg" alt="" className="absolute inset-0 h-full w-full object-cover opacity-40" />
+        <img src="/images/banner-video.jpg" alt="" className="absolute inset-0 h-full w-full object-cover opacity-40" />
         <div className="relative flex min-h-[280px] flex-col items-center justify-center px-6 py-12 text-center text-white">
           <h2 className="mt-4 text-lg font-bold drop-shadow">東関東馬事高等学院・専門学院 学院紹介</h2>
           <p className="mt-3 max-w-md text-sm leading-relaxed text-white/90">

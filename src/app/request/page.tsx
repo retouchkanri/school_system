@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import Link from "next/link";
 import { submitRequestAction, type RequestState } from "./actions";
+import SiteLogo from "@/components/site-logo";
 import { btnPrimary, inputCls, Label } from "@/components/ui";
 import { GRADES, COURSES, INTERESTED_JOBS, REFERRAL_SOURCES } from "@/lib/constants";
 
@@ -13,15 +14,17 @@ export default function RequestPage() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-brand-50 via-white to-brand-100 px-4">
         <div className="max-w-md rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-lg">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/images/logo.png" alt="馬事学院/東関東馬事専門学院" className="mx-auto h-10 w-auto" />
+          <SiteLogo className="mx-auto inline-block" />
           <h1 className="mt-4 text-lg font-bold text-gray-900">資料請求を受け付けました</h1>
           <p className="mt-3 text-sm leading-relaxed text-gray-600">
-            ご入力いただいたメールアドレスへ受付確認をお送りしました。
-            パンフレット発送後、学院紹介動画と入学仮審査アンケートのご案内が届きます。
+            ご入力いただいたメールアドレスへ受付確認をお送りしました。マイページのご案内も記載しておりますので、ご確認ください。
           </p>
-          <Link href="/" className={`${btnPrimary} mt-6`}>
-            トップへ戻る
+          <p className="mt-3 rounded-lg bg-gray-50 px-3 py-2 text-xs leading-relaxed text-gray-500">
+            マイページには「メールアドレス」と「生年月日(半角数字8桁 例:20250102)」でログインできます。
+            パスワードはログイン後にいつでも変更いただけます。
+          </p>
+          <Link href="/login" className={`${btnPrimary} mt-6`}>
+            マイページへログイン
           </Link>
         </div>
       </div>
@@ -33,13 +36,12 @@ export default function RequestPage() {
       <div className="mx-auto max-w-2xl">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/images/visual-6.jpg"
+          src="/images/banner-talk.jpg"
           alt="馬と話すこと。"
           className="mb-6 h-36 w-full rounded-xl object-cover shadow-sm sm:h-44"
         />
         <div className="mb-6 text-center">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/images/logo.png" alt="馬事学院/東関東馬事専門学院" className="mx-auto h-12 w-auto" />
+          <SiteLogo className="mx-auto inline-block" />
           <h1 className="mt-3 text-xl font-bold text-gray-900">資料請求フォーム</h1>
           <p className="mt-1 text-sm text-gray-500">
             東関東馬事高等学院・東関東馬事専門学院のパンフレットを無料でお送りします
@@ -68,8 +70,9 @@ export default function RequestPage() {
               </select>
             </div>
             <div>
-              <Label>生年月日</Label>
-              <input name="birth_date" type="date" className={inputCls} />
+              <Label required>生年月日</Label>
+              <input name="birth_date" type="date" required className={inputCls} />
+              <p className="mt-1 text-[11px] text-gray-400">マイページの初回ログインパスワードとして使用します</p>
             </div>
             <div>
               <Label>性別</Label>

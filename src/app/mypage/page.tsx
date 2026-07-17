@@ -1,9 +1,15 @@
 import Link from "next/link";
 import { requireRole } from "@/lib/auth";
 import { getLeadForUser } from "@/lib/data";
-import { PROGRESS_STEPS, statusIndex } from "@/lib/constants";
-import { Card, PageHeader, ProgressTracker, btnPrimary } from "@/components/ui";
-import type { LeadStatus } from "@/lib/types";
+import { PROGRESS_STEPS, statusIndex, AI_JUDGEMENT_LABELS, AI_JUDGEMENT_MESSAGES } from "@/lib/constants";
+import { Card, PageHeader, ProgressTracker, Badge, btnPrimary, type BadgeTone } from "@/components/ui";
+import type { AiJudgement, LeadStatus } from "@/lib/types";
+
+const JUDGEMENT_TONE: Record<AiJudgement, BadgeTone> = {
+  approved: "green",
+  caution: "amber",
+  rejected: "purple",
+};
 
 /** ステータスごとの「次にやること」定義 */
 const NEXT_ACTIONS: Record<LeadStatus, { title: string; description: string; href: string; button: string }> = {
@@ -147,7 +153,7 @@ export default async function MypageHome() {
     <div>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src="/images/visual-4.jpg"
+        src="/images/banner-trust.jpg"
         alt="馬に委ねること。"
         className="mb-6 h-36 w-full rounded-xl object-cover sm:h-48"
       />
@@ -169,12 +175,14 @@ export default async function MypageHome() {
         </Link>
       </div>
 
-      {lead.ai_type && (
+      {lead.ai_judgement && (
         <div className="rounded-xl border border-purple-200 bg-gradient-to-br from-purple-50 to-white p-6 shadow-sm">
-          <p className="text-xs font-bold text-purple-600">AI診断結果</p>
-          <p className="mt-1 text-lg font-bold text-gray-900">
-            あなたのタイプ: <span className="text-purple-700">{lead.ai_type}</span>
-          </p>
+          <p className="text-xs font-bold text-purple-600">入学仮審査結果</p>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <Badge tone={JUDGEMENT_TONE[lead.ai_judgement]}>{AI_JUDGEMENT_LABELS[lead.ai_judgement]}</Badge>
+            {lead.ai_type && <span className="text-sm font-bold text-gray-700">{lead.ai_type}</span>}
+          </div>
+          <p className="mt-2 text-base font-bold text-gray-900">{AI_JUDGEMENT_MESSAGES[lead.ai_judgement]}</p>
           <p className="mt-2 text-xs text-gray-400">仮審査アンケートの回答から診断しました</p>
         </div>
       )}

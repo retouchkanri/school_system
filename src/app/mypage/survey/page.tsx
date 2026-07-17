@@ -2,11 +2,17 @@ import Link from "next/link";
 import { requireRole } from "@/lib/auth";
 import { getLeadForUser } from "@/lib/data";
 import { adminDb } from "@/lib/supabase/admin";
-import { PRE_SCREENING_QUESTIONS } from "@/lib/constants";
+import { PRE_SCREENING_QUESTIONS, AI_JUDGEMENT_LABELS, AI_JUDGEMENT_MESSAGES } from "@/lib/constants";
 import { fmtDateTime } from "@/lib/format";
-import { Card, PageHeader, Badge, btnPrimary } from "@/components/ui";
-import type { PreScreeningSurvey } from "@/lib/types";
+import { Card, PageHeader, Badge, btnPrimary, type BadgeTone } from "@/components/ui";
+import type { AiJudgement, PreScreeningSurvey } from "@/lib/types";
 import SurveyForm from "./survey-form";
+
+const JUDGEMENT_TONE: Record<AiJudgement, BadgeTone> = {
+  approved: "green",
+  caution: "amber",
+  rejected: "purple",
+};
 
 export default async function SurveyPage() {
   const profile = await requireRole("applicant");
@@ -46,17 +52,16 @@ export default async function SurveyPage() {
           action={<Badge tone="green">回答済</Badge>}
         />
 
-        {lead.ai_type && (
+        {lead.ai_judgement && (
           <div className="mb-6 rounded-xl border border-purple-200 bg-gradient-to-br from-purple-50 via-white to-brand-50 p-6 shadow-sm">
-            <p className="text-xs font-bold text-purple-600">AI診断結果</p>
-            <p className="mt-1 text-xl font-bold text-gray-900">
-              あなたのタイプ: <span className="text-purple-700">{lead.ai_type}</span>
-            </p>
-            {lead.ai_summary && (
-              <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-gray-600">{lead.ai_summary}</p>
-            )}
+            <p className="text-xs font-bold text-purple-600">入学仮審査結果</p>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <Badge tone={JUDGEMENT_TONE[lead.ai_judgement]}>{AI_JUDGEMENT_LABELS[lead.ai_judgement]}</Badge>
+              {lead.ai_type && <span className="text-sm font-bold text-gray-700">{lead.ai_type}</span>}
+            </div>
+            <p className="mt-2 text-lg font-bold text-gray-900">{AI_JUDGEMENT_MESSAGES[lead.ai_judgement]}</p>
             <p className="mt-3 text-xs text-gray-400">
-              ※ この診断は入学後のサポートに活用されます。あなたの良さを大切にした学院生活をご提案します。
+              ※ こちらの診断は入学後のサポートに活用されます。合否そのものではなく、あなたに合ったご案内のための結果です。
             </p>
             <Link href="/mypage/events" className={`${btnPrimary} mt-4`}>
               見学・オープンキャンパス予約へ進む →
@@ -86,7 +91,7 @@ export default async function SurveyPage() {
     <div>
       <PageHeader
         title="入学仮審査アンケート"
-        description="全16問・約5分。あなたに合ったサポートをご提案するためのアンケートです。ありのままお答えください。"
+        description="あなたに合った学校生活をご提案するため、まずは入学仮審査アンケートにご協力をお願いします。ありのままお答えください。"
       />
       <SurveyForm />
     </div>

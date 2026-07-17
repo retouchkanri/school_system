@@ -22,11 +22,11 @@ import { analyzePreScreening, computeEnrollmentProbability, analyzeAptitude, sum
 import { APTITUDE_QUESTIONS, LIKERT_OPTIONS } from "@/lib/aptitude";
 import { fmtDate, fmtDateTime, fmtYen, toDateInput, daysAgo } from "@/lib/format";
 import {
-  PROGRESS_STEPS, LEAD_STATUS_LABELS, statusIndex, VIDEO_STATUS_LABELS, AI_JUDGEMENT_LABELS,
-  BOOKING_STATUS_LABELS, PAYMENT_METHOD_LABELS, PAYMENT_STATUS_LABELS, PAYMENT_TYPE_LABELS,
+  PROGRESS_STEPS, LEAD_STATUS_LABELS, statusIndex, VIDEO_STATUS_LABELS, AI_JUDGEMENT_LABELS, AI_JUDGEMENT_MESSAGES,
+  BOOKING_STATUS_LABELS, PAYMENT_METHOD_LABELS, PAYMENT_STATUS_LABELS, PAYMENT_TYPE_LABELS, BANK_TRANSFER_INFO,
   APPLICATION_STATUS_LABELS, ADMISSION_RESULT_LABELS, PROCEDURE_STATUS_LABELS, APPROVAL_STATUS_LABELS,
   ATTENDANCE_STATUS_LABELS, MEAL_LABELS, AUDIENCE_LABELS, PRE_SCREENING_QUESTIONS,
-  EXPERIENCE_QUESTIONS_STUDENT, EXPERIENCE_QUESTIONS_PARENT, APPLICATION_DOCUMENTS, DECISION_DOCUMENTS,
+  POST_VISIT_QUESTIONS, APPLICATION_DOCUMENTS, DECISION_DOCUMENTS, EXPERIENCE_APPLICATION_URLS,
   APTITUDE_TRAITS, SUITABILITY_LABELS, FOLLOW_UP_RULES, UNIFORM_SIZES, BOOTS_SIZES, HELMET_SIZES,
   GRADES, COURSES, INTERESTED_JOBS, REFERRAL_SOURCES, DEFAULT_STUDENT_SURVEY_QUESTIONS,
 } from "@/lib/constants";
@@ -92,5 +92,14 @@ material_requested → material_sent → video_watched → survey_answered → a
 3. attended_no_application: bookings.status='attended' かつ applications なし かつ 体験から14日以上経過
 
 ## 通知
-メール/LINE送信は `notifyBoth(email, lineId, title, body, relatedType, {email: bool, line: bool})`。
-実送信ではなく notifications テーブルへのログ記録(デモ仕様)。管理画面の「送信ログ」で確認できる。
+メール/LINE送信は `notifyBoth(email, lineId, title, body, relatedType, {email: bool, line: bool})` または単発は `sendNotification({...})`。
+`RESEND_API_KEY` / `LINE_CHANNEL_ACCESS_TOKEN` が設定されていれば実配信、未設定ならログ記録のみ(`src/lib/notify.ts`)。どちらの場合も notifications テーブルへ必ずログが残り、管理画面の「送信ログ」で確認できる。
+
+## 決済
+オンラインカード決済は `src/lib/stripe.ts` の `createCheckoutSession()` で Stripe Checkout Session を作成し `redirect()`。
+`STRIPE_SECRET_KEY` 未設定時は `stripeEnabled()` が false を返すので、呼び出し側で「準備中」表示にフォールバックすること(即時成功として扱ってはいけない)。
+決済確定(pending/paid → confirmed)は `src/lib/data.ts` の `markPaymentConfirmed(paymentId, confirmedBy?)` に一本化されており、Webhook (`src/app/api/stripe/webhook/route.ts`) と管理画面の手動確認ボタン (`admin/payments`) の両方から呼ばれる。新しい決済発生箇所を追加する場合もこの関数を再利用すること。
+銀行振込先の表示文言は `constants.ts` の `BANK_TRANSFER_INFO` 一箇所のみを参照する(重複定義しない)。
+
+## アンケート設問
+`SurveyQuestion.type` は `text | textarea | choice | checkbox | stars` の5種類。`checkbox`(複数選択)はフォーム側で `formData.getAll(id)` を「、」区切りで1つの文字列として保存する(DBスキーマ変更を避けるため)。`stars` は 1〜5 の数値文字列として保存する。新しい設問セットを追加する場合もこのパターンに従うこと。

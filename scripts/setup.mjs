@@ -105,7 +105,7 @@ async function main() {
 
   // 3) デモユーザー
   console.log("… デモユーザーを作成しています");
-  const adminId = await ensureUser("admin@bajigakuin.jp", "admin123456", "山本 誠(教頭)", "admin");
+  const adminId = await ensureUser("admin@bajigakuin.jp", "admin123456", "野口 佳槻", "admin");
   const staffId = await ensureUser("staff@bajigakuin.jp", "staff123456", "田中 直子(入試担当)", "admin");
   const applicantId = await ensureUser("applicant@example.com", "applicant123", "佐藤 美咲", "applicant");
   const student1Id = await ensureUser("student1@example.com", "student123", "鈴木 陸", "student");
@@ -328,7 +328,7 @@ async function main() {
 
   // 19) 研修
   await ins("training_records", [
-    { student_id: riku.id, title: "JRA競馬学校見学研修", category: "校外研修", date: dateStr(daysAgo(30)), result: "修了", instructor: "山本 誠", notes: "騎手課程の説明を熱心に聞いていた" },
+    { student_id: riku.id, title: "JRA競馬学校見学研修", category: "校外研修", date: dateStr(daysAgo(30)), result: "修了", instructor: "野口 佳槻", notes: "騎手課程の説明を熱心に聞いていた" },
     { student_id: riku.id, title: "装蹄基礎講習", category: "資格・講習", date: dateStr(daysAgo(12)), result: "修了", instructor: "外部講師 佐々木", notes: null },
     { student_id: yui.id, title: "乗馬ライセンス5級 取得試験", category: "資格・講習", date: dateStr(daysAgo(20)), result: "合格", instructor: "田中 直子", notes: "実技・筆記ともに良好" },
     { student_id: kenta.id, title: "牧場実習(1週間)", category: "校外研修", date: dateStr(daysAgo(45)), result: "修了", instructor: "研修先: 青葉ファーム", notes: "朝の飼付から夜間見回りまで一通り経験" },

@@ -10,9 +10,10 @@ import type { AiJudgement } from "@/lib/types";
  */
 
 const hasClaude = () => !!process.env.ANTHROPIC_API_KEY;
+const hasOpenAI = () => !!process.env.OPENAI_API_KEY;
+const hasAI = () => hasClaude() || hasOpenAI();
 
 async function askClaude(prompt: string): Promise<string | null> {
-  if (!hasClaude()) return null;
   try {
     const client = new Anthropic();
     const response = await client.messages.create({
@@ -27,6 +28,38 @@ async function askClaude(prompt: string): Promise<string | null> {
   }
 }
 
+async function askOpenAI(prompt: string): Promise<string | null> {
+  try {
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        max_tokens: 2048,
+        messages: [{ role: "user", content: prompt }],
+      }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.choices?.[0]?.message?.content ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** ANTHROPIC_API_KEY を優先し、なければ OPENAI_API_KEY で自然文生成。両方未設定/失敗時は null (ルールベースへフォールバック) */
+async function askAI(prompt: string): Promise<string | null> {
+  if (hasClaude()) {
+    const text = await askClaude(prompt);
+    if (text) return text;
+  }
+  if (hasOpenAI()) return askOpenAI(prompt);
+  return null;
+}
+
 /* ============ ステップ2: 仮審査アンケートのAI判定 ============ */
 
 export interface PreScreeningAnalysis {
@@ -39,9 +72,9 @@ export async function analyzePreScreening(
   answers: Record<string, string>
 ): Promise<PreScreeningAnalysis> {
   const rule = ruleBasedPreScreening(answers);
-  if (hasClaude()) {
+  if (hasAI()) {
     const qa = PRE_SCREENING_QUESTIONS.map((q) => `${q.text}: ${answers[q.id] ?? "(未回答)"}`).join("\n");
-    const text = await askClaude(
+    const text = await askAI(
       `あなたは馬の学校(東関東馬事高等学院)の入学審査担当AIです。以下の入学仮審査アンケートの回答を読み、` +
         `(1)「○○タイプ」という一言のタイプ名、(2)担当者向けの3〜4文の要約(性格・適性・サポートが必要な点)を日本語で書いてください。` +
         `フォーマット:\n1行目: タイプ名のみ\n2行目以降: 要約\n\n回答:\n${qa}`
@@ -58,134 +91,105 @@ export async function analyzePreScreening(
   return rule;
 }
 
+/**
+ * ルールベースの入学仮審査判定。
+ * 業務ルール: 「現在の出席状況」「馬に乗ったことはありますか」の回答は
+ * 依頼仕様の通り合否判定には一切用いない(スタッフ参考情報として summary にのみ記載)。
+ * 判定は 全寮制/共同生活/動物のお世話/体力 の4設問の強い不安の件数のみで行う。
+ */
 function ruleBasedPreScreening(answers: Record<string, string>): PreScreeningAnalysis {
-  const parts: string[] = [];
-  let score = 0; // 高いほどポジティブ
-  let cautionFlags = 0;
+  const positives: string[] = [];
+  const concerns: string[] = [];
+  let cautionCount = 0;
 
-  const animal = answers["q3"] ?? "";
-  if (animal.includes("とても好き")) {
-    score += 2;
-    parts.push("動物への興味が非常に強い。");
-  } else if (animal.includes("好き")) {
-    score += 1;
-    parts.push("動物への興味がある。");
-  } else if (animal.includes("苦手")) {
-    cautionFlags++;
-    parts.push("動物にやや苦手意識があるため、体験時の様子を確認したい。");
+  const dorm = answers["dorm_life"] ?? "";
+  if (dorm === "問題ない") positives.push("全寮制についても前向きに捉えている");
+  else if (dorm === "とても不安") {
+    cautionCount++;
+    const detail = (answers["dorm_life_worry"] ?? "").trim();
+    concerns.push(`全寮制について強い不安がある${detail ? `(${detail.slice(0, 60)})` : ""}`);
   }
 
-  const group = answers["q4"] ?? "";
-  if (group === "できる") {
-    score += 2;
-    parts.push("集団生活にも適応できそう。");
-  } else if (group.includes("たぶん")) {
-    score += 1;
-    parts.push("集団生活は概ね問題ないと思われる。");
-  } else if (group.includes("不安")) {
-    cautionFlags++;
-    parts.push("集団生活に不安があるため初期サポート推奨。");
+  const group = answers["group_life"] ?? "";
+  if (group === "楽しみ") positives.push("共同生活を楽しみにしている");
+  else if (group === "不安") {
+    cautionCount++;
+    const detail = (answers["group_life_worry"] ?? "").trim();
+    concerns.push(`共同生活に不安がある${detail ? `(${detail.slice(0, 60)})` : ""}`);
   }
 
-  const dorm = answers["q5"] ?? "";
-  if (dorm.includes("問題ない")) score += 2;
-  else if (dorm.includes("少し不安")) {
-    parts.push("寮生活に少し不安があるが、慣れれば問題ない見込み。");
-  } else if (dorm.includes("大きい")) {
-    cautionFlags++;
-    parts.push("寮生活への不安が大きいため、見学時に寮の案内を丁寧に行うことを推奨。");
+  const animal = answers["animal_care"] ?? "";
+  if (animal === "好き") positives.push("動物のお世話が好き");
+  else if (animal === "不安") {
+    cautionCount++;
+    concerns.push("動物のお世話に不安がある");
   }
 
-  const guardian = answers["q7"] ?? "";
-  if (guardian.includes("賛成")) score += 2;
-  else if (guardian.includes("どちら")) {
-    cautionFlags++;
-    parts.push("保護者の意向確認が必要。");
-  } else if (guardian.includes("反対")) {
-    cautionFlags += 2;
-    parts.push("保護者が反対しているため、保護者への丁寧な説明が必須。");
+  const fitness = answers["physical_fitness"] ?? "";
+  if (fitness === "自信がある") positives.push("体力に自信がある");
+  else if (fitness === "少し不安") {
+    cautionCount++;
+    concerns.push("体力面にやや不安がある");
   }
 
-  const futsuko = answers["q8"] ?? "";
-  if (futsuko === "ある") {
-    parts.push("不登校経験があるため、本人のペースに合わせた対応を推奨。");
-  }
+  const judgement: AiJudgement = cautionCount >= 2 ? "rejected" : cautionCount === 1 ? "caution" : "approved";
 
-  const health = answers["q10"] ?? "";
-  if (health.includes("配慮")) {
-    cautionFlags++;
-    parts.push("健康面で配慮が必要な点がある。");
-  }
-  if ((answers["q11"] ?? "").trim() && !/なし|ない|特に/.test(answers["q11"])) {
-    parts.push(`アレルギー: ${answers["q11"]}。`);
-  }
-  if ((answers["q12"] ?? "").trim() && !/なし|ない|特に/.test(answers["q12"])) {
-    cautionFlags++;
-    parts.push("精神面の配慮事項あり。担当者は詳細を確認すること。");
-  }
-
-  const morning = answers["q6"] ?? "";
-  if (morning === "苦手") parts.push("朝が苦手なため、生活リズムづくりのサポートがあると良い。");
-
+  // 職業志向からタイプ名を生成 (合否には影響しない)
+  const jobs = (answers["future_jobs"] ?? "").split("、").map((s) => s.trim()).filter(Boolean);
+  const careerIntent = answers["horse_career_intent"] ?? "";
   let type: string;
-  if (score >= 5 && cautionFlags === 0) type = "明るく素直タイプ";
-  else if (score >= 4) type = "前向き努力タイプ";
-  else if (cautionFlags >= 2) type = "じっくりサポートタイプ";
-  else if ((answers["q4"] ?? "").includes("不安") || (answers["q5"] ?? "").includes("不安"))
-    type = "繊細・マイペースタイプ";
-  else type = "コツコツ堅実タイプ";
+  if (jobs.includes("騎手")) type = "騎手志望タイプ";
+  else if (jobs.some((j) => j.includes("厩務員"))) type = "厩務員志望タイプ";
+  else if (jobs.some((j) => j.includes("牧場"))) type = "牧場スタッフ志望タイプ";
+  else if (jobs.includes("乗馬クラブ")) type = "乗馬インストラクター志望タイプ";
+  else if (careerIntent === "とても思う") type = "馬にまっすぐタイプ";
+  else if (positives.length >= 3) type = "前向き・順応タイプ";
+  else type = "じっくり見極めタイプ";
 
-  const dream = (answers["q2"] ?? "").trim();
-  const head = dream ? `将来の夢は「${dream.slice(0, 30)}${dream.length > 30 ? "…" : ""}」。` : "";
-
-  const judgement: AiJudgement = cautionFlags >= 3 ? "rejected" : cautionFlags >= 1 ? "caution" : "approved";
+  const why = (answers["why_school"] ?? "").trim();
+  const dream = (answers["future_dream"] ?? "").trim();
+  const summaryParts: string[] = [];
+  if (why) summaryParts.push(`志望理由: 「${why.slice(0, 60)}${why.length > 60 ? "…" : ""}」。`);
+  if (dream) summaryParts.push(`将来の夢: 「${dream.slice(0, 40)}${dream.length > 40 ? "…" : ""}」。`);
+  if (positives.length) summaryParts.push(positives.join("。") + "。");
+  if (concerns.length) summaryParts.push("スタッフ確認事項: " + concerns.join("。") + "。");
+  const tuition = answers["tuition_concern"] ?? "";
+  if (tuition && tuition !== "問題ない") {
+    summaryParts.push(`学費について「${tuition}」の意向あり。学費相談のご案内を推奨。`);
+  }
+  // 出席状況・乗馬経験は判定に使わないが、参考情報として残す
+  const attendance = answers["attendance"] ?? "";
+  if (attendance && attendance !== "毎日通っている") {
+    summaryParts.push(`現在の出席状況: 「${attendance}」(この点は合否判定には用いていません)。`);
+  }
 
   return {
     type,
-    summary: (head + " " + parts.join(" ")).trim() || "回答内容から特筆すべき懸念は見られない。",
+    summary: summaryParts.join(" ") || "回答内容から特筆すべき懸念は見られません。",
     judgement,
   };
 }
 
-/* ============ ステップ4: 体験アンケートから入学確率 ============ */
+/* ============ 学校見学後アンケートから入学確率 ============ */
 
-export function computeEnrollmentProbability(
-  studentAnswers: Record<string, string> | null,
-  parentAnswers: Record<string, string> | null
-): number {
+export function computeEnrollmentProbability(answers: Record<string, string> | null): number {
   let p = 40;
-  if (studentAnswers) {
-    const s1 = studentAnswers["s1"] ?? "";
-    if (s1.includes("とても")) p += 12;
-    else if (s1.includes("楽しかった")) p += 7;
-    else if (s1.includes("あまり")) p -= 15;
-    const s2 = studentAnswers["s2"] ?? "";
-    if (s2.includes("とても")) p += 8;
-    else if (s2.includes("好きになった")) p += 5;
-    const s3 = studentAnswers["s3"] ?? "";
-    if (s3 === "できそう") p += 8;
-    else if (s3.includes("不安")) p -= 8;
-    const s4 = studentAnswers["s4"] ?? "";
-    if (s4.includes("ぜひ")) p += 20;
-    else if (s4 === "入学したい") p += 12;
-    else if (s4.includes("迷って")) p -= 5;
-    else if (s4.includes("考え中")) p -= 10;
-  }
-  if (parentAnswers) {
-    const p1 = parentAnswers["p1"] ?? "";
-    if (p1.includes("とても")) p += 10;
-    else if (p1.includes("安心できた")) p += 6;
-    else if (p1.includes("不安")) p -= 10;
-    const p2 = parentAnswers["p2"] ?? "";
-    if (p2.includes("共感")) p += 5;
-    else if (p2.includes("疑問")) p -= 8;
-    const p3 = parentAnswers["p3"] ?? "";
-    if (p3.includes("良かった")) p += 4;
-    const p4 = parentAnswers["p4"] ?? "";
-    if (p4.includes("特にない")) p += 5;
-    else if (p4.includes("大きく")) p -= 12;
-  }
-  return Math.max(3, Math.min(98, p));
+  if (!answers) return p;
+
+  const satisfaction = Number(answers["satisfaction"] ?? "0");
+  if (satisfaction >= 1 && satisfaction <= 5) p += (satisfaction - 3) * 10; // -20〜+20
+
+  const intent = Number(answers["enrollment_intent"] ?? "0");
+  if (intent >= 1 && intent <= 5) p += (intent - 3) * 14; // -28〜+28 (最も強いシグナル)
+
+  const worries = (answers["life_worries"] ?? "").split("、").map((s) => s.trim()).filter(Boolean);
+  if (worries.includes("特になし")) p += 5;
+  else if (worries.length > 0) p -= Math.min(worries.length, 4) * 3;
+
+  const tuition = answers["tuition_installment"] ?? "";
+  if (tuition && tuition !== "特に考えていない") p -= 3; // 分割希望 = 学費への懸念の軽微なシグナル
+
+  return Math.max(3, Math.min(98, Math.round(p)));
 }
 
 /* ============ ステップ5: 適性検査の採点とレポート ============ */
@@ -230,8 +234,8 @@ export async function analyzeAptitude(answers: Record<string, number>): Promise<
 
   const report = buildAptitudeReport(scores, suitability);
 
-  if (hasClaude()) {
-    const text = await askClaude(
+  if (hasAI()) {
+    const text = await askAI(
       `あなたは馬の学校の適性検査分析AIです。以下のスコア(0-100)から、受験生の性格・適性レポートを日本語で5〜6文で書いてください。` +
         `強みを先に、サポートが必要な点を後に。\n特性: ${JSON.stringify(scores)}\n職業適性: ${JSON.stringify(suitability)}`
     );
@@ -304,11 +308,11 @@ export async function summarizeHorseMonth(
   month: number,
   reports: ReportForSummary[]
 ): Promise<string> {
-  if (hasClaude() && reports.length > 0) {
+  if (hasAI() && reports.length > 0) {
     const body = reports
       .map((r) => `${r.report_date} ${r.student_name ?? ""}: ${r.content}${r.horse_condition ? ` / 馬の状態: ${r.horse_condition}` : ""}`)
       .join("\n");
-    const text = await askClaude(
+    const text = await askAI(
       `あなたは馬の学校のリタッチ馬(引退馬支援)月次レポート作成AIです。${horseName}号の${year}年${month}月の騎乗報告をもとに、` +
         `一口支援者の皆さまへ向けた温かみのある月次報告文を日本語で200〜300字で書いてください。健康状態・活動内容・生徒との関わりを含めてください。\n\n${body}`
     );
