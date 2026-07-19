@@ -9,12 +9,14 @@ export default function PortalLayout({
   roleLabel,
   nav,
   home,
+  statusHref,
   children,
 }: {
   profile: Profile;
   roleLabel: string;
   nav: PortalNavItem[];
   home: string;
+  statusHref?: string;
   children: React.ReactNode;
 }) {
   return (
@@ -31,8 +33,11 @@ export default function PortalLayout({
             name={profile.full_name}
             roleLabel={roleLabel}
             homeHref={home}
-            homeLabel="ホームへ"
+            homeLabel="マイページ"
             logout={logoutAction}
+            avatarUrl={profile.avatar_url}
+            statusHref={statusHref}
+            statusLabel="現在の状態"
           />
         </div>
       </header>

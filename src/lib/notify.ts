@@ -33,6 +33,10 @@ function smtpTransporter(): Transporter | null {
     port: Number(process.env.SMTP_PORT ?? 465),
     secure: process.env.SMTP_SECURE !== "false",
     auth: process.env.SMTP_USER ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS } : undefined,
+    // SMTP接続先が不安定/到達不能でもリクエストが長時間ブロックされないよう上限を設ける
+    connectionTimeout: 8000,
+    greetingTimeout: 8000,
+    socketTimeout: 8000,
   });
   return _transporter;
 }

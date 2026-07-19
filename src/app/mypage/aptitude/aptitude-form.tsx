@@ -1,8 +1,9 @@
 "use client";
 
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useEffect, useMemo, useState } from "react";
 import { APTITUDE_QUESTIONS, LIKERT_OPTIONS } from "@/lib/aptitude";
 import { btnPrimary, btnSecondary } from "@/components/ui";
+import { showErrorToast, showSuccessToast } from "@/lib/toast";
 import { submitAptitudeAction, type ActionState } from "./actions";
 
 const PAGE_SIZE = 10;
@@ -21,6 +22,11 @@ export default function AptitudeForm() {
   const answeredCount = Object.keys(answers).length;
   const allAnswered = answeredCount >= TOTAL;
   const pageAnswered = pageQuestions.every((q) => answers[q.id] !== undefined);
+
+  useEffect(() => {
+    if (state.error) showErrorToast(state.error);
+    if (state.ok) showSuccessToast("適性検査の受検が完了しました");
+  }, [state]);
 
   if (state.ok) {
     return (
@@ -90,8 +96,6 @@ export default function AptitudeForm() {
           );
         })}
       </div>
-
-      {state.error && <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{state.error}</p>}
 
       {/* ナビゲーション */}
       <div className="mt-6 flex items-center justify-between gap-3">

@@ -36,6 +36,8 @@ export type MealType = "breakfast" | "lunch" | "dinner";
 export type ApprovalStatus = "pending" | "approved" | "rejected";
 export type StudentState = "enrolled" | "graduated" | "withdrawn";
 export type NotifyChannel = "email" | "line";
+export type CareerOutcomeType = "employment" | "further_education" | "other";
+export type ReimbursementStatus = "pending" | "notified" | "paid";
 
 export interface Profile {
   id: string;
@@ -44,6 +46,7 @@ export interface Profile {
   email: string | null;
   phone: string | null;
   line_id: string | null;
+  avatar_url: string | null;
   created_at: string;
 }
 
@@ -68,6 +71,7 @@ export interface Lead {
   gender: string | null;
   school_name: string | null;
   guardian_name: string | null;
+  relationship: string | null;
   postal_code: string | null;
   address: string | null;
   phone: string | null;
@@ -78,6 +82,7 @@ export interface Lead {
   horse_experience: boolean;
   horse_experience_detail: string | null;
   referral_source: string | null;
+  remarks: string | null;
   status: LeadStatus;
   material_sent_date: string | null;
   assigned_staff: string | null;
@@ -354,4 +359,61 @@ export interface FollowUpLog {
   rule: string;
   channel: NotifyChannel;
   sent_at: string;
+}
+
+export interface PasswordResetToken {
+  id: string;
+  user_id: string;
+  token: string;
+  expires_at: string;
+  used_at: string | null;
+  created_at: string;
+}
+
+export interface GradeRecord {
+  id: string;
+  student_id: string;
+  term: string;
+  subject: string;
+  score: number | null;
+  evaluation: string | null;
+  comment: string | null;
+  recorded_by: string | null;
+  created_at: string;
+}
+
+export interface CompetencyAssessment {
+  id: string;
+  student_id: string;
+  term: string;
+  scores: Record<string, number>;
+  growth_comment: string | null;
+  overall_comment: string | null;
+  recorded_by: string | null;
+  created_at: string;
+}
+
+export interface CareerRecord {
+  id: string;
+  student_id: string;
+  outcome_type: CareerOutcomeType;
+  organization: string;
+  position: string | null;
+  decided_date: string | null;
+  notes: string | null;
+  created_by: string | null;
+  created_at: string;
+}
+
+export interface Reimbursement {
+  id: string;
+  student_id: string;
+  title: string;
+  amount: number;
+  status: ReimbursementStatus;
+  notes: string | null;
+  notified_at: string | null;
+  paid_at: string | null;
+  created_by: string | null;
+  created_at: string;
 }

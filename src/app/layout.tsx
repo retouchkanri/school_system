@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Noto_Sans_JP, Noto_Serif_JP } from "next/font/google";
+import { Toaster } from "sonner";
 import FloatingContact from "@/components/floating-contact";
 import TopButton from "@/components/top-button";
 import "./globals.css";
@@ -22,6 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         <FloatingContact />
         <TopButton />
+        <Toaster position="top-right" />
       </body>
     </html>
   );

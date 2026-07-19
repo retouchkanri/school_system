@@ -5,7 +5,8 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth";
 import { adminDb } from "@/lib/supabase/admin";
-import { getLeadForUser, advanceLeadStatus } from "@/lib/data";
+import { getLeadForUser, advanceLeadStatus, markPaymentConfirmed } from "@/lib/data";
+import { skipPaymentInDev } from "@/lib/dev";
 import { createCheckoutSession, stripeEnabled } from "@/lib/stripe";
 import { UNIFORM_SIZES, BOOTS_SIZES, HELMET_SIZES, PAYMENT_TYPE_LABELS } from "@/lib/constants";
 import type { AdmissionDecision, Lead, Payment, PaymentType, Profile } from "@/lib/types";
@@ -125,7 +126,8 @@ export async function payEnrollmentFeeAction(formData: FormData): Promise<void> 
   const type = typeRaw as FeeType;
 
   const isCard = methodRaw === "credit_card";
-  if (isCard && !stripeEnabled()) {
+  const bypass = skipPaymentInDev();
+  if (isCard && !bypass && !stripeEnabled()) {
     redirect("/mypage/enrollment?pay_error=1");
   }
 
@@ -157,6 +159,13 @@ export async function payEnrollmentFeeAction(formData: FormData): Promise<void> 
       .single();
     if (paymentError || !paymentData) return;
     paymentId = paymentData.id;
+  }
+
+  if (bypass) {
+    await markPaymentConfirmed(paymentId);
+    revalidatePath("/mypage/enrollment");
+    revalidatePath("/mypage");
+    redirect("/mypage/enrollment?stripe=success");
   }
 
   if (isCard) {

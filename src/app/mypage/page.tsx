@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { requireRole } from "@/lib/auth";
 import { getLeadForUser } from "@/lib/data";
+import { adminDb } from "@/lib/supabase/admin";
 import { PROGRESS_STEPS, statusIndex, AI_JUDGEMENT_LABELS, AI_JUDGEMENT_MESSAGES } from "@/lib/constants";
-import { Card, PageHeader, ProgressTracker, Badge, btnPrimary, type BadgeTone } from "@/components/ui";
+import { Card, PageHeader, Badge, btnPrimary, btnSecondary, type BadgeTone } from "@/components/ui";
 import type { AiJudgement, LeadStatus } from "@/lib/types";
 
 const JUDGEMENT_TONE: Record<AiJudgement, BadgeTone> = {
@@ -10,6 +11,33 @@ const JUDGEMENT_TONE: Record<AiJudgement, BadgeTone> = {
   caution: "amber",
   rejected: "purple",
 };
+
+const VIDEO_TITLE = "学院紹介動画";
+
+/** 資料請求後すぐにご利用いただける3つのメニュー */
+const WELCOME_MENU = [
+  {
+    key: "video",
+    title: "学院紹介動画",
+    description: "学院の雰囲気・寮生活・実習の様子をご覧いただけます(約5分)",
+    href: "/mypage/video",
+    button: "動画を見る",
+  },
+  {
+    key: "survey",
+    title: "入学仮審査(お試し)フォーム",
+    description: "簡単なアンケートに回答いただくと、AIがあなたに合ったサポートをご提案します",
+    href: "/mypage/survey",
+    button: "アンケートに回答する",
+  },
+  {
+    key: "events",
+    title: "学校見学お申し込みフォーム",
+    description: "オープンキャンパス・個別見学のご予約をお申し込みいただけます",
+    href: "/mypage/events",
+    button: "見学に申し込む",
+  },
+] as const;
 
 /** ステータスごとの「次にやること」定義 */
 const NEXT_ACTIONS: Record<LeadStatus, { title: string; description: string; href: string; button: string }> = {
@@ -149,6 +177,18 @@ export default async function MypageHome() {
   const next = NEXT_ACTIONS[lead.status];
   const idx = statusIndex(lead.status);
 
+  const db = adminDb();
+  const [{ data: videoData }, { data: surveyData }, { data: bookingsData }] = await Promise.all([
+    db.from("video_progress").select("status").eq("lead_id", lead.id).eq("video_title", VIDEO_TITLE).maybeSingle(),
+    db.from("pre_screening_surveys").select("id").eq("lead_id", lead.id).maybeSingle(),
+    db.from("open_campus_bookings").select("id").eq("lead_id", lead.id).limit(1),
+  ]);
+  const menuDone: Record<(typeof WELCOME_MENU)[number]["key"], boolean> = {
+    video: (videoData as { status?: string } | null)?.status === "completed",
+    survey: !!surveyData,
+    events: (bookingsData?.length ?? 0) > 0,
+  };
+
   return (
     <div>
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -162,8 +202,21 @@ export default async function MypageHome() {
         description="入学までの進捗と次のステップをご案内します"
       />
 
-      <Card title={`入学までの進捗 (${idx + 1}/${PROGRESS_STEPS.length})`} className="mb-6">
-        <ProgressTracker status={lead.status} />
+      <Card title="ご利用いただける3つのメニュー" className="mb-6">
+        <div className="grid gap-4 sm:grid-cols-3">
+          {WELCOME_MENU.map((item) => (
+            <div key={item.key} className="flex flex-col rounded-lg border border-gray-200 p-4">
+              <div className="mb-1 flex items-center justify-between gap-2">
+                <h3 className="text-sm font-bold text-gray-800">{item.title}</h3>
+                {menuDone[item.key] && <Badge tone="green">完了</Badge>}
+              </div>
+              <p className="mb-3 flex-1 text-xs leading-relaxed text-gray-500">{item.description}</p>
+              <Link href={item.href} className={`${menuDone[item.key] ? btnSecondary : btnPrimary} w-full`}>
+                {item.button}
+              </Link>
+            </div>
+          ))}
+        </div>
       </Card>
 
       <div className="mb-6 rounded-xl border border-brand-200 bg-gradient-to-br from-brand-50 to-white p-6 shadow-sm">

@@ -1,13 +1,19 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { APPLICATION_DOCUMENTS } from "@/lib/constants";
 import { Card, Label, inputCls, btnPrimary } from "@/components/ui";
+import { showErrorToast, showSuccessToast } from "@/lib/toast";
 import { submitApplicationAction, type ActionState } from "./actions";
 
 export default function ApplicationForm() {
   const [state, formAction, pending] = useActionState<ActionState, FormData>(submitApplicationAction, {});
   const [essayLength, setEssayLength] = useState(0);
+
+  useEffect(() => {
+    if (state.error) showErrorToast(state.error);
+    if (state.ok) showSuccessToast("出願を受け付けました");
+  }, [state]);
 
   if (state.ok) {
     return (
@@ -52,8 +58,6 @@ export default function ApplicationForm() {
         />
         <p className="mt-1 text-right text-xs text-gray-400">{essayLength}字 / 400字目安</p>
       </Card>
-
-      {state.error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{state.error}</p>}
 
       <button type="submit" disabled={pending} className={`${btnPrimary} w-full py-3`}>
         {pending ? "送信中…" : "出願する"}

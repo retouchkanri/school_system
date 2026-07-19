@@ -30,6 +30,15 @@ const NAV: { section: string; items: { href: string; label: string }[] }[] = [
       { href: "/admin/trainings", label: "研修管理" },
       { href: "/admin/overnight", label: "外泊届" },
       { href: "/admin/surveys", label: "定期アンケート" },
+      { href: "/admin/grades", label: "成績管理" },
+      { href: "/admin/competency", label: "社会人基礎力評価" },
+    ],
+  },
+  {
+    section: "進路・経費",
+    items: [
+      { href: "/admin/career", label: "進路管理" },
+      { href: "/admin/reimbursements", label: "諸経費精算" },
     ],
   },
   {

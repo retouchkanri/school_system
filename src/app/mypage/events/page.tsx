@@ -16,6 +16,7 @@ import { Card, PageHeader, Badge, EmptyState, Table, Td, SectionTitle, btnPrimar
 import type { BookingStatus, OpenCampusBooking, OpenCampusEvent, PaymentStatus } from "@/lib/types";
 import BookingForm from "./booking-form";
 import { cancelBookingAction, requestIndividualConsultationAction } from "./actions";
+import { skipPaymentInDev } from "@/lib/dev";
 
 type BookingRow = OpenCampusBooking & { open_campus_events: OpenCampusEvent | null };
 
@@ -54,14 +55,13 @@ export default async function EventsPage() {
     );
   }
 
-  // AI判定前 → 仮審査への誘導
-  if (!lead.ai_judgement) {
+  // AI判定前 → 仮審査への誘導 (開発中はスキップ可)
+  if (!lead.ai_judgement && !skipPaymentInDev()) {
     return (
       <div>
         <PageHeader title="見学・オープンキャンパス予約" />
         <Card>
           <div className="py-6 text-center">
-            <p className="text-3xl">📝</p>
             <p className="mt-3 text-sm font-bold text-gray-800">まずは入学仮審査アンケートにご回答ください</p>
             <p className="mt-2 text-sm text-gray-500">
               仮審査の完了後、見学・オープンキャンパスのご予約が可能になります。
@@ -100,19 +100,25 @@ export default async function EventsPage() {
         description="実際に馬と触れ合い、学院の一日を体験してください。仮予約後、参加費のご入金をもって参加確定となります。"
       />
 
-      <div className="mb-6 rounded-xl border border-brand-200 bg-brand-50 p-5">
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge tone="brand">{AI_JUDGEMENT_LABELS[lead.ai_judgement]}</Badge>
-          <p className="text-sm font-bold text-gray-800">{AI_JUDGEMENT_MESSAGES[lead.ai_judgement]}</p>
+      {lead.ai_judgement ? (
+        <div className="mb-6 rounded-xl border border-brand-200 bg-brand-50 p-5">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge tone="brand">{AI_JUDGEMENT_LABELS[lead.ai_judgement]}</Badge>
+            <p className="text-sm font-bold text-gray-800">{AI_JUDGEMENT_MESSAGES[lead.ai_judgement]}</p>
+          </div>
+          {lead.ai_judgement === "rejected" && (
+            <form action={requestIndividualConsultationAction} className="mt-3">
+              <button type="submit" className={btnSecondary}>
+                個別相談を希望する
+              </button>
+            </form>
+          )}
         </div>
-        {lead.ai_judgement === "rejected" && (
-          <form action={requestIndividualConsultationAction} className="mt-3">
-            <button type="submit" className={btnSecondary}>
-              個別相談を希望する
-            </button>
-          </form>
-        )}
-      </div>
+      ) : (
+        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+          開発モード: 仮審査未完了でも見学予約・決済スキップが利用できます
+        </div>
+      )}
 
       {courseUrl && (
         <Card title="体験入学のお申し込みについて" className="mb-6">

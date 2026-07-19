@@ -1,13 +1,17 @@
 import { notFound } from "next/navigation";
 import { adminDb } from "@/lib/supabase/admin";
-import { fmtDate, toDateInput, daysAgo } from "@/lib/format";
-import { ATTENDANCE_STATUS_LABELS, APPROVAL_STATUS_LABELS, MEAL_LABELS } from "@/lib/constants";
+import { fmtDate, toDateInput, daysAgo, fmtYen } from "@/lib/format";
+import {
+  ATTENDANCE_STATUS_LABELS, APPROVAL_STATUS_LABELS, MEAL_LABELS,
+  CAREER_OUTCOME_LABELS, REIMBURSEMENT_STATUS_LABELS,
+} from "@/lib/constants";
 import {
   Card, PageHeader, Badge, BackLink, InfoRow, EmptyState, type BadgeTone,
 } from "@/components/ui";
 import type {
   Student, Horse, AttendanceRecord, RidingReport, TrainingRecord,
   OvernightLeaveRequest, MealRecord, AttendanceStatus, ApprovalStatus, StudentState, MealType,
+  GradeRecord, CompetencyAssessment, CareerRecord, Reimbursement, CareerOutcomeType, ReimbursementStatus,
 } from "@/lib/types";
 import StudentEditForm, { type HorseOption } from "./edit-form";
 
@@ -38,6 +42,18 @@ const APPROVAL_TONES: Record<ApprovalStatus, BadgeTone> = {
 
 const MEAL_ORDER: MealType[] = ["breakfast", "lunch", "dinner"];
 
+const OUTCOME_TONES: Record<CareerOutcomeType, BadgeTone> = {
+  employment: "green",
+  further_education: "blue",
+  other: "gray",
+};
+
+const REIMBURSEMENT_TONES: Record<ReimbursementStatus, BadgeTone> = {
+  pending: "amber",
+  notified: "blue",
+  paid: "green",
+};
+
 type StudentDetail = Student & { horse: Horse | null };
 type ReportRow = RidingReport & { horse: Pick<Horse, "name" | "is_retouch"> | null };
 
@@ -63,6 +79,10 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
     { data: overnightData },
     { data: mealsData },
     { data: horsesData },
+    { data: gradesData },
+    { data: competencyData },
+    { data: careerData },
+    { data: reimbursementsData },
   ] = await Promise.all([
     db.from("attendance_records").select("*").eq("student_id", id).gte("date", attendanceFrom).order("date", { ascending: false }),
     db.from("riding_reports").select("*, horse:horses(name, is_retouch)").eq("student_id", id).order("report_date", { ascending: false }).order("created_at", { ascending: false }).limit(5),
@@ -70,6 +90,10 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
     db.from("overnight_leave_requests").select("*").eq("student_id", id).order("start_date", { ascending: false }),
     db.from("meal_records").select("*").eq("student_id", id).gte("date", mealsFrom),
     db.from("horses").select("*").order("name", { ascending: true }),
+    db.from("grade_records").select("*").eq("student_id", id).order("created_at", { ascending: false }).limit(5),
+    db.from("competency_assessments").select("*").eq("student_id", id).order("created_at", { ascending: false }).limit(1),
+    db.from("career_records").select("*").eq("student_id", id).order("created_at", { ascending: false }),
+    db.from("reimbursements").select("*").eq("student_id", id).order("created_at", { ascending: false }).limit(5),
   ]);
 
   const attendance = (attendanceData ?? []) as AttendanceRecord[];
@@ -78,6 +102,10 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
   const overnights = (overnightData ?? []) as OvernightLeaveRequest[];
   const meals = (mealsData ?? []) as MealRecord[];
   const horses = (horsesData ?? []) as Horse[];
+  const grades = (gradesData ?? []) as GradeRecord[];
+  const latestCompetency = ((competencyData ?? []) as CompetencyAssessment[])[0] ?? null;
+  const careerRecords = (careerData ?? []) as CareerRecord[];
+  const reimbursements = (reimbursementsData ?? []) as Reimbursement[];
   const horseOptions: HorseOption[] = horses.map((h) => ({ id: h.id, name: h.name, is_retouch: h.is_retouch }));
 
   const mealMap = new Map<string, boolean>();
@@ -285,6 +313,78 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
                     <p className="mt-1 text-sm text-gray-700">行き先: {o.destination}</p>
                     {o.reason && <p className="text-xs text-gray-500">理由: {o.reason}</p>}
                     {o.parent_comment && <p className="text-xs text-gray-500">保護者コメント: {o.parent_comment}</p>}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
+
+          <Card title="成績 (最新5件)">
+            {grades.length === 0 ? (
+              <EmptyState message="成績記録はまだありません" />
+            ) : (
+              <ul className="space-y-2">
+                {grades.map((g) => (
+                  <li key={g.id} className="flex items-center justify-between gap-2 rounded-lg border border-gray-100 bg-gray-50 px-3 py-2">
+                    <span className="text-sm text-gray-700">
+                      {g.term} / {g.subject}
+                    </span>
+                    <span className="flex items-center gap-2">
+                      {g.score != null && <span className="text-sm font-semibold text-gray-800">{g.score}点</span>}
+                      {g.evaluation && <Badge tone="blue">{g.evaluation}</Badge>}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
+
+          <Card title="社会人基礎力評価 (最新)">
+            {!latestCompetency ? (
+              <EmptyState message="評価記録はまだありません" />
+            ) : (
+              <div>
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-sm font-semibold text-gray-800">{latestCompetency.term}</span>
+                  <span className="text-xs text-gray-400">{fmtDate(latestCompetency.created_at)}</span>
+                </div>
+                {latestCompetency.growth_comment && (
+                  <p className="whitespace-pre-wrap text-sm text-gray-700">{latestCompetency.growth_comment}</p>
+                )}
+              </div>
+            )}
+          </Card>
+
+          <Card title="進路">
+            {careerRecords.length === 0 ? (
+              <EmptyState message="進路はまだ決定していません" />
+            ) : (
+              <ul className="space-y-2">
+                {careerRecords.map((c) => (
+                  <li key={c.id} className="rounded-lg border border-gray-100 bg-gray-50 p-3">
+                    <div className="flex items-center gap-2">
+                      <Badge tone={OUTCOME_TONES[c.outcome_type]}>{CAREER_OUTCOME_LABELS[c.outcome_type]}</Badge>
+                      <span className="text-sm font-semibold text-gray-800">{c.organization}</span>
+                    </div>
+                    {c.position && <p className="mt-1 text-xs text-gray-500">{c.position}</p>}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
+
+          <Card title="諸経費 (最新5件)">
+            {reimbursements.length === 0 ? (
+              <EmptyState message="諸経費の記録はまだありません" />
+            ) : (
+              <ul className="space-y-2">
+                {reimbursements.map((r) => (
+                  <li key={r.id} className="flex items-center justify-between gap-2 rounded-lg border border-gray-100 bg-gray-50 px-3 py-2">
+                    <span className="text-sm text-gray-700">{r.title}</span>
+                    <span className="flex items-center gap-2">
+                      <span className="text-sm font-semibold text-gray-800">{fmtYen(r.amount)}</span>
+                      <Badge tone={REIMBURSEMENT_TONES[r.status]}>{REIMBURSEMENT_STATUS_LABELS[r.status]}</Badge>
+                    </span>
                   </li>
                 ))}
               </ul>

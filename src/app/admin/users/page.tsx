@@ -8,7 +8,7 @@ import { CreateAdminForm, DeleteUserButton } from "./user-forms";
 import { deleteUserAction } from "./actions";
 
 const ROLE_LABELS: Record<UserRole, string> = {
-  admin: "管理者・職員",
+  admin: "所有者",
   applicant: "入学希望者",
   student: "在校生",
   parent: "保護者",
@@ -25,7 +25,7 @@ const ROLE_TONE: Record<UserRole, BadgeTone> = {
 
 const TABS: { key: UserRole | "all"; label: string }[] = [
   { key: "all", label: "すべて" },
-  { key: "admin", label: "管理者・職員" },
+  { key: "admin", label: "所有者" },
   { key: "applicant", label: "入学希望者" },
   { key: "student", label: "在校生" },
   { key: "parent", label: "保護者" },
@@ -93,9 +93,23 @@ export default async function AdminUsersPage({
       {users.length === 0 ? (
         <EmptyState message="条件に一致するユーザーがありません" />
       ) : (
-        <Table headers={["氏名", "メール", "電話", "ロール", "登録日", ""]}>
+        <Table headers={["", "氏名", "メール", "電話", "ロール", "登録日", ""]}>
           {users.map((u) => (
             <tr key={u.id} className="hover:bg-gray-50">
+              <Td>
+                {u.avatar_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={u.avatar_url}
+                    alt=""
+                    className="h-9 w-9 rounded-full object-cover"
+                  />
+                ) : (
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-600 text-sm font-bold text-white">
+                    {u.full_name.trim().charAt(0) || "?"}
+                  </span>
+                )}
+              </Td>
               <Td className="font-medium text-gray-900">
                 <Link href={`/admin/users/${u.id}`} className="text-brand-700 hover:underline">
                   {u.full_name}

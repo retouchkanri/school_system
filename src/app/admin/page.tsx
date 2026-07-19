@@ -106,9 +106,9 @@ export default async function AdminDashboardPage() {
                 <span className="w-24 shrink-0 text-right text-[11px] font-medium text-gray-500">
                   {i + 1}. {s.label}
                 </span>
-                <div className="h-4 flex-1 overflow-hidden rounded bg-gray-100">
+                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-gray-100">
                   <div
-                    className="h-4 rounded bg-brand-500"
+                    className="h-1.5 rounded-full bg-brand-500"
                     style={{ width: `${Math.round((funnel[i] / funnelMax) * 100)}%` }}
                   />
                 </div>

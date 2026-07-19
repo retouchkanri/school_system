@@ -5,7 +5,8 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth";
 import { adminDb } from "@/lib/supabase/admin";
-import { getLeadForUser, advanceLeadStatus } from "@/lib/data";
+import { getLeadForUser, advanceLeadStatus, markPaymentConfirmed } from "@/lib/data";
+import { skipPaymentInDev } from "@/lib/dev";
 import { notifyStaff } from "@/lib/notify";
 import { createCheckoutSession, stripeEnabled } from "@/lib/stripe";
 import type { OpenCampusBooking, OpenCampusEvent, PaymentMethod } from "@/lib/types";
@@ -30,12 +31,13 @@ export async function bookEventAction(_prev: BookingState, formData: FormData): 
   if (!lead || lead.user_id !== profile.id) return { error: "リード情報が見つかりません" };
 
   const eventId = String(formData.get("event_id") ?? "");
-  const methodRaw = String(formData.get("payment_method") ?? "");
+  const bypass = skipPaymentInDev();
+  const methodRaw = String(formData.get("payment_method") ?? (bypass ? "bank_transfer" : ""));
   if (methodRaw !== "credit_card" && methodRaw !== "bank_transfer") {
     return { error: "決済方法を選択してください" };
   }
   const method: PaymentMethod = methodRaw;
-  if (method === "credit_card" && !stripeEnabled()) {
+  if (!bypass && method === "credit_card" && !stripeEnabled()) {
     return { error: "現在オンラインカード決済は準備中です。お手数ですが銀行振込をご選択ください。" };
   }
 
@@ -79,6 +81,22 @@ export async function bookEventAction(_prev: BookingState, formData: FormData): 
   if (paymentError || !paymentData) return { error: "決済情報の作成に失敗しました" };
 
   await advanceLeadStatus(lead.id, "visit_reserved");
+
+  // 開発中は決済をスキップし、入金確認済みとして扱う
+  if (bypass) {
+    await adminDb()
+      .from("open_campus_bookings")
+      .update({ payment_status: "confirmed", status: "attended" })
+      .eq("lead_id", lead.id)
+      .eq("event_id", event.id);
+    await markPaymentConfirmed(paymentData.id);
+    await advanceLeadStatus(lead.id, "visit_attended");
+    revalidatePath("/mypage/events");
+    revalidatePath("/mypage");
+    revalidatePath("/mypage/experience");
+    redirect("/mypage/experience");
+  }
+
   revalidatePath("/mypage/events");
   revalidatePath("/mypage");
 

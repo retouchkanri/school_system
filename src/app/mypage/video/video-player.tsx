@@ -14,7 +14,8 @@ export default function VideoPlayer({ initialCompleted }: { initialCompleted: bo
   const router = useRouter();
   const [percent, setPercent] = useState(initialCompleted ? 100 : 0);
   const [playing, setPlaying] = useState(false);
-  const [done, setDone] = useState(initialCompleted);
+  /** 一度でも視聴完了したか（CTA表示・進捗記録用） */
+  const [completed, setCompleted] = useState(initialCompleted);
   const sentRef = useRef<Set<number>>(new Set(initialCompleted ? [25, 50, 75, 100] : []));
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -38,8 +39,12 @@ export default function VideoPlayer({ initialCompleted }: { initialCompleted: bo
     [router]
   );
 
-  const start = () => {
-    if (done || playing) return;
+  const start = (fromBeginning = false) => {
+    if (playing) return;
+    stopTimer();
+    if (fromBeginning || percent >= 100) {
+      setPercent(0);
+    }
     setPlaying(true);
     timerRef.current = setInterval(() => {
       setPercent((prev) => {
@@ -50,7 +55,7 @@ export default function VideoPlayer({ initialCompleted }: { initialCompleted: bo
         if (next >= 100) {
           stopTimer();
           setPlaying(false);
-          setDone(true);
+          setCompleted(true);
           reportMilestone(100);
         }
         return next;
@@ -77,25 +82,39 @@ export default function VideoPlayer({ initialCompleted }: { initialCompleted: bo
             馬のプロを目指す仲間たちの一日と、寮生活・実習の様子をご紹介します。
           </p>
 
-          {!playing && !done && (
-            <button
-              onClick={start}
-              className="mt-6 inline-flex items-center gap-2 rounded-full bg-white/95 px-6 py-3 text-sm font-bold text-emerald-800 shadow-lg transition hover:bg-white"
-            >
-              ▶ 再生する
-            </button>
-          )}
-          {playing && (
-            <button
-              onClick={pause}
-              className="mt-6 inline-flex items-center gap-2 rounded-full bg-white/25 px-6 py-3 text-sm font-bold text-white shadow-lg backdrop-blur transition hover:bg-white/35"
-            >
-              ⏸ 一時停止
-            </button>
-          )}
-          {done && (
-            <p className="mt-6 rounded-full bg-white/95 px-6 py-2 text-sm font-bold text-emerald-800 shadow">
-              ✓ 視聴完了 ありがとうございました
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+            {!playing && percent < 100 && (
+              <button
+                type="button"
+                onClick={() => start(false)}
+                className="inline-flex items-center gap-2 rounded-full bg-white/95 px-6 py-3 text-sm font-bold text-emerald-800 shadow-lg transition hover:bg-white"
+              >
+                ▶ {percent > 0 ? "続きから再生" : "再生する"}
+              </button>
+            )}
+            {playing && (
+              <button
+                type="button"
+                onClick={pause}
+                className="inline-flex items-center gap-2 rounded-full bg-white/25 px-6 py-3 text-sm font-bold text-white shadow-lg backdrop-blur transition hover:bg-white/35"
+              >
+                ⏸ 一時停止
+              </button>
+            )}
+            {!playing && (completed || percent >= 100) && (
+              <button
+                type="button"
+                onClick={() => start(true)}
+                className="inline-flex items-center gap-2 rounded-full bg-white/95 px-6 py-3 text-sm font-bold text-emerald-800 shadow-lg transition hover:bg-white"
+              >
+                ↻ もう一度再生する
+              </button>
+            )}
+          </div>
+
+          {completed && !playing && percent >= 100 && (
+            <p className="mt-4 rounded-full bg-emerald-500/90 px-5 py-1.5 text-xs font-bold text-white shadow">
+              ✓ 視聴完了
             </p>
           )}
         </div>
@@ -114,7 +133,7 @@ export default function VideoPlayer({ initialCompleted }: { initialCompleted: bo
         <span className="font-semibold">{Math.floor(percent)}%</span>
       </div>
 
-      {done && (
+      {completed && (
         <div className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-5 text-center">
           <p className="text-sm font-bold text-emerald-800">動画のご視聴ありがとうございました🎉</p>
           <p className="mt-1 text-sm text-emerald-700">次は入学仮審査アンケートにご回答ください。</p>

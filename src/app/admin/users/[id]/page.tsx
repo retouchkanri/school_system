@@ -17,9 +17,19 @@ export default async function AdminUserDetailPage({ params }: { params: Promise<
     <div>
       <BackLink href="/admin/users" label="ユーザー一覧へ戻る" />
 
-      <div className="mb-6">
-        <h1 className="text-xl font-bold text-gray-900">{user.full_name}</h1>
-        <p className="mt-1 text-sm text-gray-500">{user.email}</p>
+      <div className="mb-6 flex items-center gap-4">
+        {user.avatar_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={user.avatar_url} alt="" className="h-14 w-14 rounded-full object-cover" />
+        ) : (
+          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-600 text-xl font-bold text-white">
+            {user.full_name.trim().charAt(0) || "?"}
+          </span>
+        )}
+        <div>
+          <h1 className="text-xl font-bold text-gray-900">{user.full_name}</h1>
+          <p className="mt-1 text-sm text-gray-500">{user.email}</p>
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">

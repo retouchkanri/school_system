@@ -11,6 +11,7 @@ import { usePathname } from "next/navigation";
 export default function FloatingContact() {
   const pathname = usePathname();
   if (pathname.startsWith("/admin")) return null;
+  if (pathname.startsWith("/contact")) return null;
 
   return (
     <div className="pointer-events-none fixed inset-y-0 right-0 z-50 flex flex-col items-end justify-center gap-2 pr-2">
@@ -33,7 +34,7 @@ export default function FloatingContact() {
       </a>
 
       <Link
-        href="/request"
+        href="/contact"
         className="shine pointer-events-auto relative flex h-44 w-12 items-center justify-center overflow-hidden rounded-md bg-blue-950 shadow-md transition hover:bg-blue-900"
         aria-label="お問い合わせ"
       >

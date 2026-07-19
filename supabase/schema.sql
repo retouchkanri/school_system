@@ -97,6 +97,14 @@ do $$ begin
   create type notify_channel as enum ('email','line');
 exception when duplicate_object then null;
 end $$;
+do $$ begin
+  create type career_outcome_type as enum ('employment','further_education','other');
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  create type reimbursement_status as enum ('pending','notified','paid');
+exception when duplicate_object then null;
+end $$;
 
 -- ---------- PROFILES ----------
 create table if not exists profiles (
@@ -108,6 +116,9 @@ create table if not exists profiles (
   line_id text,
   created_at timestamptz not null default now()
 );
+
+-- プロフィール画像 (既存DBへの追記用: 再実行しても安全)
+alter table profiles add column if not exists avatar_url text;
 
 -- ---------- 馬 ----------
 create table if not exists horses (
@@ -154,6 +165,10 @@ create table if not exists leads (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- 資料請求フォーム追加項目 (既存DBへの追記用: 再実行しても安全)
+alter table leads add column if not exists relationship text; -- 続柄: 本人・保護者・学校の先生・代理人等
+alter table leads add column if not exists remarks text;      -- 備考欄 (本人記入。スタッフ用の notes とは別)
 
 -- ---------- ステップ2: 動画視聴 ----------
 create table if not exists video_progress (
@@ -403,6 +418,16 @@ create table if not exists notifications (
   sent_at timestamptz not null default now()
 );
 
+-- パスワード再設定トークン (サービスロール専用。公開ポリシーなし)
+create table if not exists password_reset_tokens (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references profiles(id) on delete cascade,
+  token text not null unique,
+  expires_at timestamptz not null,
+  used_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
 -- 定期アンケート (在校生・保護者)
 create table if not exists student_surveys (
   id uuid primary key default gen_random_uuid(),
@@ -455,6 +480,59 @@ create table if not exists follow_up_logs (
   sent_at timestamptz not null default now()
 );
 
+-- 成績表 (先生が科目ごとに記載)
+create table if not exists grade_records (
+  id uuid primary key default gen_random_uuid(),
+  student_id uuid not null references students(id) on delete cascade,
+  term text not null,        -- 例: "1年次 前期"
+  subject text not null,     -- 科目 (実技/学科/馬術理論 等)
+  score int,                 -- 点数 (0-100、任意)
+  evaluation text,           -- 評価 (S/A/B/C/D 等、任意)
+  comment text,               -- 先生からのコメント
+  recorded_by uuid references profiles(id),
+  created_at timestamptz not null default now()
+);
+
+-- 社会人基礎力チェック (半年に一度、成長度合いの評価)
+create table if not exists competency_assessments (
+  id uuid primary key default gen_random_uuid(),
+  student_id uuid not null references students(id) on delete cascade,
+  term text not null,        -- 例: "2026年度 前期"
+  scores jsonb not null default '{}'::jsonb, -- {主体性:4, 働きかけ力:3, ...} 各1-5
+  growth_comment text,       -- どれだけの成長があったか
+  overall_comment text,      -- 総評
+  recorded_by uuid references profiles(id),
+  created_at timestamptz not null default now(),
+  unique (student_id, term)
+);
+
+-- 進路 (卒業・就職・進学までの記録)
+create table if not exists career_records (
+  id uuid primary key default gen_random_uuid(),
+  student_id uuid not null references students(id) on delete cascade,
+  outcome_type career_outcome_type not null,
+  organization text not null, -- 就職先/進学先名
+  position text,               -- 職種/コース名
+  decided_date date,
+  notes text,
+  created_by uuid references profiles(id),
+  created_at timestamptz not null default now()
+);
+
+-- 諸経費返金 (研修等でかかった諸経費を学校が返金する連絡)
+create table if not exists reimbursements (
+  id uuid primary key default gen_random_uuid(),
+  student_id uuid not null references students(id) on delete cascade,
+  title text not null,        -- 例: "○○研修 交通費"
+  amount int not null,
+  status reimbursement_status not null default 'pending',
+  notes text,
+  notified_at timestamptz,
+  paid_at timestamptz,
+  created_by uuid references profiles(id),
+  created_at timestamptz not null default now()
+);
+
 -- ---------- ヘルパー関数 ----------
 create or replace function public.is_admin()
 returns boolean language sql stable security definer set search_path = public as $$
@@ -499,6 +577,11 @@ alter table student_survey_responses enable row level security;
 alter table horse_monthly_summaries enable row level security;
 alter table supporters enable row level security;
 alter table follow_up_logs enable row level security;
+alter table password_reset_tokens enable row level security; -- ポリシーなし = サービスロールのみアクセス可
+alter table grade_records enable row level security;
+alter table competency_assessments enable row level security;
+alter table career_records enable row level security;
+alter table reimbursements enable row level security;
 
 -- profiles
 drop policy if exists "profiles_own_read" on profiles;
@@ -624,3 +707,43 @@ drop policy if exists "sup_read" on supporters;
 create policy "sup_read" on supporters for select using (user_id = auth.uid() or is_admin());
 drop policy if exists "sup_admin" on supporters;
 create policy "sup_admin" on supporters for all using (is_admin());
+
+-- ---------- ストレージ: アバター画像 ----------
+insert into storage.buckets (id, name, public)
+values ('avatars', 'avatars', true)
+on conflict (id) do nothing;
+
+drop policy if exists "avatars_public_read" on storage.objects;
+create policy "avatars_public_read" on storage.objects for select
+  using (bucket_id = 'avatars');
+drop policy if exists "avatars_own_write" on storage.objects;
+create policy "avatars_own_write" on storage.objects for insert
+  with check (bucket_id = 'avatars' and auth.uid()::text = (storage.foldername(name))[1]);
+drop policy if exists "avatars_own_update" on storage.objects;
+create policy "avatars_own_update" on storage.objects for update
+  using (bucket_id = 'avatars' and auth.uid()::text = (storage.foldername(name))[1]);
+drop policy if exists "avatars_own_delete" on storage.objects;
+create policy "avatars_own_delete" on storage.objects for delete
+  using (bucket_id = 'avatars' and auth.uid()::text = (storage.foldername(name))[1]);
+
+-- 成績・社会人基礎力・進路・諸経費 (本人 or 保護者 = 閲覧のみ、記載・編集は管理者(職員)のみ)
+drop policy if exists "grd_read" on grade_records;
+create policy "grd_read" on grade_records for select
+  using (student_id in (select my_student_ids()) or is_admin());
+drop policy if exists "grd_admin" on grade_records;
+create policy "grd_admin" on grade_records for all using (is_admin());
+drop policy if exists "cpt_read" on competency_assessments;
+create policy "cpt_read" on competency_assessments for select
+  using (student_id in (select my_student_ids()) or is_admin());
+drop policy if exists "cpt_admin" on competency_assessments;
+create policy "cpt_admin" on competency_assessments for all using (is_admin());
+drop policy if exists "car_read" on career_records;
+create policy "car_read" on career_records for select
+  using (student_id in (select my_student_ids()) or is_admin());
+drop policy if exists "car_admin" on career_records;
+create policy "car_admin" on career_records for all using (is_admin());
+drop policy if exists "rmb_read" on reimbursements;
+create policy "rmb_read" on reimbursements for select
+  using (student_id in (select my_student_ids()) or is_admin());
+drop policy if exists "rmb_admin" on reimbursements;
+create policy "rmb_admin" on reimbursements for all using (is_admin());

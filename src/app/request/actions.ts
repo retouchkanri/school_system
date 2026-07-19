@@ -1,19 +1,13 @@
 "use server";
 
-import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { adminDb } from "@/lib/supabase/admin";
 import { sendNotification } from "@/lib/notify";
+import { siteOrigin } from "@/lib/url";
 
 export interface RequestState {
-  ok?: boolean;
   error?: string;
-}
-
-async function siteOrigin(): Promise<string> {
-  const h = await headers();
-  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
-  const proto = h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
-  return `${proto}://${host}`;
 }
 
 const WELCOME_BODY = (name: string, isNewAccount: boolean, email: string, loginUrl: string) => `${name}様
@@ -47,29 +41,18 @@ export async function submitRequestAction(_prev: RequestState, formData: FormDat
   if (!name || !email) return { error: "氏名とメールアドレスは必須です" };
   if (!birthDate) return { error: "生年月日は必須です(マイページの初回ログインパスワードに使用します)" };
 
-  const jobs = formData.getAll("interested_jobs").map(String);
-  const lineId = String(formData.get("line_id") ?? "").trim();
-
   const { data: lead, error } = await adminDb()
     .from("leads")
     .insert({
       name,
       kana: String(formData.get("kana") ?? "") || null,
-      grade: String(formData.get("grade") ?? "") || null,
+      relationship: String(formData.get("relationship") ?? "") || null,
       birth_date: birthDate,
-      gender: String(formData.get("gender") ?? "") || null,
-      school_name: String(formData.get("school_name") ?? "") || null,
-      guardian_name: String(formData.get("guardian_name") ?? "") || null,
       postal_code: String(formData.get("postal_code") ?? "") || null,
       address: String(formData.get("address") ?? "") || null,
       phone: String(formData.get("phone") ?? "") || null,
       email,
-      line_id: lineId || null,
-      desired_course: String(formData.get("desired_course") ?? "") || null,
-      interested_jobs: jobs.length ? jobs : null,
-      horse_experience: formData.get("horse_experience") === "yes",
-      horse_experience_detail: String(formData.get("horse_experience_detail") ?? "") || null,
-      referral_source: String(formData.get("referral_source") ?? "") || null,
+      remarks: String(formData.get("remarks") ?? "") || null,
       status: "material_requested",
     })
     .select("id")
@@ -90,7 +73,7 @@ export async function submitRequestAction(_prev: RequestState, formData: FormDat
     if (created?.user) {
       userId = created.user.id;
       isNewAccount = true;
-      await db.from("profiles").insert({ id: userId, role: "applicant", full_name: name, email, phone: String(formData.get("phone") ?? "") || null, line_id: lineId || null });
+      await db.from("profiles").insert({ id: userId, role: "applicant", full_name: name, email, phone: String(formData.get("phone") ?? "") || null });
     }
   }
 
@@ -98,24 +81,17 @@ export async function submitRequestAction(_prev: RequestState, formData: FormDat
     await db.from("leads").update({ user_id: userId }).eq("id", lead.id);
   }
 
-  // 資料請求の受付確認 + マイページ案内をメール(+LINE登録があればLINE)で自動送信
+  // 資料請求の受付確認 + マイページ案内をメールで自動送信 (SMTP遅延でリダイレクトをブロックしないよう応答後に送信)
   const loginUrl = `${await siteOrigin()}/login`;
-  await sendNotification({
-    channel: "email",
-    recipient: email,
-    title: "【東関東馬事学院】資料請求ありがとうございます",
-    body: WELCOME_BODY(name, isNewAccount, email, loginUrl),
-    relatedType: "material_request",
-  });
-  if (lineId) {
-    await sendNotification({
-      channel: "line",
-      recipient: lineId,
-      title: "資料請求ありがとうございます",
-      body: "パンフレットを発送いたします。マイページにログインすると、学院紹介動画・入学仮審査アンケート・学校見学お申し込みがご利用いただけます。",
+  after(() =>
+    sendNotification({
+      channel: "email",
+      recipient: email,
+      title: "【東関東馬事学院】資料請求ありがとうございます",
+      body: WELCOME_BODY(name, isNewAccount, email, loginUrl),
       relatedType: "material_request",
-    });
-  }
+    })
+  );
 
-  return { ok: true };
+  redirect("/login?registered=1");
 }

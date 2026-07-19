@@ -13,28 +13,102 @@ import type {
   AudienceType,
   MealType,
   VideoStatus,
+  CareerOutcomeType,
+  ReimbursementStatus,
 } from "@/lib/types";
 
 /** 入学までの進捗ステップ (管理画面ダッシュボードの18項目) */
-export const PROGRESS_STEPS: { key: LeadStatus; label: string }[] = [
-  { key: "material_requested", label: "資料請求" },
-  { key: "material_sent", label: "資料発送" },
-  { key: "video_watched", label: "動画視聴" },
-  { key: "survey_answered", label: "仮審査回答" },
-  { key: "ai_judged", label: "AI判定" },
-  { key: "visit_reserved", label: "見学予約" },
-  { key: "payment_confirmed", label: "入金確認" },
-  { key: "visit_attended", label: "体験参加" },
-  { key: "exp_survey_answered", label: "アンケート" },
-  { key: "applied", label: "出願" },
-  { key: "aptitude_done", label: "性格診断" },
-  { key: "interview", label: "面接" },
-  { key: "decision_sent", label: "合否通知" },
-  { key: "enrollment_procedure", label: "入学手続き" },
-  { key: "admission_fee_paid", label: "入学金確認" },
-  { key: "uniform_ordered", label: "制服注文" },
-  { key: "dorm_ready", label: "入寮準備" },
-  { key: "enrolled", label: "入学式" },
+export const PROGRESS_STEPS: { key: LeadStatus; label: string; description: string }[] = [
+  {
+    key: "material_requested",
+    label: "資料請求",
+    description: "資料請求フォームのご入力を受け付けました。学院のパンフレットをお送りする準備を進めています。",
+  },
+  {
+    key: "material_sent",
+    label: "資料発送",
+    description: "パンフレットを発送しました。届くまでしばらくお待ちください。お手元に届いたら学院紹介動画もあわせてご覧ください。",
+  },
+  {
+    key: "video_watched",
+    label: "動画視聴",
+    description: "学院紹介動画で、学びの内容や寮生活、卒業後の進路イメージをご確認いただけます。視聴後は仮審査アンケートへお進みください。",
+  },
+  {
+    key: "survey_answered",
+    label: "仮審査回答",
+    description: "入学仮審査アンケートへのご回答です。あなたの希望や状況をもとに、次のサポート内容を判断します。",
+  },
+  {
+    key: "ai_judged",
+    label: "AI判定",
+    description: "アンケート回答をもとに仮審査結果をお知らせします。結果に応じて、見学・オープンキャンパスのご案内へ進みます。",
+  },
+  {
+    key: "visit_reserved",
+    label: "見学予約",
+    description: "学校見学・オープンキャンパスの日程を予約するステップです。実際に馬と触れ合い、学院の雰囲気を体感できます。",
+  },
+  {
+    key: "payment_confirmed",
+    label: "入金確認",
+    description: "見学・体験の参加費のお支払い確認です。入金が確認でき次第、当日のご案内が確定します。",
+  },
+  {
+    key: "visit_attended",
+    label: "体験参加",
+    description: "学校見学・体験へのご参加です。当日の内容を通じて、入学後の生活をより具体的にイメージできます。",
+  },
+  {
+    key: "exp_survey_answered",
+    label: "アンケート",
+    description: "体験後アンケートです。ご本人・保護者の感想をお聞かせください。出願判断の参考にもなります。",
+  },
+  {
+    key: "applied",
+    label: "出願",
+    description: "願書提出と必要書類の確認を行うステップです。作文や提出物のチェックをマイページから進められます。",
+  },
+  {
+    key: "aptitude_done",
+    label: "性格診断",
+    description: "性格・適性検査です。あなたの強みや向いている仕事の傾向を把握し、進路指導に活かします。",
+  },
+  {
+    key: "interview",
+    label: "面接",
+    description: "面接選考のステップです。日程は出願ページでご確認ください。当日はリラックスしてお臨みください。",
+  },
+  {
+    key: "decision_sent",
+    label: "合否通知",
+    description: "選考結果のご通知です。合否確認ページで結果をご覧いただけます。",
+  },
+  {
+    key: "enrollment_procedure",
+    label: "入学手続き",
+    description: "合格後の入学手続きです。提出物・規約同意・各種お支払いなどをオンラインで進められます。",
+  },
+  {
+    key: "admission_fee_paid",
+    label: "入学金確認",
+    description: "入学金のご入金確認です。確認後、制服注文や入寮準備など残りの手続きへ進みます。",
+  },
+  {
+    key: "uniform_ordered",
+    label: "制服注文",
+    description: "制服サイズの登録・注文のステップです。入学手続きページからサイズをご登録ください。",
+  },
+  {
+    key: "dorm_ready",
+    label: "入寮準備",
+    description: "入寮に向けた準備のご案内です。持ち物や日程など、学院からの連絡をご確認ください。",
+  },
+  {
+    key: "enrolled",
+    label: "入学式",
+    description: "ご入学おめでとうございます。入学式のご案内は入学者専用ページのお知らせをご覧ください。",
+  },
 ];
 
 export const LEAD_STATUS_LABELS: Record<LeadStatus, string> = Object.fromEntries(
@@ -43,6 +117,20 @@ export const LEAD_STATUS_LABELS: Record<LeadStatus, string> = Object.fromEntries
 
 export function statusIndex(status: LeadStatus): number {
   return PROGRESS_STEPS.findIndex((s) => s.key === status);
+}
+
+/** 完了済みステップ数 (X / Y 完了 の X) */
+export function completedStepCount(status: LeadStatus): number {
+  const idx = statusIndex(status);
+  if (idx < 0) return 0;
+  if (status === "enrolled") return PROGRESS_STEPS.length;
+  return idx;
+}
+
+export function progressTitle(status: LeadStatus): string {
+  const done = completedStepCount(status);
+  const total = PROGRESS_STEPS.length;
+  return `入学までの進捗（${done} / ${total} 完了）`;
 }
 
 export const VIDEO_STATUS_LABELS: Record<VideoStatus, string> = {
@@ -140,6 +228,9 @@ export const AUDIENCE_LABELS: Record<AudienceType, string> = {
   all: "全体",
 };
 
+/** 資料請求フォーム: 送信者の続柄 */
+export const RELATIONSHIP_OPTIONS = ["本人", "保護者", "学校の先生", "代理人", "その他"];
+
 export const GRADES = ["中学1年", "中学2年", "中学3年", "高校1年", "高校2年", "高校3年", "既卒・社会人"];
 
 export const COURSES = ["東関東馬事高等学院(高等課程)", "東関東馬事専門学院(専門課程)"];
@@ -177,7 +268,7 @@ export const UNIFORM_SIZES = ["S", "M", "L", "LL", "3L"];
 export const BOOTS_SIZES = ["23.0", "23.5", "24.0", "24.5", "25.0", "25.5", "26.0", "26.5", "27.0", "27.5", "28.0"];
 export const HELMET_SIZES = ["S (54-56cm)", "M (56-58cm)", "L (58-60cm)", "XL (60-62cm)"];
 
-/** ステップ2: 入学仮審査アンケート設問 */
+/** 入学仮審査アンケート設問 */
 export type SurveyQuestion = {
   id: string;
   text: string;
@@ -194,13 +285,13 @@ export type SurveyQuestion = {
 export const PRE_SCREENING_QUESTIONS: SurveyQuestion[] = [
   {
     id: "current_status",
-    section: "STEP1 現在の状況について",
+    section: "現在の状況について",
     text: "現在のあなたの立場について教えてください",
     type: "choice",
     required: true,
     options: [
-      "中学1年", "中学2年", "中学3年",
-      "高校1年", "高校2年", "高校3年",
+      "中学生（1年）", "中学生（2年）", "中学生（3年）",
+      "高校生（1年）", "高校生（2年）", "高校生（3年）",
       "高校中退", "通信制高校", "専門学校等", "社会人", "その他",
     ],
   },
@@ -217,7 +308,7 @@ export const PRE_SCREENING_QUESTIONS: SurveyQuestion[] = [
 
   {
     id: "horse_experience_level",
-    section: "STEP3 馬について",
+    section: "馬について",
     text: "馬に乗ったことはありますか？",
     type: "choice",
     required: true,
@@ -249,7 +340,7 @@ export const PRE_SCREENING_QUESTIONS: SurveyQuestion[] = [
 
   {
     id: "dorm_life",
-    section: "STEP4 学校生活について",
+    section: "学校生活について",
     text: "全寮制について",
     type: "choice",
     required: true,
@@ -270,7 +361,7 @@ export const PRE_SCREENING_QUESTIONS: SurveyQuestion[] = [
 
   {
     id: "concerns",
-    section: "STEP5 入学を考える上で気になること",
+    section: "入学を考える上で気になること",
     text: "入学を考える上で一番気になることは何ですか？(複数選択可能)",
     type: "checkbox",
     options: ["学費", "寮生活", "就職", "人間関係", "不登校への対応", "先生との距離", "安全面", "その他"],
@@ -285,7 +376,7 @@ export const PRE_SCREENING_QUESTIONS: SurveyQuestion[] = [
   },
   { id: "info_session_questions", text: "学校説明会では何を聞きたいですか？(どんなことでもご記入ください)", type: "textarea" },
 
-  { id: "future_dream", section: "STEP6 将来について", text: "今、自分が考えている将来の夢があれば書いてください", type: "textarea" },
+  { id: "future_dream", section: "将来について", text: "今、自分が考えている将来の夢があれば書いてください", type: "textarea" },
 
   {
     id: "why_school",
@@ -295,8 +386,26 @@ export const PRE_SCREENING_QUESTIONS: SurveyQuestion[] = [
     required: true,
   },
 
-  { id: "current_worry", section: "STEP9 その他", text: "現在、不安に思っていることがあれば何でも教えてください", type: "textarea" },
+  { id: "current_worry", section: "その他", text: "現在、不安に思っていることがあれば何でも教えてください", type: "textarea" },
 ];
+
+/** 学校見学後アンケート: 星評価の説明ラベル (1〜5) */
+export const POST_VISIT_STAR_LABELS: Record<string, Record<number, string>> = {
+  satisfaction: {
+    5: "大変満足",
+    4: "満足",
+    3: "普通",
+    2: "やや不満",
+    1: "不満",
+  },
+  enrollment_intent: {
+    5: "ぜひ入学したい",
+    4: "前向きに検討したい",
+    3: "少し興味がある",
+    2: "まだ分からない",
+    1: "今回は難しい",
+  },
+};
 
 /** 学校見学・オープンキャンパス参加後アンケート */
 export const POST_VISIT_QUESTIONS: SurveyQuestion[] = [
@@ -343,6 +452,9 @@ export const POST_VISIT_QUESTIONS: SurveyQuestion[] = [
   },
   { id: "referral_trigger_other", text: "「その他」を選んだ方はこちらにご記入ください", type: "text" },
 ];
+
+/** 2ページ目の先頭設問 (入学希望度) */
+export const POST_VISIT_PAGE2_START_ID = "enrollment_intent";
 
 /** 出願時の提出書類 */
 export const APPLICATION_DOCUMENTS = [
@@ -399,6 +511,36 @@ export const FOLLOW_UP_RULES = [
     description: "体験に参加してから14日以上経過したが出願していない見込み客",
   },
 ] as const;
+
+/** 成績評価の選択肢 (5段階) */
+export const GRADE_EVALUATION_OPTIONS = ["S", "A", "B", "C", "D"];
+
+/** 社会人基礎力チェック (経済産業省「社会人基礎力」の3つの力・12の能力要素) */
+export const COMPETENCY_CATEGORIES: { group: string; keys: string[] }[] = [
+  { group: "前に踏み出す力", keys: ["主体性", "働きかけ力", "実行力"] },
+  { group: "考え抜く力", keys: ["課題発見力", "計画力", "創造力"] },
+  { group: "チームで働く力", keys: ["発信力", "傾聴力", "柔軟性", "状況把握力", "規律性", "ストレスコントロール力"] },
+];
+
+export const COMPETENCY_SCORE_LABELS: Record<number, string> = {
+  1: "1 (これから)",
+  2: "2 (努力中)",
+  3: "3 (できている)",
+  4: "4 (よくできている)",
+  5: "5 (非常に優れている)",
+};
+
+export const CAREER_OUTCOME_LABELS: Record<CareerOutcomeType, string> = {
+  employment: "就職",
+  further_education: "進学",
+  other: "その他",
+};
+
+export const REIMBURSEMENT_STATUS_LABELS: Record<ReimbursementStatus, string> = {
+  pending: "未通知",
+  notified: "通知済(返金予定)",
+  paid: "返金完了",
+};
 
 /** 在校生定期アンケートのデフォルト設問 */
 export const DEFAULT_STUDENT_SURVEY_QUESTIONS = [

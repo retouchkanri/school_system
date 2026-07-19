@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth";
 import { adminDb } from "@/lib/supabase/admin";
 import { notifyBoth } from "@/lib/notify";
+import { uploadAvatarFile } from "@/lib/avatar";
 import type { Profile, UserRole } from "@/lib/types";
 
 export interface ActionState {
@@ -93,14 +94,26 @@ export async function updateUserAction(_prev: ActionState, formData: FormData): 
     if (adminCount <= 1) return { error: "最後の管理者の権限は変更できません" };
   }
 
-  const { error } = await adminDb()
-    .from("profiles")
-    .update({ full_name: fullName, phone: phone || null, line_id: lineId || null, role })
-    .eq("id", id);
+  const updates: Record<string, string | null> = {
+    full_name: fullName,
+    phone: phone || null,
+    line_id: lineId || null,
+    role,
+  };
+
+  const avatarFile = formData.get("avatar");
+  if (avatarFile instanceof File && avatarFile.size > 0) {
+    const uploaded = await uploadAvatarFile(id, avatarFile);
+    if (typeof uploaded === "object") return { error: uploaded.error };
+    updates.avatar_url = uploaded;
+  }
+
+  const { error } = await adminDb().from("profiles").update(updates).eq("id", id);
   if (error) return { error: "保存に失敗しました" };
 
   revalidatePath("/admin/users");
   revalidatePath(`/admin/users/${id}`);
+  revalidatePath("/admin", "layout");
   return { ok: true, message: "保存しました" };
 }
 

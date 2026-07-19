@@ -17,7 +17,13 @@ const NAV = [
 export default async function MypageLayout({ children }: { children: React.ReactNode }) {
   const profile = await requireRole("applicant");
   return (
-    <PortalLayout profile={profile} roleLabel="入学希望者マイ" nav={NAV} home="/mypage">
+    <PortalLayout
+      profile={profile}
+      roleLabel="入学希望者マイ"
+      nav={NAV}
+      home="/mypage"
+      statusHref="/mypage/status"
+    >
       {children}
     </PortalLayout>
   );

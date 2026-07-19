@@ -2,26 +2,31 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { LogOut, UserCog, LayoutDashboard } from "lucide-react";
+import { LogOut, UserCog, LayoutDashboard, ListChecks } from "lucide-react";
 
 /**
  * ログイン中ユーザーのアバター+氏名。
- * クリックでドロップダウン(個人情報の変更 / ホーム画面へ / ログアウト)を表示。
+ * クリックでドロップダウン(マイページ / 現在の状態 / 個人情報の変更 / ログアウト)を表示。
  */
 export default function UserMenu({
   name,
-  roleLabel,
   homeHref,
-  homeLabel,
+  homeLabel = "マイページ",
   logout,
   avatarUrl,
+  statusHref,
+  statusLabel = "現在の状態",
 }: {
   name: string;
-  roleLabel: string;
+  /** @deprecated ヘッダーには表示しない (後方互換のため残置) */
+  roleLabel?: string;
   homeHref: string;
-  homeLabel: string;
+  homeLabel?: string;
   logout: () => Promise<void>;
   avatarUrl?: string | null;
+  /** 指定時のみ「現在の状態」メニューを表示 */
+  statusHref?: string;
+  statusLabel?: string;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -51,26 +56,14 @@ export default function UserMenu({
             {name.trim().charAt(0)}
           </span>
         )}
-        <span className="hidden text-left sm:block">
-          <span className="block text-sm font-semibold leading-tight text-gray-800">{name}</span>
-          <span className="block text-[11px] leading-tight text-gray-400">{roleLabel}</span>
-        </span>
+        <span className="hidden text-sm font-semibold text-gray-800 sm:block">{name}</span>
       </button>
 
       {open && (
         <div className="absolute right-0 z-50 mt-2 w-56 rounded-lg border border-gray-200 bg-white py-1.5 shadow-xl">
           <div className="border-b border-gray-100 px-4 py-2 sm:hidden">
             <p className="text-sm font-semibold text-gray-800">{name}</p>
-            <p className="text-[11px] text-gray-400">{roleLabel}</p>
           </div>
-          <Link
-            href="/account"
-            onClick={() => setOpen(false)}
-            className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 transition hover:bg-brand-50"
-          >
-            <UserCog size={16} className="text-gray-400" />
-            個人情報の変更
-          </Link>
           <Link
             href={homeHref}
             onClick={() => setOpen(false)}
@@ -78,6 +71,24 @@ export default function UserMenu({
           >
             <LayoutDashboard size={16} className="text-gray-400" />
             {homeLabel}
+          </Link>
+          {statusHref && (
+            <Link
+              href={statusHref}
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 transition hover:bg-brand-50"
+            >
+              <ListChecks size={16} className="text-gray-400" />
+              {statusLabel}
+            </Link>
+          )}
+          <Link
+            href="/account"
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 transition hover:bg-brand-50"
+          >
+            <UserCog size={16} className="text-gray-400" />
+            個人情報の変更
           </Link>
           <div className="my-1 border-t border-gray-100" />
           <form action={logout}>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireRole } from "@/lib/auth";
 import { getLeadForUser } from "@/lib/data";
 import { adminDb } from "@/lib/supabase/admin";
+import { skipPaymentInDev } from "@/lib/dev";
 import { Card, PageHeader, btnPrimary } from "@/components/ui";
 import type { ExperienceSurvey } from "@/lib/types";
 import ExperienceForm from "./experience-form";
@@ -27,7 +28,9 @@ export default async function ExperiencePage() {
     );
   }
 
-  // 体験参加済みが回答条件
+  const bypass = skipPaymentInDev();
+
+  // 体験参加済みが回答条件 (開発中は決済・参加なしでも回答可能)
   const { data: attended } = await adminDb()
     .from("open_campus_bookings")
     .select("id")
@@ -36,7 +39,7 @@ export default async function ExperiencePage() {
     .limit(1)
     .maybeSingle();
 
-  if (!attended) {
+  if (!attended && !bypass) {
     return (
       <div>
         <PageHeader title="学校見学後アンケート" />
@@ -70,6 +73,12 @@ export default async function ExperiencePage() {
         title="学校見学後アンケート"
         description="本日は東関東馬事学院へお越しいただき、誠にありがとうございました。今後の学校づくりの参考とさせていただきますので、ご協力をお願いいたします。"
       />
+
+      {bypass && !attended && (
+        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+          開発モード: 決済・参加確認をスキップしてアンケートに回答できます
+        </div>
+      )}
 
       {answers && (
         <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 p-5 text-center">

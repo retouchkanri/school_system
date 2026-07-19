@@ -17,6 +17,7 @@
     "nodemailer": "^6.9.16",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
+    "sonner": "^2.0.7",
     "stripe": "^17.5.0"
   },
   "devDependencies": {

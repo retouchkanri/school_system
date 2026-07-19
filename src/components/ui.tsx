@@ -2,6 +2,8 @@ import Link from "next/link";
 import { PROGRESS_STEPS, statusIndex } from "@/lib/constants";
 import type { LeadStatus } from "@/lib/types";
 
+export { ProgressTracker } from "@/components/progress-tracker";
+
 /* ============ レイアウト ============ */
 
 export function Card({
@@ -112,45 +114,7 @@ export function LeadStatusBadge({ status }: { status: LeadStatus }) {
 }
 
 /* ============ 進捗トラッカー ============ */
-
-export function ProgressTracker({ status, compact = false }: { status: LeadStatus; compact?: boolean }) {
-  const current = statusIndex(status);
-  if (compact) {
-    return (
-      <div className="flex items-center gap-1" title={`${current + 1}/${PROGRESS_STEPS.length}`}>
-        {PROGRESS_STEPS.map((s, i) => (
-          <span
-            key={s.key}
-            title={s.label}
-            className={`h-2 w-2 rounded-full ${i <= current ? "bg-brand-500" : "bg-gray-200"}`}
-          />
-        ))}
-        <span className="ml-2 text-xs text-gray-500">
-          {current + 1}/{PROGRESS_STEPS.length}
-        </span>
-      </div>
-    );
-  }
-  return (
-    <ol className="grid grid-cols-3 gap-2 sm:grid-cols-6">
-      {PROGRESS_STEPS.map((s, i) => (
-        <li
-          key={s.key}
-          className={`rounded-lg border px-2 py-1.5 text-center text-[11px] font-medium ${
-            i < current
-              ? "border-brand-200 bg-brand-50 text-brand-700"
-              : i === current
-                ? "border-brand-500 bg-brand-500 text-white"
-                : "border-gray-200 bg-white text-gray-400"
-          }`}
-        >
-          {i < current ? "✓ " : ""}
-          {s.label}
-        </li>
-      ))}
-    </ol>
-  );
-}
+// ProgressTracker は progress-tracker.tsx (クライアント) から re-export
 
 /* ============ フォーム ============ */
 

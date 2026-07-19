@@ -1,7 +1,7 @@
 import Link from "next/link";
-import SiteLogo from "@/components/site-logo";
+import SiteHeader from "@/components/site-header";
 import HeroCarousel from "@/components/hero-carousel";
-import { btnPrimary, btnSecondary } from "@/components/ui";
+import { btnPrimary } from "@/components/ui";
 
 const FLOW = [
   { step: "STEP 1", title: "資料請求", desc: "フォームから簡単1分。学院パンフレットをお送りします。" },
@@ -32,19 +32,7 @@ const FEATURES = [
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-white">
-      <header className="sticky top-0 z-30 flex w-full items-center justify-between border-b border-gray-100 bg-white/95 px-[5vw] py-5 backdrop-blur">
-        <Link href="/" className="flex items-center">
-          <SiteLogo />
-        </Link>
-        <nav className="flex items-center gap-3">
-          <Link href="/login" className={btnSecondary}>
-            ログイン
-          </Link>
-          <Link href="/request" className={btnPrimary}>
-            資料請求
-          </Link>
-        </nav>
-      </header>
+      <SiteHeader />
 
       <main>
         <section className="relative">

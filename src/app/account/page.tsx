@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSessionProfile, roleHome } from "@/lib/auth";
+import { adminDb } from "@/lib/supabase/admin";
 import SiteLogo from "@/components/site-logo";
 import { Card, PageHeader } from "@/components/ui";
 import AccountForm from "./account-form";
@@ -16,6 +17,12 @@ const ROLE_LABELS: Record<string, string> = {
 export default async function AccountPage() {
   const profile = await getSessionProfile();
   if (!profile) redirect("/login");
+
+  const { data: lead } = await adminDb()
+    .from("leads")
+    .select("birth_date")
+    .eq("user_id", profile.id)
+    .maybeSingle();
 
   return (
     <div className="min-h-screen bg-white">
@@ -37,7 +44,7 @@ export default async function AccountPage() {
           description={`${ROLE_LABELS[profile.role] ?? ""}アカウントの登録情報を編集できます`}
         />
         <Card>
-          <AccountForm profile={profile} />
+          <AccountForm profile={profile} birthDate={lead?.birth_date ?? null} />
         </Card>
       </main>
     </div>

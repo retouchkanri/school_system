@@ -1,8 +1,9 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { UNIFORM_SIZES, BOOTS_SIZES, HELMET_SIZES } from "@/lib/constants";
 import { Card, Field, Label, inputCls, btnPrimary } from "@/components/ui";
+import { showErrorToast, showSuccessToast } from "@/lib/toast";
 import { saveEnrollmentAction, type ActionState } from "./actions";
 import type { EnrollmentProcedure } from "@/lib/types";
 
@@ -39,6 +40,11 @@ const AGREEMENT_TEXT = `東関東馬事学院 入学規約
 
 export default function EnrollmentForm({ procedure }: { procedure: EnrollmentProcedure | null }) {
   const [state, formAction, pending] = useActionState<ActionState, FormData>(saveEnrollmentAction, {});
+
+  useEffect(() => {
+    if (state.error) showErrorToast(state.error);
+    if (state.ok) showSuccessToast("手続き内容を保存しました");
+  }, [state]);
 
   const ec = (i: number) => procedure?.emergency_contacts?.[i] ?? { name: "", relation: "", phone: "" };
   const g = procedure?.guarantor ?? {};
@@ -235,13 +241,6 @@ export default function EnrollmentForm({ procedure }: { procedure: EnrollmentPro
           </p>
         </div>
       </Card>
-
-      {state.error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{state.error}</p>}
-      {state.ok && (
-        <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-          ✓ 手続き内容を保存しました。続いて下記のお支払いをお願いいたします。
-        </p>
-      )}
 
       <button type="submit" disabled={pending} className={`${btnPrimary} w-full py-3`}>
         {pending ? "送信中…" : "手続き内容を保存する"}

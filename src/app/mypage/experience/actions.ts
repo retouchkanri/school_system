@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth";
 import { adminDb } from "@/lib/supabase/admin";
 import { getLeadForUser, advanceLeadStatus } from "@/lib/data";
+import { skipPaymentInDev } from "@/lib/dev";
 import { computeEnrollmentProbability } from "@/lib/ai";
 import { POST_VISIT_QUESTIONS } from "@/lib/constants";
 
@@ -18,15 +19,17 @@ export async function submitExperienceAction(_prev: ActionState, formData: FormD
   const lead = await getLeadForUser(profile.id);
   if (!lead || lead.user_id !== profile.id) return { error: "リード情報が見つかりません" };
 
-  // 体験参加済みであることを検証
-  const { data: attended } = await adminDb()
-    .from("open_campus_bookings")
-    .select("id")
-    .eq("lead_id", lead.id)
-    .eq("status", "attended")
-    .limit(1)
-    .maybeSingle();
-  if (!attended) return { error: "体験参加後にご回答いただけます" };
+  // 体験参加済みであることを検証 (開発中は決済スキップ可)
+  if (!skipPaymentInDev()) {
+    const { data: attended } = await adminDb()
+      .from("open_campus_bookings")
+      .select("id")
+      .eq("lead_id", lead.id)
+      .eq("status", "attended")
+      .limit(1)
+      .maybeSingle();
+    if (!attended) return { error: "体験参加後にご回答いただけます" };
+  }
 
   const answers: Record<string, string> = {};
   for (const q of POST_VISIT_QUESTIONS) {

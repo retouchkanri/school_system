@@ -18,6 +18,7 @@ import {
   DECISION_DOCUMENTS,
   APTITUDE_TRAITS,
   SUITABILITY_LABELS,
+  progressTitle,
 } from "@/lib/constants";
 import {
   Card,
@@ -162,7 +163,7 @@ export default async function AdminLeadDetailPage({ params }: { params: Promise<
         <span className="ml-auto text-xs text-gray-400">登録日: {fmtDate(lead.created_at)}</span>
       </div>
 
-      <Card title="入学までの進捗 (18ステップ)">
+      <Card title={progressTitle(lead.status)}>
         <ProgressTracker status={lead.status} />
       </Card>
 
@@ -172,6 +173,7 @@ export default async function AdminLeadDetailPage({ params }: { params: Promise<
           <Card title="基本情報">
             <dl>
               <InfoRow label="フリガナ" value={lead.kana ?? "—"} />
+              <InfoRow label="続柄" value={lead.relationship ?? "—"} />
               <InfoRow label="学年" value={lead.grade ?? "—"} />
               <InfoRow label="生年月日" value={fmtDate(lead.birth_date)} />
               <InfoRow label="性別" value={lead.gender ?? "—"} />
@@ -202,6 +204,7 @@ export default async function AdminLeadDetailPage({ params }: { params: Promise<
                 }
               />
               <InfoRow label="何を見て知ったか" value={lead.referral_source ?? "—"} />
+              <InfoRow label="備考(ご本人記入)" value={lead.remarks ?? "—"} />
               <InfoRow label="登録日" value={fmtDateTime(lead.created_at)} />
             </dl>
           </Card>
