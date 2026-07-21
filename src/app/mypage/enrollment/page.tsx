@@ -28,6 +28,7 @@ import type {
 } from "@/lib/types";
 import EnrollmentForm from "./enrollment-form";
 import { payEnrollmentFeeAction } from "./actions";
+import { isDevPhase } from "@/lib/dev";
 
 const FEES: { type: PaymentType; label: string; amount: number }[] = [
   { type: "admission_fee", label: "入学金", amount: 300000 },
@@ -80,9 +81,11 @@ export default async function EnrollmentPage({
     .eq("lead_id", lead.id)
     .maybeSingle();
   const decision = (decisionData as AdmissionDecision | null) ?? null;
+  const bypass = isDevPhase();
+  const accepted = !!decision && decision.result === "accepted" && !!decision.notified_at;
 
-  // 合格者のみ利用可能
-  if (!decision || decision.result !== "accepted" || !decision.notified_at) {
+  // 合格者のみ利用可能 (開発中はスキップ可)
+  if (!accepted && !bypass) {
     return (
       <div>
         <PageHeader title="入学手続き" />
@@ -130,6 +133,12 @@ export default async function EnrollmentPage({
         </div>
       )}
 
+      {bypass && !accepted && (
+        <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+          開発モード: 選考結果に関わらず入学手続きページを確認できます
+        </div>
+      )}
+
       {status === "completed" && (
         <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 p-5 text-sm text-emerald-800">
           <p className="font-bold">✓ 手続き入力は完了しています (署名日時: {fmtDateTime(procedure?.signed_at)})</p>
@@ -140,6 +149,9 @@ export default async function EnrollmentPage({
       <EnrollmentForm procedure={procedure} />
 
       <SectionTitle>お支払い</SectionTitle>
+      <p className="mb-3 text-xs text-gray-400">
+        ※ 表示の金額は開発中の仮価格です。正式なものではなく、今後変更になる場合があります。
+      </p>
       <div className="grid gap-4 sm:grid-cols-3">
         {FEES.map((fee) => {
           const payment = payments.find((p) => p.type === fee.type) ?? null;

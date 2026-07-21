@@ -132,6 +132,9 @@ export default async function EventsPage() {
       )}
 
       <SectionTitle>開催予定のイベント</SectionTitle>
+      <p className="mb-3 text-xs text-gray-400">
+        ※ 参加費は開発中の仮価格です。正式なものではなく、今後変更になる場合があります。
+      </p>
       {events.length === 0 ? (
         <EmptyState message="現在募集中のイベントはありません。次回の開催をお待ちください。" />
       ) : (

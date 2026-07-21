@@ -1,33 +1,236 @@
 import Link from "next/link";
+import {
+  ArrowRight,
+  Bell,
+  Brain,
+  Building2,
+  CalendarDays,
+  CheckCircle2,
+  ClipboardList,
+  CreditCard,
+  ExternalLink,
+  FileText,
+  GraduationCap,
+  HeartHandshake,
+  Moon,
+  Phone,
+  PlayCircle,
+  Send,
+  ShieldCheck,
+  Sparkles,
+  TrendingUp,
+  UserCheck,
+  Users,
+  Utensils,
+} from "lucide-react";
 import SiteHeader from "@/components/site-header";
-import HeroCarousel from "@/components/hero-carousel";
-import { btnPrimary } from "@/components/ui";
+import HomeHero from "@/components/home/home-hero";
+import Reveal from "@/components/home/reveal";
+import Counter from "@/components/home/counter";
+import PhotoMarquee from "@/components/home/photo-marquee";
+import { KOUTOU_IMAGES, KOUTOU_DETAIL, KOUTOU_FUTURE, SENMON_IMAGES, OFFICIAL_SITES } from "@/lib/site-images";
 
-const FLOW = [
-  { step: "STEP 1", title: "資料請求", desc: "フォームから簡単1分。学院パンフレットをお送りします。" },
-  { step: "STEP 2", title: "動画視聴・仮審査", desc: "学院紹介動画とアンケートで、あなたに合った学び方をご提案。" },
-  { step: "STEP 3", title: "学校見学・オープンキャンパス", desc: "実際に馬とふれあい、寮や施設を見学できます。" },
-  { step: "STEP 4", title: "出願・適性検査", desc: "願書提出と性格・適性検査で、あなたの強みを分析。" },
-  { step: "STEP 5", title: "合格・入学手続き", desc: "オンラインで入学手続きが完結。入学式でお会いしましょう。" },
+/* ============ セクションデータ ============ */
+
+const HERO_SLIDES = [
+  { src: KOUTOU_IMAGES.campus1.src, alt: KOUTOU_IMAGES.campus1.alt },
+  { src: KOUTOU_IMAGES.riding1.src, alt: KOUTOU_IMAGES.riding1.alt },
+  { src: KOUTOU_IMAGES.campus3.src, alt: KOUTOU_IMAGES.campus3.alt },
+  { src: KOUTOU_IMAGES.horseClose.src, alt: KOUTOU_IMAGES.horseClose.alt },
+  { src: KOUTOU_IMAGES.campus2.src, alt: KOUTOU_IMAGES.campus2.alt },
 ];
 
-const FEATURES = [
+const SCHOOLS = [
   {
-    img: "/images/feature-care.jpg",
-    title: "馬とともに暮らす3年間",
-    desc: "担当馬を持ち、毎日の手入れから騎乗まで。馬との信頼関係づくりがすべての学びの土台になります。",
+    key: "koutou",
+    logo: KOUTOU_IMAGES.logo.src,
+    photo: KOUTOU_DETAIL.tokucho1.src,
+    name: "東関東馬事高等学院",
+    en: "HIGASHIKANTO BAJI HIGH SCHOOL",
+    tagline: "勉強は最低限！夢は最大限！",
+    desc: "千葉県山武市の小学校跡地をリノベーションした広大なキャンパスで、朝から晩まで馬と過ごせる高校。ほぼ毎日騎乗授業があり、乗馬ライセンスや騎乗者資格も高校授業として取得できます。",
+    chips: ["一般高校乗馬コース", "騎手受験特別コース", "競走馬厩務員コース", "全寮制"],
+    url: OFFICIAL_SITES.koutou.url,
   },
   {
-    img: "/images/feature-career.jpg",
-    title: "騎手・厩務員への確かな進路",
-    desc: "JRA・地方競馬・乗馬クラブ・牧場へ。座学と実習を組み合わせたカリキュラムで馬業界への就職を支援します。",
-  },
-  {
-    img: "/images/feature-dormlife.jpg",
-    title: "全寮制だから身につく生活力",
-    desc: "仲間と過ごす寮生活の中で、早起きの習慣も、協調性も、自然と身についていきます。",
+    key: "senmon",
+    logo: SENMON_IMAGES.logo.src,
+    photo: SENMON_IMAGES.kankyoMain.src,
+    name: "東関東馬事専門学院",
+    en: "HIGASHIKANTO BAJI COLLEGE",
+    tagline: "未経験からJRA厩務員へ。業界一体型の信頼と実績",
+    desc: "関東と関西の4つの教育施設で約120頭の馬を学生が管理。未経験から最短1年4ヶ月でJRA競馬学校厩務員課程合格を目指せる、実践型カリキュラムの専門学院です。",
+    chips: ["JRA厩務員課程", "10年連続合格実績", "報酬型の業界実習", "学生寮完備"],
+    url: OFFICIAL_SITES.senmon.url,
   },
 ];
+
+const SCHOOL_STATS = [
+  { value: 120, suffix: "頭+", label: "学生が管理する馬たち" },
+  { value: 4, suffix: "施設", label: "関東・関西の教育拠点" },
+  { value: 10, suffix: "年連続", label: "JRA厩務員課程 合格実績" },
+  { value: 100, suffix: "%", label: "牧場・乗馬クラブ就職率(令和7年度)" },
+];
+
+const PILLARS = [
+  {
+    icon: Send,
+    title: "入学管理 (CRM・MA)",
+    desc: "資料請求から出願・合否・入学手続きまで、見込み生徒との出会いを18ステップで一元管理。対応漏れを自動フォローで防ぎます。",
+  },
+  {
+    icon: GraduationCap,
+    title: "在校生・保護者管理",
+    desc: "出欠・騎乗報告・研修・外泊・食事・成績まで学院生活のすべてを記録。生徒と保護者それぞれの専用ポータルでいつでも確認できます。",
+  },
+  {
+    icon: Sparkles,
+    title: "AI分析・支援者連携",
+    desc: "アンケートや適性検査をAIが分析し、生徒一人ひとりのタイプと可能性を可視化。リタッチ馬の近況はAIが要約し一口支援者へ届けます。",
+  },
+];
+
+const ADMISSION_STEPS = [
+  {
+    step: "STEP 1",
+    icon: FileText,
+    title: "資料請求",
+    img: KOUTOU_DETAIL.tokucho1.src,
+    desc: "フォームから約1分で入力完了。氏名・学年・希望学科・馬経験などを登録すると、学院パンフレットをお届けします。担当者・発送状況もシステムで管理。",
+    tags: ["入力1分", "リード管理", "LINE登録"],
+    href: "/request",
+    linkLabel: "資料請求フォーム",
+  },
+  {
+    step: "STEP 2",
+    icon: PlayCircle,
+    title: "AI事前審査",
+    img: KOUTOU_DETAIL.tokucho3.src,
+    desc: "学院紹介動画の視聴状況(未視聴・途中・完了)を自動管理。入学仮審査アンケートの回答をAIが読み取り「この生徒は○○タイプ」と自動でまとめ、担当者は読むだけ。",
+    tags: ["動画視聴管理", "仮審査アンケート", "AIタイプ判定"],
+    href: "/mypage/video",
+    linkLabel: "動画・アンケートへ",
+  },
+  {
+    step: "STEP 3",
+    icon: CalendarDays,
+    title: "学校見学・オープンキャンパス",
+    img: SENMON_IMAGES.taikenRiding.src,
+    desc: "AI判定で参加可能となったら案内を自動送信。日程予約から参加費8,000円の決済(クレジットカード・銀行振込)までオンラインで完結します。",
+    tags: ["オンライン予約", "カード決済", "銀行振込"],
+    href: "/mypage/events",
+    linkLabel: "見学予約へ",
+  },
+  {
+    step: "STEP 4",
+    icon: ClipboardList,
+    title: "体験終了アンケート",
+    img: SENMON_IMAGES.taikenCare.src,
+    desc: "体験後は本人と保護者の両方が回答。「馬は好きになった」「寮生活できそう」「学費への不安」などの声をAIが分析し、入学確率を予測して表示します。",
+    tags: ["本人・保護者回答", "AI分析", "入学確率予測"],
+    href: "/mypage/experience",
+    linkLabel: "体験アンケートへ",
+  },
+  {
+    step: "STEP 5",
+    icon: UserCheck,
+    title: "出願・適性検査",
+    img: KOUTOU_DETAIL.tokucho4.src,
+    desc: "願書・写真・成績・作文の提出に加え、約100問の性格・適性検査を実施。リーダー性・ストレス耐性・動物適性から騎手向き・厩務員向きまでAIレポートが完成します。",
+    tags: ["Web出願", "適性検査100問", "AIレポート"],
+    href: "/mypage/application",
+    linkLabel: "出願ページへ",
+  },
+  {
+    step: "STEP 6",
+    icon: CheckCircle2,
+    title: "合否通知",
+    img: KOUTOU_IMAGES.competition.src,
+    desc: "メール・LINE・郵送で自動送信。合否結果とあわせて学費・入学規約・学用品一覧・制服案内・入学までの流れをまとめてお届けします。",
+    tags: ["メール", "LINE", "郵送"],
+    href: "/mypage/result",
+    linkLabel: "合否確認へ",
+  },
+  {
+    step: "STEP 7",
+    icon: CreditCard,
+    title: "入学手続き",
+    img: KOUTOU_DETAIL.shisetsuDorm.src,
+    desc: "専用ページで顔写真・保険証・制服やブーツのサイズ・緊急連絡先・アレルギーなどを入力。規約同意は電子署名、入学金・制服代・教材費の支払いもオンラインで完結。",
+    tags: ["電子署名", "オンライン決済", "サイズ登録"],
+    href: "/mypage/enrollment",
+    linkLabel: "入学手続きへ",
+  },
+  {
+    step: "STEP 8",
+    icon: Users,
+    title: "入学者専用ページ",
+    img: KOUTOU_DETAIL.tokucho7.src,
+    desc: "入学決定者だけが見られる特設ページ。入学式の案内・持ち物・寮案内・配属馬房・担当馬・クラス発表・時間割・制服の発送状況までLINE通知とあわせてお知らせします。",
+    tags: ["担当馬発表", "クラス発表", "LINE通知"],
+    href: "/mypage/enrollee",
+    linkLabel: "入学者ページへ",
+  },
+];
+
+const AI_FEATURES = [
+  {
+    icon: Brain,
+    title: "AIタイプ判定",
+    desc: "仮審査アンケートの回答から「明るく素直。動物への興味が非常に強い。初期サポート推奨」など生徒像を自動で要約し、顧客情報へ登録します。",
+  },
+  {
+    icon: TrendingUp,
+    title: "入学確率予測",
+    desc: "体験後の本人・保護者アンケートをAIが分析し、入学確率を%で表示。優先的にフォローすべき生徒がひと目で分かります。",
+  },
+  {
+    icon: ClipboardList,
+    title: "性格・適性検査分析",
+    desc: "約100問の検査から、コツコツ型・リーダー型などの性格に加え、騎手・厩務員・牧場・インストラクターへの適性をレポート化します。",
+  },
+  {
+    icon: HeartHandshake,
+    title: "騎乗報告のAI要約",
+    desc: "毎日の騎乗報告からリタッチ馬の情報を自動抽出。今月のその馬の様子をAIが読みやすくまとめ、一口支援者と共有します。",
+  },
+];
+
+const STUDENT_FEATURES = [
+  { icon: CheckCircle2, title: "出欠管理", desc: "日常の出欠・遅刻・早退をワンタップで記録" },
+  { icon: ClipboardList, title: "授業日報・騎乗報告", desc: "騎乗の内容と馬の状態を毎日記録" },
+  { icon: Building2, title: "研修管理", desc: "牧場・乗馬クラブでの研修先と履歴を管理" },
+  { icon: Moon, title: "外泊届の保護者承認", desc: "申請から保護者のオンライン承認まで完結" },
+  { icon: Utensils, title: "食事管理", desc: "食べた・食べないを記録し健康を見守る" },
+  { icon: GraduationCap, title: "成績・単位管理", desc: "学習成果と資格取得状況をいつでも確認" },
+  { icon: Bell, title: "一斉配信 (メール・LINE)", desc: "生徒・保護者へのお知らせをまとめて送信" },
+  { icon: FileText, title: "定期アンケート", desc: "在校生の声を定期的に収集し指導へ反映" },
+];
+
+const PORTALS = [
+  { icon: FileText, name: "資料請求", href: "/request", desc: "はじめての方はこちら。約1分で完了", tone: "bg-brand-50 text-brand-700" },
+  { icon: UserCheck, name: "入学希望者マイページ", href: "/mypage", desc: "動画視聴〜入学手続きまでの専用ページ", tone: "bg-brand-50 text-brand-700" },
+  { icon: GraduationCap, name: "在校生ポータル", href: "/student", desc: "出欠・騎乗報告・研修・食事の記録", tone: "bg-emerald-50 text-emerald-700" },
+  { icon: ShieldCheck, name: "保護者ポータル", href: "/parent", desc: "お子様の学院生活を見守り、外泊を承認", tone: "bg-blue-50 text-blue-700" },
+  { icon: HeartHandshake, name: "一口支援者ポータル", href: "/supporter", desc: "リタッチ馬の毎月のAI要約レポート", tone: "bg-amber-50 text-amber-700" },
+  { icon: Building2, name: "職員ダッシュボード", href: "/admin", desc: "全生徒の進捗と学院運営を一元管理", tone: "bg-purple-50 text-purple-700" },
+];
+
+const ADMIN_STEPS = [
+  "資料請求", "資料発送", "動画視聴", "仮審査回答", "AI判定", "見学予約",
+  "入金確認", "体験参加", "アンケート", "出願", "性格診断", "面接",
+  "合否通知", "入学手続き", "入学金確認", "制服注文", "入寮準備", "入学式",
+];
+
+const FOLLOW_UPS = [
+  "動画は見たが、アンケート未回答の方",
+  "アンケート回答済みだが、見学予約がない方",
+  "見学参加後14日経過したが、出願がない方",
+];
+
+const FUTURE_MARQUEE = KOUTOU_FUTURE.map((f) => ({ src: f.src, alt: f.alt, caption: f.alt }));
+
+/* ============ ページ本体 ============ */
 
 export default function HomePage() {
   return (
@@ -35,73 +238,507 @@ export default function HomePage() {
       <SiteHeader />
 
       <main>
-        <section className="relative">
-          <HeroCarousel />
+        {/* ヒーロー */}
+        <HomeHero slides={HERO_SLIDES} />
+
+        {/* コンセプト */}
+        <section className="px-[6vw] py-20 text-center sm:py-24">
+          <Reveal>
+            <p className="text-xs font-bold tracking-[0.35em] text-accent-600">INTEGRATED PLATFORM</p>
+            <h2 className="heading-underline mt-4 text-2xl font-bold leading-relaxed text-gray-900 sm:text-3xl">
+              出会いから、卒業まで。
+              <br />
+              すべてを、ひとつのシステムで。
+            </h2>
+          </Reveal>
+          <Reveal delay={200}>
+            <p className="mx-auto mt-8 max-w-3xl text-sm leading-loose text-gray-600 sm:text-base">
+              騎手、厩務員、乗馬インストラクター――馬のプロフェッショナルを目指す一人ひとりのために。
+              資料請求から AI 事前審査、オープンキャンパス、出願、入学手続き、そして毎日の学院生活と一口支援者への報告まで。
+              CRM・マーケティングオートメーション・入試管理・在校生管理を統合した、馬事学院独自のプラットフォームです。
+            </p>
+          </Reveal>
         </section>
 
-        <section className="px-[5vw] py-14 text-center">
-          <p className="text-sm font-bold tracking-widest text-brand-600">HIGASHIKANTO HORSEPACK</p>
-          <h1 className="mt-3 text-2xl font-bold leading-snug text-gray-900 sm:text-4xl">
-            馬と生きる、未来をつくる。
-          </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-gray-600 sm:text-base">
-            騎手、厩務員、乗馬インストラクター——。馬のプロフェッショナルを目指すあなたを、
-            資料請求から入学、そして入学後の学院生活まで一貫してサポートします。
-          </p>
-          <div className="mt-7 flex justify-center gap-4">
-            <Link href="/request" className={`${btnPrimary} px-8 py-3 text-base`}>
-              無料で資料請求する
-            </Link>
-          </div>
-        </section>
-
-        <section className="bg-brand-50/60 px-[5vw] py-14">
-          <h2 className="mb-8 text-center text-xl font-bold text-gray-900">学院の特色</h2>
-          <div className="mx-auto grid max-w-5xl gap-6 sm:grid-cols-3">
-            {FEATURES.map((f) => (
-              <div key={f.title} className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={f.img} alt={f.title} className="h-44 w-full object-cover" />
-                <div className="p-5">
-                  <h3 className="font-bold text-gray-900">{f.title}</h3>
-                  <p className="mt-2 text-xs leading-relaxed text-gray-500">{f.desc}</p>
+        {/* ふたつの学院 */}
+        <section className="bg-brand-50/60 px-[6vw] py-20">
+          <Reveal>
+            <p className="text-center text-xs font-bold tracking-[0.35em] text-accent-600">OUR SCHOOLS</p>
+            <h2 className="heading-underline mt-3 text-center text-2xl font-bold text-gray-900 sm:text-3xl">ふたつの学院</h2>
+          </Reveal>
+          <div className="mx-auto mt-12 grid max-w-6xl gap-8 lg:grid-cols-2">
+            {SCHOOLS.map((school, i) => (
+              <Reveal key={school.key} variant={i === 0 ? "right" : "left"} delay={i * 150}>
+                <div className="group h-full overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-500 hover:-translate-y-1.5 hover:shadow-xl">
+                  <div className="img-zoom relative h-56 sm:h-64">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={school.photo} alt={school.name} className="h-full w-full object-cover" loading="lazy" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                    <div className="absolute bottom-4 left-5 right-5">
+                      <p className="text-[10px] font-bold tracking-[0.25em] text-white/80">{school.en}</p>
+                      <h3 className="mt-1 text-xl font-bold text-white drop-shadow">{school.name}</h3>
+                    </div>
+                  </div>
+                  <div className="p-6 sm:p-7">
+                    <div className="flex items-center justify-between gap-4">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={school.logo} alt={`${school.name} ロゴ`} className="h-9 w-auto object-contain" loading="lazy" />
+                      <a
+                        href={school.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs font-semibold text-brand-600 hover:underline"
+                      >
+                        公式サイト <ExternalLink className="h-3.5 w-3.5" />
+                      </a>
+                    </div>
+                    <p className="mt-4 font-serif text-base font-bold text-brand-700">{school.tagline}</p>
+                    <p className="mt-3 text-sm leading-relaxed text-gray-600">{school.desc}</p>
+                    <div className="mt-5 flex flex-wrap gap-2">
+                      {school.chips.map((chip) => (
+                        <span key={chip} className="rounded-full bg-brand-100 px-3 py-1 text-xs font-semibold text-brand-700">
+                          {chip}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-              </div>
+              </Reveal>
             ))}
           </div>
         </section>
 
-        <section className="px-[5vw] py-14">
-          <h2 className="mb-8 text-center text-xl font-bold text-gray-900">入学までの流れ</h2>
-          <ol className="mx-auto grid max-w-5xl gap-4 sm:grid-cols-5">
-            {FLOW.map((f) => (
-              <li key={f.step} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-                <p className="text-xs font-bold text-brand-600">{f.step}</p>
-                <h3 className="mt-1 text-sm font-bold text-gray-900">{f.title}</h3>
-                <p className="mt-2 text-xs leading-relaxed text-gray-500">{f.desc}</p>
-              </li>
+        {/* 数字で見る学院 */}
+        <section className="relative overflow-hidden bg-brand-800 px-[6vw] py-16 text-white">
+          <div
+            className="pointer-events-none absolute inset-0 opacity-10"
+            style={{ backgroundImage: `url(${KOUTOU_IMAGES.campus4.src})`, backgroundSize: "cover", backgroundPosition: "center" }}
+          />
+          <div className="relative mx-auto grid max-w-5xl grid-cols-2 gap-10 text-center lg:grid-cols-4">
+            {SCHOOL_STATS.map((stat, i) => (
+              <Reveal key={stat.label} delay={i * 120}>
+                <p className="font-serif text-4xl font-bold text-white sm:text-5xl">
+                  <Counter value={stat.value} />
+                  <span className="ml-1 text-xl text-brand-200 sm:text-2xl">{stat.suffix}</span>
+                </p>
+                <p className="mt-2 text-xs leading-relaxed text-brand-100/90 sm:text-sm">{stat.label}</p>
+              </Reveal>
             ))}
-          </ol>
+          </div>
         </section>
 
-        <section className="relative">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/images/banner-praise.jpg" alt="馬を褒めること。" className="h-[260px] w-full object-cover sm:h-[340px]" />
+        {/* プラットフォーム3本柱 */}
+        <section className="px-[6vw] py-20">
+          <Reveal>
+            <p className="text-center text-xs font-bold tracking-[0.35em] text-accent-600">WHAT WE DO</p>
+            <h2 className="heading-underline mt-3 text-center text-2xl font-bold text-gray-900 sm:text-3xl">
+              システムができる、3つのこと
+            </h2>
+          </Reveal>
+          <div className="mx-auto mt-12 grid max-w-5xl gap-6 sm:grid-cols-3">
+            {PILLARS.map((pillar, i) => (
+              <Reveal key={pillar.title} delay={i * 150} variant="zoom">
+                <div className="h-full rounded-2xl border border-gray-200 bg-white p-7 text-center shadow-sm transition-all duration-500 hover:-translate-y-1.5 hover:border-brand-300 hover:shadow-lg">
+                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-brand-50 text-brand-600">
+                    <pillar.icon className="h-7 w-7" />
+                  </div>
+                  <h3 className="mt-5 text-base font-bold text-gray-900">{pillar.title}</h3>
+                  <p className="mt-3 text-xs leading-relaxed text-gray-500 sm:text-sm">{pillar.desc}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
         </section>
 
-        <section className="px-[5vw] py-14 text-center">
-          <h2 className="text-lg font-bold text-gray-900">まずは資料請求から</h2>
-          <p className="mx-auto mt-3 max-w-xl text-sm text-gray-600">
-            パンフレットのお届け後、学院紹介動画・オープンキャンパスのご案内をお送りします。
-          </p>
-          <Link href="/request" className={`${btnPrimary} mt-6 px-8 py-3 text-base`}>
-            資料請求フォームへ
-          </Link>
+        {/* 入学までの流れ (8ステップ タイムライン) */}
+        <section className="bg-gradient-to-b from-brand-50/70 to-white px-[6vw] py-20">
+          <Reveal>
+            <p className="text-center text-xs font-bold tracking-[0.35em] text-accent-600">ADMISSION FLOW</p>
+            <h2 className="heading-underline mt-3 text-center text-2xl font-bold text-gray-900 sm:text-3xl">
+              資料請求から入学までの8ステップ
+            </h2>
+            <p className="mx-auto mt-6 max-w-2xl text-center text-sm leading-relaxed text-gray-600">
+              すべてのステップがオンラインでつながっているから、迷わない。
+              あなたの「今」に合わせて、システムが次の一歩をご案内します。
+            </p>
+          </Reveal>
+
+          <div className="relative mx-auto mt-14 max-w-5xl">
+            {/* 縦のタイムライン線 */}
+            <div className="absolute left-5 top-0 hidden h-full w-0.5 bg-gradient-to-b from-brand-300 via-brand-400 to-accent-500 sm:left-1/2 sm:block sm:-translate-x-1/2" />
+
+            <ol className="space-y-10 sm:space-y-14">
+              {ADMISSION_STEPS.map((item, i) => {
+                const even = i % 2 === 0;
+                return (
+                  <li key={item.step} className="relative">
+                    {/* タイムライン上のドット */}
+                    <span className="absolute left-1/2 top-8 z-10 hidden h-4 w-4 -translate-x-1/2 rounded-full border-4 border-white bg-brand-500 shadow sm:block" />
+                    <Reveal variant={even ? "right" : "left"}>
+                      <div className={`sm:flex sm:items-center sm:gap-10 ${even ? "" : "sm:flex-row-reverse"}`}>
+                        <div className="img-zoom relative hidden h-52 overflow-hidden rounded-2xl shadow-md sm:block sm:w-1/2">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={item.img} alt={item.title} className="h-full w-full object-cover" loading="lazy" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-brand-900/30 to-transparent" />
+                        </div>
+                        <div className="sm:w-1/2">
+                          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-500 hover:-translate-y-1 hover:shadow-lg sm:p-7">
+                            <div className="flex items-center gap-3">
+                              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-600 text-white">
+                                <item.icon className="h-5 w-5" />
+                              </span>
+                              <div>
+                                <p className="text-[11px] font-bold tracking-widest text-accent-600">{item.step}</p>
+                                <h3 className="text-lg font-bold text-gray-900">{item.title}</h3>
+                              </div>
+                            </div>
+                            <p className="mt-4 text-sm leading-relaxed text-gray-600">{item.desc}</p>
+                            <div className="mt-4 flex flex-wrap gap-2">
+                              {item.tags.map((tag) => (
+                                <span key={tag} className="rounded-full border border-brand-200 bg-brand-50 px-2.5 py-0.5 text-[11px] font-semibold text-brand-700">
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
+                            <Link
+                              href={item.href}
+                              className="mt-5 inline-flex items-center gap-1.5 text-sm font-bold text-brand-600 transition hover:gap-3 hover:text-brand-700"
+                            >
+                              {item.linkLabel} <ArrowRight className="h-4 w-4" />
+                            </Link>
+                          </div>
+                        </div>
+                      </div>
+                    </Reveal>
+                  </li>
+                );
+              })}
+            </ol>
+          </div>
+        </section>
+
+        {/* AI機能 */}
+        <section className="relative overflow-hidden bg-brand-900 px-[6vw] py-20 text-white">
+          <div className="pointer-events-none absolute -left-32 top-0 h-96 w-96 rounded-full bg-brand-500/20 blur-3xl" />
+          <div className="pointer-events-none absolute -right-24 bottom-0 h-80 w-80 rounded-full bg-accent-500/20 blur-3xl" />
+          <Reveal>
+            <p className="text-center text-xs font-bold tracking-[0.35em] text-accent-500">AI POWERED</p>
+            <h2 className="heading-underline mt-3 text-center text-2xl font-bold text-white sm:text-3xl">
+              AIが、担当者の目と手になる。
+            </h2>
+            <p className="mx-auto mt-6 max-w-2xl text-center text-sm leading-relaxed text-brand-100/80">
+              アンケートも適性検査も騎乗報告も、読み込んでまとめるのはAIの仕事。
+              職員は「読むだけ」で、一人ひとりに向き合う時間が増えます。
+            </p>
+          </Reveal>
+          <div className="relative mx-auto mt-12 grid max-w-5xl gap-6 sm:grid-cols-2">
+            {AI_FEATURES.map((feature, i) => (
+              <Reveal key={feature.title} delay={i * 130}>
+                <div className="animate-glow-pulse h-full rounded-2xl border border-white/10 bg-white/5 p-7 backdrop-blur transition-all duration-500 hover:-translate-y-1 hover:border-accent-500/50 hover:bg-white/10">
+                  <div className="flex items-center gap-4">
+                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-accent-500 text-white shadow-lg">
+                      <feature.icon className="h-6 w-6" />
+                    </span>
+                    <h3 className="text-base font-bold text-white">{feature.title}</h3>
+                  </div>
+                  <p className="mt-4 text-sm leading-relaxed text-brand-100/80">{feature.desc}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </section>
+
+        {/* 在校生・保護者管理 */}
+        <section className="px-[6vw] py-20">
+          <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-2">
+            <div>
+              <Reveal>
+                <p className="text-xs font-bold tracking-[0.35em] text-accent-600">SCHOOL LIFE</p>
+                <h2 className="mt-3 text-2xl font-bold leading-relaxed text-gray-900 sm:text-3xl">
+                  入学してからも、
+                  <br />
+                  毎日をまるごとサポート。
+                </h2>
+                <p className="mt-5 text-sm leading-loose text-gray-600">
+                  全寮制だからこそ、日々の記録と保護者との連携が大切。
+                  出欠から騎乗報告、外泊届の承認、食事の記録まで、学院生活のすべてをメールよりも身近な LINE 連動でつなぎます。
+                </p>
+              </Reveal>
+              <div className="mt-8 grid grid-cols-2 gap-4">
+                {STUDENT_FEATURES.map((feature, i) => (
+                  <Reveal key={feature.title} delay={i * 80} variant="up">
+                    <div className="flex h-full items-start gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-md">
+                      <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
+                        <feature.icon className="h-4 w-4" />
+                      </span>
+                      <div>
+                        <h3 className="text-sm font-bold text-gray-900">{feature.title}</h3>
+                        <p className="mt-1 text-[11px] leading-relaxed text-gray-500">{feature.desc}</p>
+                      </div>
+                    </div>
+                  </Reveal>
+                ))}
+              </div>
+              <Reveal delay={200}>
+                <div className="mt-8 flex flex-wrap gap-4">
+                  <Link href="/student" className="inline-flex items-center gap-1.5 text-sm font-bold text-brand-600 hover:underline">
+                    在校生ポータルへ <ArrowRight className="h-4 w-4" />
+                  </Link>
+                  <Link href="/parent" className="inline-flex items-center gap-1.5 text-sm font-bold text-brand-600 hover:underline">
+                    保護者ポータルへ <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </div>
+              </Reveal>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <Reveal variant="left" delay={100}>
+                <div className="img-zoom overflow-hidden rounded-2xl shadow-md">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={SENMON_IMAGES.dormRoom.src} alt={SENMON_IMAGES.dormRoom.alt} className="h-48 w-full object-cover sm:h-56" loading="lazy" />
+                </div>
+              </Reveal>
+              <Reveal variant="left" delay={250}>
+                <div className="img-zoom mt-8 overflow-hidden rounded-2xl shadow-md">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={SENMON_IMAGES.dormMeal.src} alt={SENMON_IMAGES.dormMeal.alt} className="h-48 w-full object-cover sm:h-56" loading="lazy" />
+                </div>
+              </Reveal>
+              <Reveal variant="left" delay={400}>
+                <div className="img-zoom overflow-hidden rounded-2xl shadow-md">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={KOUTOU_DETAIL.shisetsuShokudo.src} alt={KOUTOU_DETAIL.shisetsuShokudo.alt} className="h-48 w-full object-cover sm:h-56" loading="lazy" />
+                </div>
+              </Reveal>
+              <Reveal variant="left" delay={550}>
+                <div className="img-zoom mt-8 overflow-hidden rounded-2xl shadow-md">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={KOUTOU_DETAIL.tokucho2.src} alt={KOUTOU_DETAIL.tokucho2.alt} className="h-48 w-full object-cover sm:h-56" loading="lazy" />
+                </div>
+              </Reveal>
+            </div>
+          </div>
+        </section>
+
+        {/* リタッチ馬 × 一口支援者 */}
+        <section className="bg-gradient-to-r from-amber-50/80 to-brand-50/60 px-[6vw] py-20">
+          <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-2">
+            <Reveal variant="right">
+              <div className="img-zoom relative overflow-hidden rounded-3xl shadow-lg">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={KOUTOU_IMAGES.horseClose.src} alt="リタッチ馬" className="h-72 w-full object-cover sm:h-96" loading="lazy" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                <p className="absolute bottom-5 left-6 font-serif text-lg font-bold text-white drop-shadow">
+                  引退競走馬に、第二の馬生を。
+                </p>
+              </div>
+            </Reveal>
+            <div>
+              <Reveal variant="left">
+                <p className="text-xs font-bold tracking-[0.35em] text-accent-600">RETOUCH HORSES</p>
+                <h2 className="mt-3 text-2xl font-bold leading-relaxed text-gray-900 sm:text-3xl">
+                  リタッチ馬の「今月」を、
+                  <br />
+                  一口支援者のもとへ。
+                </h2>
+                <p className="mt-5 text-sm leading-loose text-gray-600">
+                  学院では引退競走馬(リタッチ馬)を受け入れ、生徒たちが日々ケアと調教を行っています。
+                  毎日の騎乗報告からリタッチ馬の情報をシステムが自動でピックアップ。
+                  AIがひと月の様子を読みやすく要約し、その馬を支える一口支援者の皆さまへ毎月お届けします。
+                </p>
+                <ul className="mt-6 space-y-3 text-sm text-gray-700">
+                  {["騎乗報告からリタッチ馬の記録を自動抽出", "AIが今月の調子・成長・エピソードを要約", "支援者専用ポータルでいつでも閲覧可能"].map((point) => (
+                    <li key={point} className="flex items-start gap-2.5">
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-brand-600" />
+                      {point}
+                    </li>
+                  ))}
+                </ul>
+                <Link
+                  href="/supporter"
+                  className="mt-7 inline-flex items-center gap-1.5 rounded-lg bg-accent-500 px-6 py-3 text-sm font-bold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-accent-600"
+                >
+                  一口支援者ポータルへ <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Reveal>
+            </div>
+          </div>
+        </section>
+
+        {/* 職員ダッシュボード */}
+        <section className="px-[6vw] py-20">
+          <div className="mx-auto max-w-6xl">
+            <Reveal>
+              <p className="text-center text-xs font-bold tracking-[0.35em] text-accent-600">STAFF DASHBOARD</p>
+              <h2 className="heading-underline mt-3 text-center text-2xl font-bold text-gray-900 sm:text-3xl">
+                対応漏れを、ゼロへ。
+              </h2>
+              <p className="mx-auto mt-6 max-w-2xl text-center text-sm leading-relaxed text-gray-600">
+                生徒ごとの進捗が18ステップでひと目で分かる職員用ダッシュボード。
+                フォローが必要な生徒はシステムが自動で抽出し、メール・LINEでアプローチできます。
+              </p>
+            </Reveal>
+
+            <Reveal delay={150}>
+              <div className="mt-12 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
+                <h3 className="text-sm font-bold text-gray-700">入学までの進捗管理 (18ステップ)</h3>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {ADMIN_STEPS.map((step, i) => (
+                    <span
+                      key={step}
+                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold ${
+                        i < 5
+                          ? "bg-brand-600 text-white"
+                          : i < 9
+                            ? "bg-brand-100 text-brand-700"
+                            : "border border-gray-200 bg-gray-50 text-gray-500"
+                      }`}
+                    >
+                      <span className="text-[10px] opacity-70">{String(i + 1).padStart(2, "0")}</span>
+                      {step}
+                    </span>
+                  ))}
+                </div>
+                <div className="mt-8 grid gap-4 sm:grid-cols-3">
+                  {FOLLOW_UPS.map((follow, i) => (
+                    <Reveal key={follow} delay={i * 120}>
+                      <div className="flex h-full items-start gap-3 rounded-xl border border-amber-200 bg-amber-50/70 p-4">
+                        <Bell className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+                        <div>
+                          <p className="text-xs font-bold text-amber-800">自動抽出</p>
+                          <p className="mt-1 text-xs leading-relaxed text-amber-700">{follow}</p>
+                        </div>
+                      </div>
+                    </Reveal>
+                  ))}
+                </div>
+                <p className="mt-6 text-center text-xs text-gray-400">
+                  抽出された対象者には、メール・LINEでワンクリックフォロー。入学率の向上に直結します。
+                </p>
+              </div>
+            </Reveal>
+          </div>
+        </section>
+
+        {/* 6つのポータル */}
+        <section className="bg-brand-50/60 px-[6vw] py-20">
+          <Reveal>
+            <p className="text-center text-xs font-bold tracking-[0.35em] text-accent-600">PORTALS</p>
+            <h2 className="heading-underline mt-3 text-center text-2xl font-bold text-gray-900 sm:text-3xl">
+              あなた専用の入り口
+            </h2>
+          </Reveal>
+          <div className="mx-auto mt-12 grid max-w-5xl gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {PORTALS.map((portal, i) => (
+              <Reveal key={portal.name} delay={i * 100} variant="zoom">
+                <Link
+                  href={portal.href}
+                  className="group flex h-full flex-col rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-500 hover:-translate-y-1.5 hover:border-brand-300 hover:shadow-xl"
+                >
+                  <span className={`flex h-11 w-11 items-center justify-center rounded-xl ${portal.tone}`}>
+                    <portal.icon className="h-5 w-5" />
+                  </span>
+                  <h3 className="mt-4 text-base font-bold text-gray-900">{portal.name}</h3>
+                  <p className="mt-2 flex-1 text-xs leading-relaxed text-gray-500">{portal.desc}</p>
+                  <span className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-brand-600 transition-all group-hover:gap-3">
+                    ひらく <ArrowRight className="h-3.5 w-3.5" />
+                  </span>
+                </Link>
+              </Reveal>
+            ))}
+          </div>
+        </section>
+
+        {/* 目指せる進路 (マーキー) */}
+        <section className="py-20">
+          <Reveal>
+            <p className="text-center text-xs font-bold tracking-[0.35em] text-accent-600">FUTURE</p>
+            <h2 className="heading-underline mt-3 text-center text-2xl font-bold text-gray-900 sm:text-3xl">
+              生徒たちの未来 — 目指せる進路
+            </h2>
+            <p className="mx-auto mt-6 max-w-2xl px-[6vw] text-center text-sm leading-relaxed text-gray-600">
+              JRA騎手・NAR騎手・厩務員から、生産・育成牧場、乗馬クラブ、観光牧場、養老牧場まで。
+              性格・適性検査のAI分析が、一人ひとりに合った馬の仕事への道を照らします。
+            </p>
+          </Reveal>
+          <Reveal delay={200} className="mt-10">
+            <PhotoMarquee items={FUTURE_MARQUEE} />
+          </Reveal>
+        </section>
+
+        {/* CTA (パララックス) */}
+        <section
+          className="relative bg-cover bg-fixed bg-center px-[6vw] py-28 text-center"
+          style={{ backgroundImage: `url(${KOUTOU_IMAGES.cover.src})` }}
+        >
+          <div className="absolute inset-0 bg-brand-900/70" />
+          <Reveal className="relative">
+            <p className="font-serif text-lg text-brand-100">馬と生きる未来への、最初の一歩。</p>
+            <h2 className="mt-4 text-3xl font-bold text-white sm:text-4xl">まずは、資料請求から。</h2>
+            <p className="mx-auto mt-5 max-w-xl text-sm leading-relaxed text-brand-100/90">
+              約1分の入力で、パンフレット・学院紹介動画・オープンキャンパスのご案内をお届けします。
+            </p>
+            <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
+              <Link
+                href="/request"
+                className="shine relative overflow-hidden rounded-lg bg-accent-500 px-10 py-4 text-base font-bold text-white shadow-xl transition hover:-translate-y-0.5 hover:bg-accent-600"
+              >
+                無料で資料請求する
+              </Link>
+              <a
+                href="tel:05068753336"
+                className="inline-flex items-center gap-2 rounded-lg border border-white/50 bg-white/10 px-8 py-4 text-sm font-bold text-white backdrop-blur transition hover:bg-white/20"
+              >
+                <Phone className="h-4 w-4" /> 050-6875-3336
+              </a>
+            </div>
+          </Reveal>
         </section>
       </main>
 
-      <footer className="border-t border-gray-100 bg-white px-[5vw] py-8 text-center text-xs text-gray-400">
-        © 東関東馬事高等学院・東関東馬事専門学院 入学・在校生統合管理システム
+      {/* フッター */}
+      <footer className="bg-brand-900 px-[6vw] pb-10 pt-14 text-brand-100">
+        <div className="mx-auto grid max-w-6xl gap-10 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="lg:col-span-2">
+            <p className="font-serif text-lg font-bold text-white">東関東馬事学院 統合プラットフォーム</p>
+            <p className="mt-3 max-w-md text-xs leading-relaxed text-brand-200/80">
+              東関東馬事高等学院・東関東馬事専門学院の入学管理から在校生管理、一口支援者への報告までを一元化する統合管理システムです。
+            </p>
+            <div className="mt-5 flex flex-col gap-2 text-xs">
+              {Object.values(OFFICIAL_SITES).map((site) => (
+                <a
+                  key={site.url}
+                  href={site.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-brand-200 transition hover:text-white"
+                >
+                  <ExternalLink className="h-3 w-3" /> {site.name} 公式サイト
+                </a>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="text-xs font-bold tracking-widest text-brand-300">入学をお考えの方</p>
+            <ul className="mt-4 space-y-2.5 text-xs">
+              <li><Link href="/request" className="transition hover:text-white">資料請求</Link></li>
+              <li><Link href="/mypage" className="transition hover:text-white">マイページ</Link></li>
+              <li><Link href="/mypage/events" className="transition hover:text-white">学校見学・オープンキャンパス</Link></li>
+              <li><Link href="/login" className="transition hover:text-white">ログイン</Link></li>
+            </ul>
+          </div>
+          <div>
+            <p className="text-xs font-bold tracking-widest text-brand-300">在校生・関係者の方</p>
+            <ul className="mt-4 space-y-2.5 text-xs">
+              <li><Link href="/student" className="transition hover:text-white">在校生ポータル</Link></li>
+              <li><Link href="/parent" className="transition hover:text-white">保護者ポータル</Link></li>
+              <li><Link href="/supporter" className="transition hover:text-white">一口支援者ポータル</Link></li>
+              <li><Link href="/admin" className="transition hover:text-white">職員ダッシュボード</Link></li>
+            </ul>
+          </div>
+        </div>
+        <div className="mx-auto mt-12 max-w-6xl border-t border-white/10 pt-6 text-center text-[11px] text-brand-300/70">
+          © 東関東馬事高等学院・東関東馬事専門学院 入学・在校生統合管理システム
+        </div>
       </footer>
     </div>
   );

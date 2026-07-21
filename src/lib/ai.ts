@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { PRE_SCREENING_QUESTIONS } from "@/lib/constants";
 import { APTITUDE_QUESTIONS, TraitKey } from "@/lib/aptitude";
+import { isDevPhase } from "@/lib/dev";
 import type { AiJudgement } from "@/lib/types";
 
 /**
@@ -132,7 +133,14 @@ function ruleBasedPreScreening(answers: Record<string, string>): PreScreeningAna
     concerns.push("体力面にやや不安がある");
   }
 
-  const judgement: AiJudgement = cautionCount >= 2 ? "rejected" : cautionCount === 1 ? "caution" : "approved";
+  // 開発フェーズ中は、回答内容にかかわらず必ず「承認」として次のページへ進めるようにする
+  const judgement: AiJudgement = isDevPhase()
+    ? "approved"
+    : cautionCount >= 2
+      ? "rejected"
+      : cautionCount === 1
+        ? "caution"
+        : "approved";
 
   // 職業志向からタイプ名を生成 (合否には影響しない)
   const jobs = (answers["future_jobs"] ?? "").split("、").map((s) => s.trim()).filter(Boolean);

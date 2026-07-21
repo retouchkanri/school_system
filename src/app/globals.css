@@ -63,3 +63,102 @@ h3 {
   animation: shine-sweep 2.8s ease-in-out infinite;
   pointer-events: none;
 }
+
+/* ===== トップページ用アニメーション ===== */
+
+/* ヒーロー写真のゆっくりズーム (Ken Burns) */
+@keyframes kenburns {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1.12);
+  }
+}
+
+.animate-kenburns {
+  animation: kenburns 8s ease-out forwards;
+}
+
+/* 写真マーキー (無限横スクロール) */
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 45s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* ふわふわ浮遊 (装飾用) */
+@keyframes float-slow {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float-slow {
+  animation: float-slow 5s ease-in-out infinite;
+}
+
+/* AIカードの光彩パルス */
+@keyframes glow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 24px rgba(77, 134, 87, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 48px rgba(185, 138, 62, 0.35);
+  }
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 4s ease-in-out infinite;
+}
+
+/* セクション見出しの下線がスッと伸びる */
+@keyframes underline-grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.heading-underline::after {
+  content: "";
+  display: block;
+  margin: 0.9rem auto 0;
+  height: 3px;
+  width: 56px;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, var(--color-brand-500), var(--color-accent-500));
+  transform-origin: center;
+  animation: underline-grow 0.9s ease-out both;
+}
+
+/* 画像ホバー時のズーム */
+.img-zoom {
+  overflow: hidden;
+}
+
+.img-zoom img {
+  transition: transform 0.7s ease;
+}
+
+.img-zoom:hover img {
+  transform: scale(1.07);
+}

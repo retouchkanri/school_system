@@ -1,11 +1,13 @@
 "use server";
 
+import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth";
 import { adminDb } from "@/lib/supabase/admin";
 import { getLeadForUser, advanceLeadStatus } from "@/lib/data";
 import { analyzeAptitude } from "@/lib/ai";
 import { APTITUDE_QUESTIONS } from "@/lib/aptitude";
+import { isDevPhase } from "@/lib/dev";
 
 export interface ActionState {
   ok?: boolean;
@@ -54,5 +56,9 @@ export async function submitAptitudeAction(_prev: ActionState, formData: FormDat
 
   revalidatePath("/mypage/aptitude");
   revalidatePath("/mypage");
+
+  // 開発フェーズ中は、面接・合否を待たずに入学手続きページの動作確認ができるよう直接遷移させる
+  if (isDevPhase()) redirect("/mypage/enrollment");
+
   return { ok: true };
 }
