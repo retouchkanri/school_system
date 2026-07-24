@@ -1,5 +1,3 @@
-import { readFile } from "node:fs/promises";
-import path from "node:path";
 import nodemailer, { type Transporter } from "nodemailer";
 import { adminDb } from "@/lib/supabase/admin";
 import type { NotifyChannel } from "@/lib/types";
@@ -16,7 +14,11 @@ import type { NotifyChannel } from "@/lib/types";
  * Vercel等のサーバーレス環境では応答後に関数が凍結され、SMTP送信が完了しないことがあるため。
  */
 
-/** メール添付ファイル (content=バッファ添付 / href=URLから取得して添付) */
+/**
+ * メール添付ファイル。
+ * content=バッファ添付 (推奨・確実)。href=URLから取得して添付 (URLが200を返せる場合のみ。
+ * nodemailerはhref取得が非200だとメール全体を失敗させるため、確実性が必要な場面ではcontentを使う)。
+ */
 export interface EmailAttachment {
   filename: string;
   content?: Buffer;
@@ -30,25 +32,6 @@ export interface NotifyPayload {
   body?: string;
   relatedType?: string;
   attachments?: EmailAttachment[];
-}
-
-/**
- * public/ 配下のファイルを添付用に読み込む。
- * サーバーレスのバンドルに含まれていればディスクから直接読み (最も確実)、
- * 含まれていなければ公開URL(href)経由で添付する。
- */
-export async function publicFileAttachment(
-  publicRelPath: string,
-  displayName: string,
-  origin: string
-): Promise<EmailAttachment> {
-  try {
-    const content = await readFile(path.join(process.cwd(), "public", publicRelPath));
-    return { filename: displayName, content };
-  } catch {
-    const encoded = publicRelPath.split("/").map(encodeURIComponent).join("/");
-    return { filename: displayName, href: `${origin}/${encoded}` };
-  }
 }
 
 let _transporter: Transporter | null | undefined;
@@ -120,9 +103,11 @@ async function deliverEmail(to: string, title: string, body: string, attachments
         to,
         subject: title,
         text: body,
-        attachments: attachments
-          ?.filter((a) => a.content)
-          .map((a) => ({ filename: a.filename, content: a.content!.toString("base64") })),
+        attachments: attachments?.map((a) =>
+          a.content
+            ? { filename: a.filename, content: a.content.toString("base64") }
+            : { filename: a.filename, path: a.href }
+        ),
       }),
     });
     if (!res.ok) console.error("[notify] Resendメール送信失敗:", to, res.status, await res.text().catch(() => ""));

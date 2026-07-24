@@ -2,7 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { adminDb } from "@/lib/supabase/admin";
-import { sendNotification, publicFileAttachment } from "@/lib/notify";
+import { sendNotification } from "@/lib/notify";
+import { formAttachments } from "@/lib/form-attachments";
 import { siteOrigin } from "@/lib/url";
 import { INTRO_VIDEO_URL } from "@/lib/constants";
 
@@ -114,11 +115,8 @@ export async function submitRequestAction(_prev: RequestState, formData: FormDat
   // 資料請求の受付確認 + マイページ案内 + 2つのフォーム(添付)+ 紹介動画URL を自動送信。
   // ※ 応答後(after)ではなく await で送信する: サーバーレス環境では応答後に関数が凍結され、
   //    SMTP送信が完了しないためメールが届かない (今回の不具合の主因)。
+  // ※ 添付ファイルはソースに埋め込んだ実体(Base64)を使うため、ファイルシステム/URLに依存しない。
   const origin = await siteOrigin();
-  const attachments = await Promise.all([
-    publicFileAttachment("docs/pre-screening-form.docx", "入学仮審査(お試し)フォーム.docx", origin),
-    publicFileAttachment("docs/school-tour-form.docx", "学校見学お申し込みフォーム.docx", origin),
-  ]);
   try {
     await sendNotification({
       channel: "email",
@@ -126,7 +124,7 @@ export async function submitRequestAction(_prev: RequestState, formData: FormDat
       title: "【東関東馬事学院】資料請求ありがとうございます",
       body: WELCOME_BODY(name, birthDateLogin, email, origin),
       relatedType: "material_request",
-      attachments,
+      attachments: formAttachments(),
     });
   } catch (e) {
     // メール送信の失敗で登録処理(リダイレクト)を止めない。原因はログに残す。
