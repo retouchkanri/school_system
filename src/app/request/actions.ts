@@ -11,7 +11,7 @@ export interface RequestState {
   error?: string;
 }
 
-const WELCOME_BODY = (name: string, isNewAccount: boolean, email: string, origin: string) => {
+const WELCOME_BODY = (name: string, birthDateLogin: boolean, email: string, origin: string) => {
   const loginUrl = `${origin}/login`;
   const surveyUrl = `${origin}/mypage/survey`;
   const eventsUrl = `${origin}/mypage/events`;
@@ -34,7 +34,7 @@ ${name}様には、以下3つの情報をご用意しましたので、お届け
 ログインURL: ${loginUrl}
 メールアドレス: ${email}
 ${
-  isNewAccount
+  birthDateLogin
     ? "パスワード: ご入力いただいた生年月日(半角数字8桁 例:20250102)"
     : "パスワード: 既にお持ちのアカウントのパスワードでログインしてください"
 }
@@ -73,17 +73,23 @@ export async function submitRequestAction(_prev: RequestState, formData: FormDat
 
   // マイページアカウントの自動発行・自動紐付け
   const db = adminDb();
-  const { data: existingProfile } = await db.from("profiles").select("id").eq("email", email).maybeSingle();
+  const password = birthDate.replaceAll("-", ""); // 初回ログイン用パスワード = 生年月日(8桁)
+  const { data: existingProfile } = await db
+    .from("profiles")
+    .select("id, role")
+    .eq("email", email)
+    .maybeSingle();
 
-  let userId: string | null = (existingProfile as { id: string } | null)?.id ?? null;
-  let isNewAccount = false;
+  let userId: string | null = (existingProfile as { id: string; role: string } | null)?.id ?? null;
+  const existingRole = (existingProfile as { role: string } | null)?.role ?? null;
+  /** 生年月日(8桁)でログインできる状態か。メール本文の案内を切り替えるために使う */
+  let birthDateLogin = false;
 
   if (!userId) {
-    const password = birthDate.replaceAll("-", "");
     const { data: created, error: createError } = await db.auth.admin.createUser({ email, password, email_confirm: true });
     if (created?.user && !createError) {
       userId = created.user.id;
-      isNewAccount = true;
+      birthDateLogin = true;
       const { error: profileError } = await db
         .from("profiles")
         .insert({ id: userId, role: "applicant", full_name: name, email, phone: String(formData.get("phone") ?? "") || null });
@@ -91,9 +97,15 @@ export async function submitRequestAction(_prev: RequestState, formData: FormDat
         // profiles 作成失敗時は auth 側の孤児ユーザーを残さない (残ると同メールで恒久的に再登録不能になる)
         await db.auth.admin.deleteUser(userId);
         userId = null;
-        isNewAccount = false;
+        birthDateLogin = false;
       }
     }
+  } else if (existingRole === "applicant") {
+    // 既存の入学希望者アカウントに資料請求が届いた場合:
+    // 案内メールは「生年月日でログイン」と伝えるため、実際のパスワードも生年月日に合わせて再設定する。
+    // (対象は applicant のみ。職員・在校生等の独自パスワードは決して上書きしない)
+    const { error: pwErr } = await db.auth.admin.updateUserById(userId, { password });
+    if (!pwErr) birthDateLogin = true;
   }
 
   if (userId) {
@@ -107,7 +119,7 @@ export async function submitRequestAction(_prev: RequestState, formData: FormDat
       channel: "email",
       recipient: email,
       title: "【東関東馬事学院】資料請求ありがとうございます",
-      body: WELCOME_BODY(name, isNewAccount, email, origin),
+      body: WELCOME_BODY(name, birthDateLogin, email, origin),
       relatedType: "material_request",
     })
   );
