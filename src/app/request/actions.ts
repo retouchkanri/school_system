@@ -1,9 +1,8 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { after } from "next/server";
 import { adminDb } from "@/lib/supabase/admin";
-import { sendNotification } from "@/lib/notify";
+import { sendNotification, publicFileAttachment } from "@/lib/notify";
 import { siteOrigin } from "@/lib/url";
 import { INTRO_VIDEO_URL } from "@/lib/constants";
 
@@ -112,17 +111,27 @@ export async function submitRequestAction(_prev: RequestState, formData: FormDat
     await db.from("leads").update({ user_id: userId }).eq("id", lead.id);
   }
 
-  // 資料請求の受付確認 + マイページ案内をメールで自動送信 (SMTP遅延でリダイレクトをブロックしないよう応答後に送信)
+  // 資料請求の受付確認 + マイページ案内 + 2つのフォーム(添付)+ 紹介動画URL を自動送信。
+  // ※ 応答後(after)ではなく await で送信する: サーバーレス環境では応答後に関数が凍結され、
+  //    SMTP送信が完了しないためメールが届かない (今回の不具合の主因)。
   const origin = await siteOrigin();
-  after(() =>
-    sendNotification({
+  const attachments = await Promise.all([
+    publicFileAttachment("docs/pre-screening-form.docx", "入学仮審査(お試し)フォーム.docx", origin),
+    publicFileAttachment("docs/school-tour-form.docx", "学校見学お申し込みフォーム.docx", origin),
+  ]);
+  try {
+    await sendNotification({
       channel: "email",
       recipient: email,
       title: "【東関東馬事学院】資料請求ありがとうございます",
       body: WELCOME_BODY(name, birthDateLogin, email, origin),
       relatedType: "material_request",
-    })
-  );
+      attachments,
+    });
+  } catch (e) {
+    // メール送信の失敗で登録処理(リダイレクト)を止めない。原因はログに残す。
+    console.error("[request] 資料請求受付メールの送信に失敗:", e);
+  }
 
   redirect("/login?registered=1");
 }

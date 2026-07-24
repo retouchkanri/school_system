@@ -1,6 +1,5 @@
 "use server";
 
-import { after } from "next/server";
 import { adminDb } from "@/lib/supabase/admin";
 import { notifyStaff, sendNotification } from "@/lib/notify";
 
@@ -28,8 +27,9 @@ export async function submitContactAction(_prev: ContactState, formData: FormDat
 ${message}
 `;
 
-  // 職員へ通知 + 送信者へ受付メール (レスポンスをブロックしない)
-  after(async () => {
+  // 職員へ通知 + 送信者へ受付メール。
+  // ※ 応答後(after)ではなく await で送信する (サーバーレスでは応答後に送信が完了しないため)。
+  try {
     const { data: adminsData } = await adminDb().from("profiles").select("email").eq("role", "admin");
     const adminEmails = ((adminsData ?? []) as { email: string | null }[])
       .map((a) => a.email)
@@ -53,7 +53,9 @@ ${message}
 `,
       relatedType: "contact_inquiry_ack",
     });
-  });
+  } catch (e) {
+    console.error("[contact] お問い合わせ通知の送信に失敗:", e);
+  }
 
   return { ok: true };
 }

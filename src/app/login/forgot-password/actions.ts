@@ -1,7 +1,6 @@
 "use server";
 
 import crypto from "crypto";
-import { after } from "next/server";
 import { adminDb } from "@/lib/supabase/admin";
 import { sendNotification } from "@/lib/notify";
 import { siteOrigin } from "@/lib/url";
@@ -41,16 +40,19 @@ export async function requestPasswordResetAction(
       expires_at: expiresAt,
     });
 
+    // ※ 応答後(after)ではなく await で送信する (サーバーレスでは応答後に送信が完了しないため)。
     const resetUrl = `${await siteOrigin()}/login/reset-password?token=${token}`;
-    after(() =>
-      sendNotification({
+    try {
+      await sendNotification({
         channel: "email",
         recipient: email,
         title: "【東関東馬事学院】パスワード再設定のご案内",
         body: RESET_EMAIL_BODY(resetUrl),
         relatedType: "password_reset",
-      })
-    );
+      });
+    } catch (e) {
+      console.error("[forgot-password] 再設定メールの送信に失敗:", e);
+    }
   }
 
   // メールアドレスの存在有無に関わらず同じメッセージを返す(メールアドレス総当たり対策)

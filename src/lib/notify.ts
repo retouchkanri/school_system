@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import nodemailer, { type Transporter } from "nodemailer";
 import { adminDb } from "@/lib/supabase/admin";
 import type { NotifyChannel } from "@/lib/types";
@@ -9,7 +11,17 @@ import type { NotifyChannel } from "@/lib/types";
  * LINE_CHANNEL_ACCESS_TOKEN が設定されていれば LINE Messaging API で実配信。
  * いずれも未設定の場合は notifications テーブルへの送信ログ記録のみ(安全にフォールバック)。
  * 実配信の成否に関わらず、必ず notifications テーブルにもログを残す(管理画面の送信ログ用)。
+ *
+ * 注意: 送信は「レスポンス応答後 (after)」ではなく呼び出し時に await して行うこと。
+ * Vercel等のサーバーレス環境では応答後に関数が凍結され、SMTP送信が完了しないことがあるため。
  */
+
+/** メール添付ファイル (content=バッファ添付 / href=URLから取得して添付) */
+export interface EmailAttachment {
+  filename: string;
+  content?: Buffer;
+  href?: string;
+}
 
 export interface NotifyPayload {
   channel: NotifyChannel;
@@ -17,6 +29,26 @@ export interface NotifyPayload {
   title: string;
   body?: string;
   relatedType?: string;
+  attachments?: EmailAttachment[];
+}
+
+/**
+ * public/ 配下のファイルを添付用に読み込む。
+ * サーバーレスのバンドルに含まれていればディスクから直接読み (最も確実)、
+ * 含まれていなければ公開URL(href)経由で添付する。
+ */
+export async function publicFileAttachment(
+  publicRelPath: string,
+  displayName: string,
+  origin: string
+): Promise<EmailAttachment> {
+  try {
+    const content = await readFile(path.join(process.cwd(), "public", publicRelPath));
+    return { filename: displayName, content };
+  } catch {
+    const encoded = publicRelPath.split("/").map(encodeURIComponent).join("/");
+    return { filename: displayName, href: `${origin}/${encoded}` };
+  }
 }
 
 let _transporter: Transporter | null | undefined;
@@ -47,36 +79,55 @@ function mailFrom(): string {
   return name ? `"${name}" <${addr}>` : addr;
 }
 
-async function deliverEmail(to: string, title: string, body: string) {
+async function deliverEmail(to: string, title: string, body: string, attachments?: EmailAttachment[]) {
   const useSmtp = process.env.NOTIFY_TRANSPORT === "smtp" || (!process.env.NOTIFY_TRANSPORT && !!process.env.SMTP_HOST);
 
   if (useSmtp) {
     const transporter = smtpTransporter();
-    if (!transporter) return;
+    if (!transporter) {
+      console.error("[notify] SMTP未設定 (SMTP_HOST) のためメール未送信:", to);
+      return;
+    }
     try {
-      await transporter.sendMail({
+      const info = await transporter.sendMail({
         from: mailFrom(),
         to,
         subject: title,
         text: body,
         replyTo: process.env.CONTACT_EMAIL || undefined,
+        attachments: attachments?.map((a) => ({ filename: a.filename, content: a.content, href: a.href })),
       });
-    } catch {
-      // 実配信の失敗は notifications ログの記録を妨げない (呼び出し元で常にログは残す)
+      console.info("[notify] メール送信成功:", to, info.messageId ?? "");
+    } catch (e) {
+      // 実配信の失敗は notifications ログの記録を妨げない (呼び出し元で常にログは残す)。
+      // 原因調査のため必ずログに出す (Vercelのファンクションログで確認できる)。
+      console.error("[notify] SMTPメール送信失敗:", to, e instanceof Error ? `${e.name}: ${e.message}` : e);
     }
     return;
   }
 
   const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) return;
+  if (!apiKey) {
+    console.error("[notify] メール配信手段が未設定 (NOTIFY_TRANSPORT=smtp か RESEND_API_KEY が必要) のため未送信:", to);
+    return;
+  }
   try {
-    await fetch("https://api.resend.com/emails", {
+    const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from: mailFrom(), to, subject: title, text: body }),
+      body: JSON.stringify({
+        from: mailFrom(),
+        to,
+        subject: title,
+        text: body,
+        attachments: attachments
+          ?.filter((a) => a.content)
+          .map((a) => ({ filename: a.filename, content: a.content!.toString("base64") })),
+      }),
     });
-  } catch {
-    // 実配信の失敗は notifications ログの記録を妨げない
+    if (!res.ok) console.error("[notify] Resendメール送信失敗:", to, res.status, await res.text().catch(() => ""));
+  } catch (e) {
+    console.error("[notify] Resendメール送信失敗:", to, e);
   }
 }
 
@@ -84,19 +135,20 @@ async function deliverLine(to: string, title: string, body: string) {
   const token = process.env.LINE_CHANNEL_ACCESS_TOKEN;
   if (!token) return;
   try {
-    await fetch("https://api.line.me/v2/bot/message/push", {
+    const res = await fetch("https://api.line.me/v2/bot/message/push", {
       method: "POST",
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       body: JSON.stringify({ to, messages: [{ type: "text", text: `${title}\n${body}` }] }),
     });
-  } catch {
-    // 実配信の失敗は notifications ログの記録を妨げない
+    if (!res.ok) console.error("[notify] LINE送信失敗:", to, res.status, await res.text().catch(() => ""));
+  } catch (e) {
+    console.error("[notify] LINE送信失敗:", to, e);
   }
 }
 
 export async function sendNotification(payload: NotifyPayload) {
   const body = payload.body ?? "";
-  if (payload.channel === "email") await deliverEmail(payload.recipient, payload.title, body);
+  if (payload.channel === "email") await deliverEmail(payload.recipient, payload.title, body, payload.attachments);
   else await deliverLine(payload.recipient, payload.title, body);
 
   await adminDb().from("notifications").insert({
