@@ -58,7 +58,7 @@ export default async function ResultPage() {
       <div>
         <PageHeader title="合否確認" description={`通知日: ${fmtDate(decision.notified_at)}`} />
 
-        <div className="mb-6 overflow-hidden rounded-xl border border-pink-200 bg-gradient-to-br from-pink-50 via-white to-amber-50 p-8 text-center shadow-sm">
+        <div className="mb-6 overflow-hidden rounded-xl border border-pink-200 bg-pink-50/60 p-8 text-center shadow-sm">
           <p className="text-5xl">🌸</p>
           <h2 className="mt-4 text-2xl font-bold text-pink-700">合格おめでとうございます!</h2>
           <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-gray-600">
@@ -99,7 +99,7 @@ export default async function ResultPage() {
     return (
       <div>
         <PageHeader title="合否確認" description={`通知日: ${fmtDate(decision.notified_at)}`} />
-        <div className="rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 to-white p-8 shadow-sm">
+        <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-8 shadow-sm">
           <p className="text-center text-4xl">📋</p>
           <h2 className="mt-4 text-center text-xl font-bold text-amber-700">補欠合格のお知らせ</h2>
           <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-gray-600">

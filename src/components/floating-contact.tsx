@@ -35,7 +35,7 @@ export default function FloatingContact() {
 
       <Link
         href="/contact"
-        className="shine pointer-events-auto relative flex h-44 w-12 items-center justify-center overflow-hidden rounded-md bg-blue-950 shadow-md transition hover:bg-blue-900"
+        className="shine pointer-events-auto relative flex h-44 w-12 items-center justify-center overflow-hidden rounded-md bg-brand-800 shadow-md transition hover:bg-brand-900"
         aria-label="お問い合わせ"
       >
         <span

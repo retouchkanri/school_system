@@ -138,6 +138,15 @@ export const VIDEO_STATUS_LABELS: Record<VideoStatus, string> = {
   completed: "視聴完了",
 };
 
+/**
+ * 学院紹介動画の配信URL。
+ * NEXT_PUBLIC_INTRO_VIDEO_URL で差し替え可能 (未設定時は既定のMP4を使用)。
+ * サーバー(メール本文生成)・クライアント(プレイヤー)の双方から参照する。
+ */
+export const INTRO_VIDEO_URL =
+  process.env.NEXT_PUBLIC_INTRO_VIDEO_URL ||
+  "https://horserest.jp/wp-content/uploads/2021/09/dcadb41934ae50cf6d340f71f212583b.mp4";
+
 export const AI_JUDGEMENT_LABELS: Record<AiJudgement, string> = {
   approved: "A判定",
   caution: "B判定",

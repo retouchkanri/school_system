@@ -231,7 +231,7 @@ export default function ExperienceForm({
           ご回答ありがとうございました。回答内容は以下のとおりです。
         </p>
         {aiMessage && (
-          <div className="mb-4 rounded-xl border border-purple-200 bg-gradient-to-br from-purple-50 to-white p-4">
+          <div className="mb-4 rounded-xl border border-purple-200 bg-purple-50/50 p-4">
             <p className="text-xs font-bold text-purple-600">AIからのメッセージ</p>
             <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-gray-700">{aiMessage}</p>
           </div>
@@ -246,7 +246,7 @@ export default function ExperienceForm({
       <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-6 text-center">
         <p className="text-sm font-bold text-emerald-800">ご回答ありがとうございました</p>
         {state.message && (
-          <div className="mx-auto mt-4 max-w-lg rounded-xl border border-purple-200 bg-gradient-to-br from-purple-50 to-white p-4 text-left">
+          <div className="mx-auto mt-4 max-w-lg rounded-xl border border-purple-200 bg-purple-50/50 p-4 text-left">
             <p className="text-xs font-bold text-purple-600">AIからのメッセージ</p>
             <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-gray-700">{state.message}</p>
           </div>

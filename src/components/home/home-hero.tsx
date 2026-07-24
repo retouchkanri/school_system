@@ -102,7 +102,7 @@ export default function HomeHero({ slides }: { slides: Slide[] }) {
 
       {/* スクロールを促す矢印 */}
       <div className="absolute inset-x-0 bottom-4 z-10 flex justify-center">
-        <ChevronDown className="h-6 w-6 animate-bounce text-white/70" />
+        <ChevronDown className="h-6 w-6 animate-float-slow text-white/70" />
       </div>
     </section>
   );

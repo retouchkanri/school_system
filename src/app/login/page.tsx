@@ -79,7 +79,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-white to-brand-100">
+    <div className="min-h-screen bg-brand-50/40">
       <Suspense fallback={null}>
         <RegisteredToastNotice />
       </Suspense>

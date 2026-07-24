@@ -6,12 +6,23 @@ import { Label, inputCls, btnPrimary, btnSecondary } from "@/components/ui";
 import { showErrorToast, showSuccessToast } from "@/lib/toast";
 import { submitSurveyAction, type ActionState } from "./actions";
 
-/** セクション単位でページ分割 */
+const OTHER_OPTION = "その他";
+
+function isOtherField(q: SurveyQuestion): boolean {
+  return q.id.endsWith("_other");
+}
+
+const OTHER_BY_PARENT = Object.fromEntries(
+  PRE_SCREENING_QUESTIONS.filter(isOtherField).map((q) => [q.id.replace(/_other$/, ""), q]),
+) as Record<string, SurveyQuestion>;
+
+/** セクション単位でページ分割（「その他」記入欄は親設問に紐づけるためページ一覧からは除外） */
 function buildPages(questions: SurveyQuestion[]) {
   const pages: { title: string; questions: SurveyQuestion[] }[] = [];
   let current: { title: string; questions: SurveyQuestion[] } | null = null;
 
   for (const q of questions) {
+    if (isOtherField(q)) continue;
     if (q.section) {
       current = { title: q.section, questions: [q] };
       pages.push(current);
@@ -27,7 +38,17 @@ function buildPages(questions: SurveyQuestion[]) {
 
 const PAGES = buildPages(PRE_SCREENING_QUESTIONS);
 
-function QuestionField({ q }: { q: SurveyQuestion }) {
+function QuestionField({
+  q,
+  otherVisible,
+  onOtherToggle,
+}: {
+  q: SurveyQuestion;
+  otherVisible: boolean;
+  onOtherToggle: (questionId: string, visible: boolean) => void;
+}) {
+  const otherQ = OTHER_BY_PARENT[q.id];
+
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
       <Label required={q.required}>{q.text}</Label>
@@ -44,10 +65,31 @@ function QuestionField({ q }: { q: SurveyQuestion }) {
                 name={q.id}
                 value={opt}
                 className="accent-brand-600"
+                onChange={
+                  otherQ
+                    ? (e) => {
+                        if (q.type === "choice") {
+                          onOtherToggle(q.id, opt === OTHER_OPTION);
+                        } else if (opt === OTHER_OPTION) {
+                          onOtherToggle(q.id, e.target.checked);
+                        }
+                      }
+                    : undefined
+                }
               />
               {opt}
             </label>
           ))}
+        </div>
+      )}
+      {otherQ && otherVisible && (
+        <div className="mt-3 border-t border-gray-100 pt-3">
+          <Label>{otherQ.text}</Label>
+          <input
+            name={otherQ.id}
+            className={inputCls}
+            placeholder="ご自由にご記入ください"
+          />
         </div>
       )}
       {q.type === "text" && (
@@ -144,6 +186,7 @@ function validatePage(form: HTMLFormElement, pageIdx: number): string | null {
 export default function SurveyForm() {
   const [state, formAction, pending] = useActionState<ActionState, FormData>(submitSurveyAction, {});
   const [pageIndex, setPageIndex] = useState(0);
+  const [otherVisible, setOtherVisible] = useState<Record<string, boolean>>({});
   const formRef = useRef<HTMLFormElement>(null);
 
   const pageTitles = useMemo(() => PAGES.map((p) => p.title), []);
@@ -154,6 +197,10 @@ export default function SurveyForm() {
     if (state.error) showErrorToast(state.error);
     if (state.ok) showSuccessToast("ご回答ありがとうございました。仮審査結果をご確認ください。");
   }, [state]);
+
+  const onOtherToggle = (questionId: string, visible: boolean) => {
+    setOtherVisible((prev) => ({ ...prev, [questionId]: visible }));
+  };
 
   const goNext = () => {
     const form = formRef.current;
@@ -204,7 +251,12 @@ export default function SurveyForm() {
           <div key={page.title} className={i === pageIndex ? "space-y-4" : "hidden"} aria-hidden={i !== pageIndex}>
             <h2 className="text-base font-bold text-gray-900">{page.title}</h2>
             {page.questions.map((q) => (
-              <QuestionField key={q.id} q={q} />
+              <QuestionField
+                key={q.id}
+                q={q}
+                otherVisible={!!otherVisible[q.id]}
+                onOtherToggle={onOtherToggle}
+              />
             ))}
           </div>
         ))}

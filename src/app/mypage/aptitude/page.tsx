@@ -91,7 +91,7 @@ export default async function AptitudePage() {
         </Card>
 
         {test.ai_report && (
-          <div className="mb-6 rounded-xl border border-purple-200 bg-gradient-to-br from-purple-50 to-white p-6 shadow-sm">
+          <div className="mb-6 rounded-xl border border-purple-200 bg-purple-50/50 p-6 shadow-sm">
             <p className="text-xs font-bold text-purple-600">AI分析レポート</p>
             <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-gray-700">{test.ai_report}</p>
           </div>

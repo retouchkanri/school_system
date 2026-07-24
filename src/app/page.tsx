@@ -269,7 +269,7 @@ export default function HomePage() {
           <div className="mx-auto mt-12 grid max-w-6xl gap-8 lg:grid-cols-2">
             {SCHOOLS.map((school, i) => (
               <Reveal key={school.key} variant={i === 0 ? "right" : "left"} delay={i * 150}>
-                <div className="group h-full overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-500 hover:-translate-y-1.5 hover:shadow-xl">
+                <div className="group h-full overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-500 hover:-translate-y-1 hover:shadow-xl">
                   <div className="img-zoom relative h-56 sm:h-64">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={school.photo} alt={school.name} className="h-full w-full object-cover" loading="lazy" />
@@ -309,19 +309,15 @@ export default function HomePage() {
         </section>
 
         {/* 数字で見る学院 */}
-        <section className="relative overflow-hidden bg-brand-800 px-[6vw] py-16 text-white">
-          <div
-            className="pointer-events-none absolute inset-0 opacity-10"
-            style={{ backgroundImage: `url(${KOUTOU_IMAGES.campus4.src})`, backgroundSize: "cover", backgroundPosition: "center" }}
-          />
-          <div className="relative mx-auto grid max-w-5xl grid-cols-2 gap-10 text-center lg:grid-cols-4">
+        <section className="border-y border-brand-100 bg-brand-50/60 px-[6vw] py-16">
+          <div className="mx-auto grid max-w-5xl grid-cols-2 gap-10 text-center lg:grid-cols-4">
             {SCHOOL_STATS.map((stat, i) => (
               <Reveal key={stat.label} delay={i * 120}>
-                <p className="font-serif text-4xl font-bold text-white sm:text-5xl">
+                <p className="font-serif text-4xl font-bold text-brand-700 sm:text-5xl">
                   <Counter value={stat.value} />
-                  <span className="ml-1 text-xl text-brand-200 sm:text-2xl">{stat.suffix}</span>
+                  <span className="ml-1 text-xl text-accent-600 sm:text-2xl">{stat.suffix}</span>
                 </p>
-                <p className="mt-2 text-xs leading-relaxed text-brand-100/90 sm:text-sm">{stat.label}</p>
+                <p className="mt-2 text-xs leading-relaxed text-gray-500 sm:text-sm">{stat.label}</p>
               </Reveal>
             ))}
           </div>
@@ -338,7 +334,7 @@ export default function HomePage() {
           <div className="mx-auto mt-12 grid max-w-5xl gap-6 sm:grid-cols-3">
             {PILLARS.map((pillar, i) => (
               <Reveal key={pillar.title} delay={i * 150} variant="zoom">
-                <div className="h-full rounded-2xl border border-gray-200 bg-white p-7 text-center shadow-sm transition-all duration-500 hover:-translate-y-1.5 hover:border-brand-300 hover:shadow-lg">
+                <div className="h-full rounded-2xl border border-gray-200 bg-white p-7 text-center shadow-sm transition-all duration-500 hover:-translate-y-1 hover:border-brand-300 hover:shadow-lg">
                   <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-brand-50 text-brand-600">
                     <pillar.icon className="h-7 w-7" />
                   </div>
@@ -351,7 +347,7 @@ export default function HomePage() {
         </section>
 
         {/* 入学までの流れ (8ステップ タイムライン) */}
-        <section className="bg-gradient-to-b from-brand-50/70 to-white px-[6vw] py-20">
+        <section className="bg-brand-50/40 px-[6vw] py-20">
           <Reveal>
             <p className="text-center text-xs font-bold tracking-[0.35em] text-accent-600">ADMISSION FLOW</p>
             <h2 className="heading-underline mt-3 text-center text-2xl font-bold text-gray-900 sm:text-3xl">
@@ -365,7 +361,7 @@ export default function HomePage() {
 
           <div className="relative mx-auto mt-14 max-w-5xl">
             {/* 縦のタイムライン線 */}
-            <div className="absolute left-5 top-0 hidden h-full w-0.5 bg-gradient-to-b from-brand-300 via-brand-400 to-accent-500 sm:left-1/2 sm:block sm:-translate-x-1/2" />
+            <div className="absolute left-5 top-0 hidden h-full w-0.5 bg-brand-200 sm:left-1/2 sm:block sm:-translate-x-1/2" />
 
             <ol className="space-y-10 sm:space-y-14">
               {ADMISSION_STEPS.map((item, i) => {
@@ -418,30 +414,28 @@ export default function HomePage() {
         </section>
 
         {/* AI機能 */}
-        <section className="relative overflow-hidden bg-brand-900 px-[6vw] py-20 text-white">
-          <div className="pointer-events-none absolute -left-32 top-0 h-96 w-96 rounded-full bg-brand-500/20 blur-3xl" />
-          <div className="pointer-events-none absolute -right-24 bottom-0 h-80 w-80 rounded-full bg-accent-500/20 blur-3xl" />
+        <section className="px-[6vw] py-20">
           <Reveal>
-            <p className="text-center text-xs font-bold tracking-[0.35em] text-accent-500">AI POWERED</p>
-            <h2 className="heading-underline mt-3 text-center text-2xl font-bold text-white sm:text-3xl">
+            <p className="text-center text-xs font-bold tracking-[0.35em] text-accent-600">AI POWERED</p>
+            <h2 className="heading-underline mt-3 text-center text-2xl font-bold text-gray-900 sm:text-3xl">
               AIが、担当者の目と手になる。
             </h2>
-            <p className="mx-auto mt-6 max-w-2xl text-center text-sm leading-relaxed text-brand-100/80">
+            <p className="mx-auto mt-6 max-w-2xl text-center text-sm leading-relaxed text-gray-600">
               アンケートも適性検査も騎乗報告も、読み込んでまとめるのはAIの仕事。
               職員は「読むだけ」で、一人ひとりに向き合う時間が増えます。
             </p>
           </Reveal>
-          <div className="relative mx-auto mt-12 grid max-w-5xl gap-6 sm:grid-cols-2">
+          <div className="mx-auto mt-12 grid max-w-5xl gap-6 sm:grid-cols-2">
             {AI_FEATURES.map((feature, i) => (
               <Reveal key={feature.title} delay={i * 130}>
-                <div className="animate-glow-pulse h-full rounded-2xl border border-white/10 bg-white/5 p-7 backdrop-blur transition-all duration-500 hover:-translate-y-1 hover:border-accent-500/50 hover:bg-white/10">
+                <div className="animate-glow-pulse h-full rounded-2xl border border-gray-200 bg-white p-7 transition-all duration-300 hover:-translate-y-1 hover:border-accent-300">
                   <div className="flex items-center gap-4">
-                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-accent-500 text-white shadow-lg">
+                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
                       <feature.icon className="h-6 w-6" />
                     </span>
-                    <h3 className="text-base font-bold text-white">{feature.title}</h3>
+                    <h3 className="text-base font-bold text-gray-900">{feature.title}</h3>
                   </div>
-                  <p className="mt-4 text-sm leading-relaxed text-brand-100/80">{feature.desc}</p>
+                  <p className="mt-4 text-sm leading-relaxed text-gray-600">{feature.desc}</p>
                 </div>
               </Reveal>
             ))}
@@ -520,7 +514,7 @@ export default function HomePage() {
         </section>
 
         {/* リタッチ馬 × 一口支援者 */}
-        <section className="bg-gradient-to-r from-amber-50/80 to-brand-50/60 px-[6vw] py-20">
+        <section className="bg-brand-50/50 px-[6vw] py-20">
           <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-2">
             <Reveal variant="right">
               <div className="img-zoom relative overflow-hidden rounded-3xl shadow-lg">
@@ -632,7 +626,7 @@ export default function HomePage() {
               <Reveal key={portal.name} delay={i * 100} variant="zoom">
                 <Link
                   href={portal.href}
-                  className="group flex h-full flex-col rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-500 hover:-translate-y-1.5 hover:border-brand-300 hover:shadow-xl"
+                  className="group flex h-full flex-col rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-500 hover:-translate-y-1 hover:border-brand-300 hover:shadow-xl"
                 >
                   <span className={`flex h-11 w-11 items-center justify-center rounded-xl ${portal.tone}`}>
                     <portal.icon className="h-5 w-5" />
@@ -696,11 +690,11 @@ export default function HomePage() {
       </main>
 
       {/* フッター */}
-      <footer className="bg-brand-900 px-[6vw] pb-10 pt-14 text-brand-100">
+      <footer className="border-t border-brand-100 bg-brand-50/60 px-[6vw] pb-10 pt-14 text-gray-600">
         <div className="mx-auto grid max-w-6xl gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div className="lg:col-span-2">
-            <p className="font-serif text-lg font-bold text-white">東関東馬事学院 統合プラットフォーム</p>
-            <p className="mt-3 max-w-md text-xs leading-relaxed text-brand-200/80">
+            <p className="font-serif text-lg font-bold text-gray-900">東関東馬事学院 統合プラットフォーム</p>
+            <p className="mt-3 max-w-md text-xs leading-relaxed text-gray-500">
               東関東馬事高等学院・東関東馬事専門学院の入学管理から在校生管理、一口支援者への報告までを一元化する統合管理システムです。
             </p>
             <div className="mt-5 flex flex-col gap-2 text-xs">
@@ -710,7 +704,7 @@ export default function HomePage() {
                   href={site.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-brand-200 transition hover:text-white"
+                  className="inline-flex items-center gap-1.5 text-gray-600 transition hover:text-brand-700"
                 >
                   <ExternalLink className="h-3 w-3" /> {site.name} 公式サイト
                 </a>
@@ -718,25 +712,25 @@ export default function HomePage() {
             </div>
           </div>
           <div>
-            <p className="text-xs font-bold tracking-widest text-brand-300">入学をお考えの方</p>
+            <p className="text-xs font-bold tracking-widest text-brand-700">入学をお考えの方</p>
             <ul className="mt-4 space-y-2.5 text-xs">
-              <li><Link href="/request" className="transition hover:text-white">資料請求</Link></li>
-              <li><Link href="/mypage" className="transition hover:text-white">マイページ</Link></li>
-              <li><Link href="/mypage/events" className="transition hover:text-white">学校見学・オープンキャンパス</Link></li>
-              <li><Link href="/login" className="transition hover:text-white">ログイン</Link></li>
+              <li><Link href="/request" className="transition hover:text-brand-700">資料請求</Link></li>
+              <li><Link href="/mypage" className="transition hover:text-brand-700">マイページ</Link></li>
+              <li><Link href="/mypage/events" className="transition hover:text-brand-700">学校見学・オープンキャンパス</Link></li>
+              <li><Link href="/login" className="transition hover:text-brand-700">ログイン</Link></li>
             </ul>
           </div>
           <div>
-            <p className="text-xs font-bold tracking-widest text-brand-300">在校生・関係者の方</p>
+            <p className="text-xs font-bold tracking-widest text-brand-700">在校生・関係者の方</p>
             <ul className="mt-4 space-y-2.5 text-xs">
-              <li><Link href="/student" className="transition hover:text-white">在校生ポータル</Link></li>
-              <li><Link href="/parent" className="transition hover:text-white">保護者ポータル</Link></li>
-              <li><Link href="/supporter" className="transition hover:text-white">一口支援者ポータル</Link></li>
-              <li><Link href="/admin" className="transition hover:text-white">職員ダッシュボード</Link></li>
+              <li><Link href="/student" className="transition hover:text-brand-700">在校生ポータル</Link></li>
+              <li><Link href="/parent" className="transition hover:text-brand-700">保護者ポータル</Link></li>
+              <li><Link href="/supporter" className="transition hover:text-brand-700">一口支援者ポータル</Link></li>
+              <li><Link href="/admin" className="transition hover:text-brand-700">職員ダッシュボード</Link></li>
             </ul>
           </div>
         </div>
-        <div className="mx-auto mt-12 max-w-6xl border-t border-white/10 pt-6 text-center text-[11px] text-brand-300/70">
+        <div className="mx-auto mt-12 max-w-6xl border-t border-brand-100 pt-6 text-center text-[11px] text-gray-400">
           © 東関東馬事高等学院・東関東馬事専門学院 入学・在校生統合管理システム
         </div>
       </footer>

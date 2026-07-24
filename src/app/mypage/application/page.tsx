@@ -51,7 +51,7 @@ export default async function ApplicationPage() {
         />
 
         {application.interview_date && (
-          <div className="mb-6 rounded-xl border border-purple-200 bg-gradient-to-br from-purple-50 to-white p-6 text-center shadow-sm">
+          <div className="mb-6 rounded-xl border border-purple-200 bg-purple-50/50 p-6 text-center shadow-sm">
             <p className="text-xs font-bold text-purple-600">面接日が決定しました</p>
             <p className="mt-2 text-3xl font-bold text-gray-900">{fmtDate(application.interview_date)}</p>
             <p className="mt-2 text-sm text-gray-500">

@@ -53,7 +53,7 @@ export default async function SurveyPage() {
         />
 
         {lead.ai_judgement && (
-          <div className="mb-6 rounded-xl border border-purple-200 bg-gradient-to-br from-purple-50 via-white to-brand-50 p-6 shadow-sm">
+          <div className="mb-6 rounded-xl border border-purple-200 bg-purple-50/50 p-6 shadow-sm">
             <p className="text-xs font-bold text-purple-600">入学仮審査結果</p>
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <Badge tone={JUDGEMENT_TONE[lead.ai_judgement]}>{AI_JUDGEMENT_LABELS[lead.ai_judgement]}</Badge>

@@ -98,7 +98,7 @@ export default async function EnrolleePage() {
         description={`${lead.name}さん、ご入学おめでとうございます。学院からのお知らせをご確認ください。`}
       />
 
-      <div className="mb-6 rounded-xl border border-pink-200 bg-gradient-to-br from-pink-50 via-white to-brand-50 p-6 shadow-sm">
+      <div className="mb-6 rounded-xl border border-pink-200 bg-pink-50/60 p-6 shadow-sm">
         <p className="text-xs font-bold text-pink-600">🌸 あなたの入学情報</p>
         <dl className="mt-3">
           <InfoRow label="お名前" value={lead.name} />
