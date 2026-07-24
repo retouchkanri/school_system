@@ -1,3 +1,4 @@
+import { requireRole } from "@/lib/auth";
 import Link from "next/link";
 import { adminDb } from "@/lib/supabase/admin";
 import { fmtDate } from "@/lib/format";
@@ -14,6 +15,7 @@ function averageScore(scores: Record<string, number>): string {
 }
 
 export default async function AdminCompetencyPage() {
+  await requireRole("admin");
   const db = adminDb();
 
   const [{ data: assessmentsData }, { data: studentsData }] = await Promise.all([

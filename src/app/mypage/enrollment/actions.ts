@@ -5,8 +5,8 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth";
 import { adminDb } from "@/lib/supabase/admin";
-import { getLeadForUser, advanceLeadStatus, markPaymentConfirmed } from "@/lib/data";
-import { skipPaymentInDev } from "@/lib/dev";
+import { getLeadForUser, advanceLeadStatus, markPaymentConfirmed, notifyPaymentConfirmed } from "@/lib/data";
+import { isDevPhase, skipPaymentInDev } from "@/lib/dev";
 import { createCheckoutSession, stripeEnabled } from "@/lib/stripe";
 import { UNIFORM_SIZES, BOOTS_SIZES, HELMET_SIZES, PAYMENT_TYPE_LABELS } from "@/lib/constants";
 import type { AdmissionDecision, Lead, Payment, PaymentType, Profile } from "@/lib/types";
@@ -25,7 +25,7 @@ const ENROLLMENT_FEES = {
 
 type FeeType = keyof typeof ENROLLMENT_FEES;
 
-/** 合格済みリードの取得 (合格通知済みでなければ null) */
+/** 合格済みリードの取得 (合格通知済みでなければ null。開発フェーズ中はページ表示と同様に合格前でも許可) */
 async function getAcceptedLead(profile: Profile): Promise<Lead | null> {
   const lead = await getLeadForUser(profile.id);
   if (!lead || lead.user_id !== profile.id) return null;
@@ -35,7 +35,9 @@ async function getAcceptedLead(profile: Profile): Promise<Lead | null> {
     .eq("lead_id", lead.id)
     .maybeSingle();
   const decision = (data as AdmissionDecision | null) ?? null;
-  if (!decision || decision.result !== "accepted" || !decision.notified_at) return null;
+  if (!decision || decision.result !== "accepted" || !decision.notified_at) {
+    return isDevPhase() ? lead : null;
+  }
   return lead;
 }
 
@@ -131,20 +133,33 @@ export async function payEnrollmentFeeAction(formData: FormData): Promise<void> 
     redirect("/mypage/enrollment?pay_error=1");
   }
 
-  // 同種の支払いが既にあれば: 確定済みは何もしない。カード決済が pending のまま (Stripe離脱等) は同じ支払い行で再チャレンジ。
+  // 同種の支払いが既にあれば: 確定済みは何もしない。pending のまま (Stripe離脱等) は同じ支払い行で再チャレンジ。
+  // (行が複数あっても最新の1件で判定し、クリックの度に新規行が増えないようにする)
   const { data: existingData } = await adminDb()
     .from("payments")
     .select("*")
     .eq("lead_id", lead.id)
     .eq("type", type)
-    .maybeSingle();
-  const existing = existingData as Payment | null;
+    .order("created_at", { ascending: false })
+    .limit(1);
+  const existing = ((existingData ?? []) as Payment[])[0] ?? null;
   if (existing && (existing.status === "confirmed" || existing.status === "paid")) return;
-  if (existing && existing.method === "bank_transfer") return; // 振込確認待ちは変更不可
+  if (existing && existing.method === "bank_transfer" && !isCard) return; // 振込確認待ちのまま変更なし
 
   let paymentId: string;
-  if (existing && existing.method === "credit_card") {
+  if (existing && existing.status === "pending") {
     paymentId = existing.id;
+    if (existing.method !== methodRaw) {
+      // カード⇔銀行振込の切替は同じ支払い行の method を更新する
+      await adminDb().from("payments").update({ method: methodRaw }).eq("id", paymentId);
+    }
+  } else if (existing && existing.status === "refunded") {
+    // 返金後の再支払いは同じ行を再利用する (1リード1件のユニーク制約と両立させるため)
+    paymentId = existing.id;
+    await adminDb()
+      .from("payments")
+      .update({ method: methodRaw, status: "pending", paid_at: null, confirmed_by: null })
+      .eq("id", paymentId);
   } else {
     const { data: paymentData, error: paymentError } = await adminDb()
       .from("payments")
@@ -157,12 +172,14 @@ export async function payEnrollmentFeeAction(formData: FormData): Promise<void> 
       })
       .select("id")
       .single();
-    if (paymentError || !paymentData) return;
+    if (paymentError || !paymentData) redirect("/mypage/enrollment?pay_error=1");
     paymentId = paymentData.id;
   }
 
+  // 決済スキップ時: 支払いボタン押下で即時「入金確認済み」とし、確認通知を送って次のページへ進む
   if (bypass) {
-    await markPaymentConfirmed(paymentId);
+    const confirmed = await markPaymentConfirmed(paymentId);
+    if (confirmed) await notifyPaymentConfirmed(paymentId);
     revalidatePath("/mypage/enrollment");
     revalidatePath("/mypage");
     redirect("/mypage/enrollment?stripe=success");

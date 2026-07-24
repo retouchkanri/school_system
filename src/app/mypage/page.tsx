@@ -203,11 +203,11 @@ export default async function MypageHome() {
       />
 
       <Card title="ご利用いただける3つのメニュー" className="mb-6">
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-3">
           {WELCOME_MENU.map((item) => (
             <div key={item.key} className="flex flex-col rounded-lg border border-gray-200 p-4">
-              <div className="mb-1 flex items-center justify-between gap-2">
-                <h3 className="text-sm font-bold text-gray-800">{item.title}</h3>
+              <div className="mb-1 flex items-start justify-between gap-2">
+                <h3 className="min-w-0 flex-1 text-sm font-bold leading-snug text-gray-800">{item.title}</h3>
                 {menuDone[item.key] && <Badge tone="green">完了</Badge>}
               </div>
               <p className="mb-3 flex-1 text-xs leading-relaxed text-gray-500">{item.description}</p>
@@ -220,7 +220,9 @@ export default async function MypageHome() {
       </Card>
 
       <div className="mb-6 rounded-xl border border-brand-200 bg-gradient-to-br from-brand-50 to-white p-6 shadow-sm">
-        <p className="text-xs font-bold text-brand-600">現在のステップ: {PROGRESS_STEPS[idx]?.label}</p>
+        <p className="text-xs font-bold text-brand-600">
+          現在のステップ: {(lead.status === "enrolled" ? PROGRESS_STEPS[idx] : PROGRESS_STEPS[idx + 1])?.label}
+        </p>
         <h2 className="mt-1 text-lg font-bold text-gray-900">{next.title}</h2>
         <p className="mt-2 text-sm leading-relaxed text-gray-600">{next.description}</p>
         <Link href={next.href} className={`${btnPrimary} mt-4`}>

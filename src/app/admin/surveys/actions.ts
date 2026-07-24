@@ -56,7 +56,7 @@ export async function deliverSurvey(formData: FormData): Promise<void> {
   const db = adminDb();
   const { data: surveyData } = await db.from("student_surveys").select("*").eq("id", id).maybeSingle();
   const survey = surveyData as StudentSurvey | null;
-  if (!survey) return;
+  if (!survey || !survey.active) return; // 終了済みアンケートは配信不可 (サーバー側でも検証)
 
   const { data: studentsData } = await db.from("students").select("*").eq("status", "enrolled");
   const students = (studentsData ?? []) as Student[];

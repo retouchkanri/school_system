@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Noto_Sans_JP, Noto_Serif_JP } from "next/font/google";
 import { Toaster } from "sonner";
+import Chatbot from "@/components/chatbot";
 import FloatingContact from "@/components/floating-contact";
 import TopButton from "@/components/top-button";
 import "./globals.css";
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="ja" className={`${notoSans.variable} ${notoSerif.variable}`}>
       <body className="min-h-screen antialiased">
         {children}
+        <Chatbot />
         <FloatingContact />
         <TopButton />
         <Toaster position="top-right" />

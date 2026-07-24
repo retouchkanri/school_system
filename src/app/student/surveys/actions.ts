@@ -36,6 +36,10 @@ export async function submitSurveyAnswer(_prev: SurveyActionState, formData: For
   }
   if (Object.keys(answers).length === 0) return { error: "回答を入力してください" };
 
+  // 選択式の設問はサーバー側でも必須として検証する (一度提出すると追記できないため)
+  const missingChoice = (survey.questions ?? []).find((q) => q.type === "choice" && !answers[q.id]);
+  if (missingChoice) return { error: `「${missingChoice.text}」に回答してください` };
+
   const { error } = await adminDb()
     .from("student_survey_responses")
     .upsert(

@@ -4,7 +4,7 @@
 
 - フレームワーク: **Next.js 15** (App Router / TypeScript / Tailwind CSS v4)
 - データベース・認証: **Supabase**
-- AI分析: 内蔵ルールベース分析 (ANTHROPIC_API_KEY を設定すると Claude による自然文分析に自動切替)
+- AI分析: **OpenAI (OPENAI_API_KEY)** による自然文分析 + サイト常設AIチャットボット (未設定でも内蔵ルールベース分析で常に動作)
 
 ---
 
@@ -93,9 +93,8 @@ NEXT_PUBLIC_SUPABASE_URL=...      # 設定済み
 NEXT_PUBLIC_SUPABASE_ANON_KEY=... # 設定済み
 SUPABASE_SERVICE_ROLE_KEY=...     # 設定済み
 
-# 任意: 設定するとAI分析がClaude/OpenAIによる自然文生成に切替 (未設定でもルールベースで常に動作。ANTHROPIC_API_KEY優先)
-# ANTHROPIC_API_KEY=sk-ant-...
-# OPENAI_API_KEY=sk-proj-...
+# AI分析 + AIチャットボット: OPENAI_API_KEY を設定するとOpenAIによる自然文生成に切替 (未設定でもルールベースで常に動作)
+# OPENAI_API_KEY=sk-proj-...   # 設定済み (OPENAI_API_KEY優先、ANTHROPIC_API_KEY はフォールバック)
 
 # メール実配信: NOTIFY_TRANSPORT=smtp (または SMTP_HOST 設定) でSMTP、それ以外は RESEND_API_KEY があれば Resend。
 # どちらも未設定なら送信ログのみ記録される。
@@ -112,7 +111,13 @@ SUPABASE_SERVICE_ROLE_KEY=...     # 設定済み
 # RESEND_API_KEY=re_...        # NOTIFY_TRANSPORT!=smtp の場合に使用
 
 # LINE実配信 (LINE Messaging API): 未設定の場合は送信ログのみ記録される
-# LINE_CHANNEL_ACCESS_TOKEN=...
+# LINE_CHANNEL_ACCESS_TOKEN=...  # 送信用チャネルアクセストークン
+# LINE_CHANNEL_SECRET=...        # Webhook署名検証用 (友だち追加からのアカウント自動連携に必要)
+# NEXT_PUBLIC_LINE_ADD_FRIEND_URL=https://lin.ee/xxxx  # サイト右側LINEボタンのリンク先(公式アカウントの友だち追加URL)
+
+# 決済モード: 既定では支払いボタン押下で即時「入金確認済み」となり次のページへ進む(実課金なし)。
+# 実際にStripe Checkoutで課金する場合のみ設定:
+# PAYMENT_MODE=stripe
 
 # オンラインカード決済 (Stripe): 未設定の場合は「準備中」表示にフォールバックし、銀行振込のみ案内される
 # STRIPE_SECRET_KEY=sk_live_... (またはテスト用 sk_test_...) — sk_live_ は本番課金が発生するため取り扱い注意
@@ -124,12 +129,24 @@ SUPABASE_SERVICE_ROLE_KEY=...     # 設定済み
 
 `NOTIFY_TRANSPORT=smtp`(または `SMTP_HOST`)設定時はSMTP、それ以外で `RESEND_API_KEY` があればResend、`LINE_CHANNEL_ACCESS_TOKEN` があればLINEで、[`src/lib/notify.ts`](src/lib/notify.ts) が実際にメール・LINEを配信します。未設定の間は従来通り `notifications` テーブルへ送信ログとして記録するのみで、管理画面の「送信ログ」で確認できます(実配信・ログ記録のどちらの場合も、送信内容は必ずログに残ります)。個別相談希望などの職員向け通知は `notifyStaff()` 経由で送られ、`CONTACT_RECIPIENTS` が設定されていればそこへ、未設定なら管理者ロールの登録メールアドレスへ届きます。
 
+### LINEアカウント自動連携 (Webhook)
+
+LINEへのプッシュ送信には、相手が学院の公式アカウントを友だち追加した際の **LINE userId** が必要です。[`src/app/api/line/webhook/route.ts`](src/app/api/line/webhook/route.ts) がこの連携を自動化します:
+
+1. LINE Developersコンソールで Messaging API チャネルを作成し、`LINE_CHANNEL_ACCESS_TOKEN` と `LINE_CHANNEL_SECRET` を設定
+2. Webhook URL に `https://<本番ドメイン>/api/line/webhook` を登録し、Webhookを有効化
+3. 生徒・保護者が公式アカウントを友だち追加すると、あいさつメッセージが届き、**登録済みメールアドレスをトークに送信するだけ**で leads / profiles の `line_id` に自動紐付けされる
+4. 以後、合否通知・入金確認・一斉配信などの全通知がメールに加えてLINEにも届く
+
+サイト右側の「LINE」ボタンのリンク先は `NEXT_PUBLIC_LINE_ADD_FRIEND_URL` で公式アカウントの友だち追加URLに設定できます。
+
 ## 決済 (Stripe) について
 
-`STRIPE_SECRET_KEY` を設定すると、見学参加費・入学金・制服代・教材費のカード決済が [`src/lib/stripe.ts`](src/lib/stripe.ts) 経由で実際のStripe Checkoutに接続されます。決済確定はWebhook (`/api/stripe/webhook`, `STRIPE_WEBHOOK_SECRET` が必要) で受け取り、[`src/lib/data.ts`](src/lib/data.ts) の `markPaymentConfirmed` で確定処理を行います(管理画面の手動入金確認ボタンと共通のロジックです)。
+**既定の動作**: 支払いボタン(見学参加費・入学金・制服代・教材費)を押すと、その場で「入金確認済み」となり、本人へメール+LINEで確認通知が送られ、次のページへ進みます(実際のカード課金は行いません)。
+
+**実課金モード**: `PAYMENT_MODE=stripe` を設定すると、カード決済が [`src/lib/stripe.ts`](src/lib/stripe.ts) 経由で実際のStripe Checkoutに接続されます。決済確定はWebhook (`/api/stripe/webhook`, `STRIPE_WEBHOOK_SECRET` が必要) で受け取り、[`src/lib/data.ts`](src/lib/data.ts) の `markPaymentConfirmed` で確定処理を行います(支払いボタン即時確定・管理画面の手動入金確認ボタンと共通のロジックで、いずれの経路でも本人へ確認通知が送られます)。
 
 - Stripeダッシュボードで Webhook エンドポイント `https://<本番ドメイン>/api/stripe/webhook` を登録し、イベント `checkout.session.completed` を有効にしてください。
 - ローカル検証: `stripe listen --forward-to localhost:3000/api/stripe/webhook`
-- `STRIPE_SECRET_KEY` 未設定の間は、カード決済ボタンを押すと「準備中のため銀行振込をご利用ください」という案内が表示されます(即時決済成功として処理されることはありません)。
 
 銀行振込の振込先情報は [`src/lib/constants.ts`](src/lib/constants.ts) の `BANK_TRANSFER_INFO` 一箇所で管理しています(現在は実際の振込先を設定済み)。振込先が変わった場合はこの値のみ差し替えれば全画面に反映されます。

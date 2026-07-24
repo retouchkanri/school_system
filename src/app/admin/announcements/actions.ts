@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth";
 import { adminDb } from "@/lib/supabase/admin";
-import { notifyBoth } from "@/lib/notify";
+import { notifyMany } from "@/lib/notify";
 import type { AudienceType } from "@/lib/types";
 
 export interface ActionState {
@@ -62,14 +62,10 @@ export async function sendAnnouncementAction(_prev: ActionState, formData: FormD
     recipients = (data ?? []) as Recipient[];
   }
 
-  let count = 0;
-  for (const r of recipients) {
-    const sent = await notifyBoth(r.email, r.line_id, title, body, "announcement", {
-      email: sendEmail,
-      line: sendLine,
-    });
-    if (sent > 0) count++;
-  }
+  const count = await notifyMany(recipients, title, body, "announcement", {
+    email: sendEmail,
+    line: sendLine,
+  });
 
   revalidatePath("/admin/announcements");
   revalidatePath("/admin/notifications");

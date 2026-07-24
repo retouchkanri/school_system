@@ -55,14 +55,15 @@ export default async function MyStatusPage() {
     );
   }
 
+  // lead.status は「完了した最新ステップ」を指すため、現在取り組むステップはその次
   const idx = statusIndex(lead.status);
   const done = completedStepCount(lead.status);
   const total = PROGRESS_STEPS.length;
   const remaining = PROGRESS_STEPS.filter((_, i) => {
     if (lead.status === "enrolled") return false;
-    return i >= idx;
+    return i > idx;
   });
-  const currentStep = PROGRESS_STEPS[idx];
+  const currentStep = lead.status === "enrolled" ? undefined : PROGRESS_STEPS[idx + 1];
 
   return (
     <div>

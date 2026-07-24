@@ -24,7 +24,7 @@ export type VideoStatus = "unwatched" | "in_progress" | "completed";
 export type AiJudgement = "approved" | "caution" | "rejected";
 export type BookingStatus = "reserved" | "attended" | "cancelled" | "no_show";
 export type PaymentMethod = "credit_card" | "bank_transfer";
-export type PaymentStatus = "pending" | "paid" | "confirmed" | "refunded";
+export type PaymentStatus = "pending" | "paid" | "confirmed" | "refunded" | "cancelled";
 export type PaymentType = "open_campus" | "admission_fee" | "uniform" | "materials";
 export type RespondentType = "student" | "parent";
 export type ApplicationStatus = "draft" | "submitted" | "under_review" | "interview_scheduled" | "decided";
@@ -91,6 +91,7 @@ export interface Lead {
   ai_summary: string | null;
   ai_judgement: AiJudgement | null;
   ai_enrollment_probability: number | null;
+  ai_enrollment_summary: string | null;
   notes: string | null;
   created_at: string;
   updated_at: string;
@@ -198,6 +199,7 @@ export interface Payment {
   id: string;
   lead_id: string | null;
   student_id: string | null;
+  booking_id: string | null;
   type: PaymentType;
   amount: number;
   method: PaymentMethod | null;

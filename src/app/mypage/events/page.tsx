@@ -16,7 +16,7 @@ import { Card, PageHeader, Badge, EmptyState, Table, Td, SectionTitle, btnPrimar
 import type { BookingStatus, OpenCampusBooking, OpenCampusEvent, PaymentStatus } from "@/lib/types";
 import BookingForm from "./booking-form";
 import { cancelBookingAction, requestIndividualConsultationAction } from "./actions";
-import { skipPaymentInDev } from "@/lib/dev";
+import { isDevPhase, skipPaymentInDev } from "@/lib/dev";
 
 type BookingRow = OpenCampusBooking & { open_campus_events: OpenCampusEvent | null };
 
@@ -32,10 +32,16 @@ const PAYMENT_TONE: Record<PaymentStatus, BadgeTone> = {
   paid: "blue",
   confirmed: "green",
   refunded: "gray",
+  cancelled: "gray",
 };
 
-export default async function EventsPage() {
+export default async function EventsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ stripe?: string }>;
+}) {
   const profile = await requireRole("applicant");
+  const sp = await searchParams;
   const lead = await getLeadForUser(profile.id);
 
   if (!lead) {
@@ -55,8 +61,8 @@ export default async function EventsPage() {
     );
   }
 
-  // AI判定前 → 仮審査への誘導 (開発中はスキップ可)
-  if (!lead.ai_judgement && !skipPaymentInDev()) {
+  // AI判定前 → 仮審査への誘導 (開発フェーズ中はスキップ可)
+  if (!lead.ai_judgement && !isDevPhase()) {
     return (
       <div>
         <PageHeader title="見学・オープンキャンパス予約" />
@@ -99,6 +105,17 @@ export default async function EventsPage() {
         title="見学・オープンキャンパス仮予約"
         description="実際に馬と触れ合い、学院の一日を体験してください。仮予約後、参加費のご入金をもって参加確定となります。"
       />
+
+      {sp.stripe === "success" && (
+        <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+          ✓ カード決済が完了しました。入金の反映まで少々お待ちください(確認メールをお送りしています)。
+        </div>
+      )}
+      {sp.stripe === "cancel" && (
+        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          カード決済がキャンセルされました。お支払いは完了していません。あらためて決済いただくか、銀行振込をご利用ください。
+        </div>
+      )}
 
       {lead.ai_judgement ? (
         <div className="mb-6 rounded-xl border border-brand-200 bg-brand-50 p-5">
@@ -164,7 +181,7 @@ export default async function EventsPage() {
               {ev.description && (
                 <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-gray-600">{ev.description}</p>
               )}
-              {!activeBookingEventIds.has(ev.id) && <BookingForm eventId={ev.id} />}
+              {!activeBookingEventIds.has(ev.id) && <BookingForm eventId={ev.id} skipPayment={skipPaymentInDev()} />}
             </Card>
           ))}
         </div>

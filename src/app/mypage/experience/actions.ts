@@ -4,13 +4,14 @@ import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth";
 import { adminDb } from "@/lib/supabase/admin";
 import { getLeadForUser, advanceLeadStatus } from "@/lib/data";
-import { skipPaymentInDev } from "@/lib/dev";
-import { computeEnrollmentProbability } from "@/lib/ai";
+import { isDevPhase } from "@/lib/dev";
+import { analyzeExperienceSurvey } from "@/lib/ai";
 import { POST_VISIT_QUESTIONS } from "@/lib/constants";
 
 export interface ActionState {
   ok?: boolean;
   error?: string;
+  message?: string;
 }
 
 /** 学校見学後アンケートの送信 → 入学確率の更新 */
@@ -19,8 +20,8 @@ export async function submitExperienceAction(_prev: ActionState, formData: FormD
   const lead = await getLeadForUser(profile.id);
   if (!lead || lead.user_id !== profile.id) return { error: "リード情報が見つかりません" };
 
-  // 体験参加済みであることを検証 (開発中は決済スキップ可)
-  if (!skipPaymentInDev()) {
+  // 体験参加済みであることを検証 (開発フェーズ中はスキップ可)
+  if (!isDevPhase()) {
     const { data: attended } = await adminDb()
       .from("open_campus_bookings")
       .select("id")
@@ -50,15 +51,26 @@ export async function submitExperienceAction(_prev: ActionState, formData: FormD
     );
   if (error) return { error: "回答の保存に失敗しました" };
 
-  const probability = computeEnrollmentProbability(answers);
-  await adminDb()
+  const { probability, message } = await analyzeExperienceSurvey(answers);
+  const { error: aiSaveError } = await adminDb()
     .from("leads")
-    .update({ ai_enrollment_probability: probability, updated_at: new Date().toISOString() })
+    .update({
+      ai_enrollment_probability: probability,
+      ai_enrollment_summary: message,
+      updated_at: new Date().toISOString(),
+    })
     .eq("id", lead.id);
+  if (aiSaveError) {
+    // ai_enrollment_summary 列が未追加のDB等で失敗した場合は、確率のみ保存を試みる (回答自体は保存済み)
+    await adminDb()
+      .from("leads")
+      .update({ ai_enrollment_probability: probability, updated_at: new Date().toISOString() })
+      .eq("id", lead.id);
+  }
 
   await advanceLeadStatus(lead.id, "exp_survey_answered");
 
   revalidatePath("/mypage/experience");
   revalidatePath("/mypage");
-  return { ok: true };
+  return { ok: true, message };
 }

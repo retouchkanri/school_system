@@ -132,6 +132,29 @@ export async function notifyBoth(
 }
 
 /**
+ * 多数の宛先へメール+LINEをまとめて送信する (10件ずつの並列送信)。
+ * SMTPのタイムアウト(最大8秒/通)があっても、宛先数に比例して長時間ブロックしないようにする。
+ * 戻り値は1チャネル以上へ送信できた宛先数。
+ */
+export async function notifyMany(
+  recipients: { email: string | null; line_id: string | null }[],
+  title: string,
+  body: string,
+  relatedType: string,
+  opts: { email?: boolean; line?: boolean } = { email: true, line: true }
+): Promise<number> {
+  const CHUNK = 10;
+  let count = 0;
+  for (let i = 0; i < recipients.length; i += CHUNK) {
+    const results = await Promise.all(
+      recipients.slice(i, i + CHUNK).map((r) => notifyBoth(r.email, r.line_id, title, body, relatedType, opts))
+    );
+    count += results.filter((sent) => sent > 0).length;
+  }
+  return count;
+}
+
+/**
  * 職員向け通知(個別相談希望など)の送信先一覧。
  * CONTACT_RECIPIENTS(カンマ区切り)が設定されていればそれを優先し、
  * 未設定の場合は管理者ロールの登録メールアドレスへフォールバックする。

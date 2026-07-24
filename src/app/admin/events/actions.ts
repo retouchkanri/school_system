@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth";
 import { adminDb } from "@/lib/supabase/admin";
-import { advanceLeadStatus } from "@/lib/data";
+import { advanceLeadStatus, markPaymentConfirmed, notifyPaymentConfirmed } from "@/lib/data";
 
 export interface EventActionState {
   ok?: boolean;
@@ -57,23 +57,26 @@ export async function confirmBankTransferAction(formData: FormData): Promise<voi
 
   await db.from("open_campus_bookings").update({ payment_status: "confirmed" }).eq("id", bookingId);
 
-  // 対応する参加費決済レコードも入金確認済みに
-  const { data: paymentsData } = await db
+  // 対応する参加費決済レコードを入金確認済みに。
+  // booking_id で紐付いた決済を優先し、無ければ(旧データ) 同リードの open_campus 決済にフォールバック。
+  const { data: linkedData } = await db
     .from("payments")
-    .select("id, paid_at")
-    .eq("lead_id", booking.lead_id)
-    .eq("type", "open_campus")
+    .select("id")
+    .eq("booking_id", bookingId)
     .in("status", ["pending", "paid"]);
-  const payments = (paymentsData ?? []) as { id: string; paid_at: string | null }[];
-  for (const p of payments) {
-    await db
+  let paymentIds = ((linkedData ?? []) as { id: string }[]).map((p) => p.id);
+  if (paymentIds.length === 0) {
+    const { data: fallbackData } = await db
       .from("payments")
-      .update({
-        status: "confirmed",
-        confirmed_by: profile.id,
-        paid_at: p.paid_at ?? new Date().toISOString(),
-      })
-      .eq("id", p.id);
+      .select("id")
+      .eq("lead_id", booking.lead_id)
+      .eq("type", "open_campus")
+      .in("status", ["pending", "paid"]);
+    paymentIds = ((fallbackData ?? []) as { id: string }[]).map((p) => p.id);
+  }
+  for (const id of paymentIds) {
+    const confirmed = await markPaymentConfirmed(id, profile.id);
+    if (confirmed) await notifyPaymentConfirmed(id);
   }
 
   await advanceLeadStatus(booking.lead_id, "payment_confirmed");
@@ -108,5 +111,8 @@ export async function cancelBookingAction(formData: FormData): Promise<void> {
   if (!bookingId) return;
 
   await adminDb().from("open_campus_bookings").update({ status: "cancelled" }).eq("id", bookingId);
+  // 未入金の参加費決済レコードはキャンセル扱いに (削除しない: 後から届く課金・入金と照合できるように)
+  await adminDb().from("payments").update({ status: "cancelled" }).eq("booking_id", bookingId).eq("status", "pending");
   revalidatePath("/admin/events");
+  revalidatePath("/admin/payments");
 }

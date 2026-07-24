@@ -18,6 +18,7 @@ const PAYMENT_TONES: Record<OpenCampusBooking["payment_status"], BadgeTone> = {
   paid: "blue",
   confirmed: "green",
   refunded: "gray",
+  cancelled: "gray",
 };
 
 const BOOKING_TONES: Record<OpenCampusBooking["status"], BadgeTone> = {

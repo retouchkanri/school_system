@@ -47,12 +47,13 @@ const PAYMENT_TONE: Record<PaymentStatus, BadgeTone> = {
   paid: "blue",
   confirmed: "green",
   refunded: "gray",
+  cancelled: "gray",
 };
 
 export default async function EnrollmentPage({
   searchParams,
 }: {
-  searchParams: Promise<{ pay_error?: string }>;
+  searchParams: Promise<{ pay_error?: string; stripe?: string }>;
 }) {
   const profile = await requireRole("applicant");
   const lead = await getLeadForUser(profile.id);
@@ -117,7 +118,11 @@ export default async function EnrollmentPage({
   const procedure = (procedureData as EnrollmentProcedure | null) ?? null;
   const payments = ((paymentsData as Payment[] | null) ?? []).slice();
   const status: ProcedureStatus = procedure?.status ?? "not_started";
-  const hasPendingBank = payments.some((p) => p.method === "bank_transfer" && p.status === "pending");
+  // 支払いアクションと同じ「種別ごとの最新行」で表示を揃える (旧データの重複行があっても画面が古い行で固まらないように)
+  const latestByType = new Map<Payment["type"], Payment>();
+  for (const p of payments) latestByType.set(p.type, p); // created_at 昇順のため最後の代入が最新
+  const latestPayments = [...latestByType.values()];
+  const hasPendingBank = latestPayments.some((p) => p.method === "bank_transfer" && p.status === "pending");
 
   return (
     <div>
@@ -130,6 +135,17 @@ export default async function EnrollmentPage({
       {sp.pay_error && (
         <div className="mb-6 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
           現在オンラインカード決済は準備中です。お手数ですが銀行振込をご選択ください。
+        </div>
+      )}
+
+      {sp.stripe === "success" && (
+        <div className="mb-6 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+          ✓ お支払いが完了しました(確認メールをお送りしています)。
+        </div>
+      )}
+      {sp.stripe === "cancel" && (
+        <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          カード決済がキャンセルされました。お支払いは完了していません。あらためてお手続きください。
         </div>
       )}
 
@@ -154,7 +170,7 @@ export default async function EnrollmentPage({
       </p>
       <div className="grid gap-4 sm:grid-cols-3">
         {FEES.map((fee) => {
-          const payment = payments.find((p) => p.type === fee.type) ?? null;
+          const payment = latestByType.get(fee.type) ?? null;
           return (
             <Card key={fee.type} title={fee.label}>
               <p className="text-2xl font-bold text-gray-900">{fmtYen(fee.amount)}</p>

@@ -31,6 +31,8 @@ function RegisteredToastNotice() {
 function LoginForm() {
   const [state, formAction, pending] = useActionState<LoginState, FormData>(loginAction, {});
   const [showPassword, setShowPassword] = useState(false);
+  const searchParams = useSearchParams();
+  const next = searchParams.get("next") ?? "";
 
   useEffect(() => {
     if (state.error) showErrorToast(state.error);
@@ -38,6 +40,7 @@ function LoginForm() {
 
   return (
     <form action={formAction} className="space-y-4">
+      {next && <input type="hidden" name="next" value={next} />}
       <div>
         <Label required>メールアドレス</Label>
         <input name="email" type="email" required className={inputCls} placeholder="you@example.com" />
@@ -89,7 +92,9 @@ export default function LoginPage() {
           </div>
 
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-lg">
-            <LoginForm />
+            <Suspense fallback={null}>
+              <LoginForm />
+            </Suspense>
           </div>
 
           <div className="mt-4 text-center">

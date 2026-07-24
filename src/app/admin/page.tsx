@@ -1,3 +1,4 @@
+import { requireRole } from "@/lib/auth";
 import Link from "next/link";
 import { adminDb } from "@/lib/supabase/admin";
 import { fmtDate } from "@/lib/format";
@@ -17,6 +18,7 @@ import type {
 type BookingWithEvent = OpenCampusBooking & { open_campus_events: OpenCampusEvent | null };
 
 export default async function AdminDashboardPage() {
+  await requireRole("admin");
   const db = adminDb();
   const [
     { data: leadsData },

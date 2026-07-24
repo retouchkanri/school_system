@@ -32,10 +32,12 @@ export async function requestPasswordResetAction(
 
   if (profile) {
     const token = crypto.randomBytes(32).toString("hex");
+    // DBにはハッシュのみ保存 (DB流出時にトークンでの乗っ取りを防ぐ)。メールには生トークンを記載する。
+    const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
     await db.from("password_reset_tokens").insert({
       user_id: (profile as { id: string }).id,
-      token,
+      token: tokenHash,
       expires_at: expiresAt,
     });
 

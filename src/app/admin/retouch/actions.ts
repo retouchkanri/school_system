@@ -71,8 +71,9 @@ export async function generateSummaryAction(_prev: ActionState, formData: FormDa
 
   const summary = await summarizeHorseMonth(horseName, year, month, reports);
 
+  // 再生成時は共有済みフラグを戻す (内容が変わるため、確認のうえ改めて「共有」してもらう)
   const { error } = await db.from("horse_monthly_summaries").upsert(
-    { horse_id: horseId, year, month, summary, report_count: reports.length },
+    { horse_id: horseId, year, month, summary, report_count: reports.length, shared: false },
     { onConflict: "horse_id,year,month" }
   );
   if (error) return { error: "要約の保存に失敗しました" };
@@ -119,5 +120,11 @@ export async function shareSummaryAction(_prev: ActionState, formData: FormData)
 
   revalidatePath("/admin/retouch");
   revalidatePath("/supporter");
+  if (sent === 0) {
+    return {
+      ok: true,
+      message: "✓ 支援者ポータルに公開しました(通知を送れる支援者がいません。支援者のアカウント連携をご確認ください)",
+    };
+  }
   return { ok: true, message: `✓ 支援者と共有しました(${sent}名に送信)` };
 }

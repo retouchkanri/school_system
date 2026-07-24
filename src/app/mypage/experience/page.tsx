@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requireRole } from "@/lib/auth";
 import { getLeadForUser } from "@/lib/data";
 import { adminDb } from "@/lib/supabase/admin";
-import { skipPaymentInDev } from "@/lib/dev";
+import { isDevPhase } from "@/lib/dev";
 import { Card, PageHeader, btnPrimary } from "@/components/ui";
 import type { ExperienceSurvey } from "@/lib/types";
 import ExperienceForm from "./experience-form";
@@ -28,9 +28,9 @@ export default async function ExperiencePage() {
     );
   }
 
-  const bypass = skipPaymentInDev();
+  const bypass = isDevPhase();
 
-  // 体験参加済みが回答条件 (開発中は決済・参加なしでも回答可能)
+  // 体験参加済みが回答条件 (開発フェーズ中は決済・参加なしでも回答可能)
   const { data: attended } = await adminDb()
     .from("open_campus_bookings")
     .select("id")
@@ -90,7 +90,7 @@ export default async function ExperiencePage() {
         </div>
       )}
 
-      <ExperienceForm answers={answers} />
+      <ExperienceForm answers={answers} aiMessage={lead.ai_enrollment_summary} />
     </div>
   );
 }

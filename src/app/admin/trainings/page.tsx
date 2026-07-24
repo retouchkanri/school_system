@@ -1,3 +1,4 @@
+import { requireRole } from "@/lib/auth";
 import Link from "next/link";
 import { adminDb } from "@/lib/supabase/admin";
 import { fmtDate, toDateInput } from "@/lib/format";
@@ -15,6 +16,7 @@ const CATEGORY_TONES: Record<string, BadgeTone> = {
 type TrainingRow = TrainingRecord & { student: Pick<Student, "id" | "name"> | null };
 
 export default async function TrainingsPage() {
+  await requireRole("admin");
   const db = adminDb();
   const [{ data: trainingsData }, { data: studentsData }] = await Promise.all([
     db

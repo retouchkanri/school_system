@@ -80,7 +80,7 @@ export default function DecisionForm({
                 type="checkbox"
                 name="notified_via"
                 value={opt.value}
-                defaultChecked={opt.value !== "line"}
+                defaultChecked
                 className="accent-brand-600"
               />
               {opt.label}

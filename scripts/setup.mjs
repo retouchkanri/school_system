@@ -404,7 +404,7 @@ async function main() {
 
   // 26) 送信ログ
   await ins("notifications", [
-    { channel: "email", recipient: "misaki.s@example.com", title: "【東関東馬事学院】資料請求ありがとうございます", body: "パンフレットを発送いたします。", related_type: "material_request", sent_at: iso(daysAgo(33)) },
+    { channel: "email", recipient: "applicant@example.com", title: "【東関東馬事学院】資料請求ありがとうございます", body: "パンフレットを発送いたします。", related_type: "material_request", sent_at: iso(daysAgo(33)) },
     { channel: "line", recipient: "misaki_s", title: "学院紹介動画のご案内", body: "紹介動画をご覧ください🐴", related_type: "video_invite", sent_at: iso(daysAgo(31)) },
     { channel: "email", recipient: "hina.n@example.com", title: "【重要】合否通知のお知らせ", body: "マイページにて合否をご確認ください。", related_type: "decision", sent_at: iso(daysAgo(25)) },
     { channel: "line", recipient: "hina_line", title: "合格おめでとうございます🌸", body: "入学手続きのご案内をお送りしました。", related_type: "decision", sent_at: iso(daysAgo(25)) },

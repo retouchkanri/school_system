@@ -27,6 +27,11 @@ export async function loginAction(_prev: LoginState, formData: FormData): Promis
     .eq("id", data.user.id)
     .single();
 
+  // middleware が付与した next パラメータがあれば優先して戻す。
+  // サイト内の絶対パスのみ許可: 先頭は「/」1つ、2文字目に / や \ を許さず、\ を含むURLも拒否 (オープンリダイレクト対策)
+  const next = String(formData.get("next") ?? "");
+  if (/^\/(?![/\\])[^\\]*$/.test(next)) redirect(next);
+
   redirect(roleHome((profile?.role as UserRole) ?? "applicant"));
 }
 

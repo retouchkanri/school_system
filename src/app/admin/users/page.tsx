@@ -4,8 +4,7 @@ import { adminDb } from "@/lib/supabase/admin";
 import { fmtDateTime } from "@/lib/format";
 import { Card, PageHeader, Badge, EmptyState, Table, Td, inputCls, btnSecondary, type BadgeTone } from "@/components/ui";
 import type { Profile, UserRole } from "@/lib/types";
-import { CreateAdminForm, DeleteUserButton } from "./user-forms";
-import { deleteUserAction } from "./actions";
+import { CreateAdminForm, DeleteUserForm } from "./user-forms";
 
 const ROLE_LABELS: Record<UserRole, string> = {
   admin: "所有者",
@@ -127,12 +126,7 @@ export default async function AdminUsersPage({
                   <Link href={`/admin/users/${u.id}`} className={btnSecondary}>
                     編集
                   </Link>
-                  {u.id !== me.id && (
-                    <form action={deleteUserAction}>
-                      <input type="hidden" name="id" value={u.id} />
-                      <DeleteUserButton />
-                    </form>
-                  )}
+                  {u.id !== me.id && <DeleteUserForm userId={u.id} userName={u.full_name} />}
                 </div>
               </Td>
             </tr>

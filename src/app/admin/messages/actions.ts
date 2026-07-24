@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth";
 import { adminDb } from "@/lib/supabase/admin";
-import { notifyBoth } from "@/lib/notify";
+import { notifyMany } from "@/lib/notify";
 
 export interface ActionState {
   ok?: boolean;
@@ -36,13 +36,10 @@ export async function sendBulkMessageAction(_prev: ActionState, formData: FormDa
   const { data } = await db.from("profiles").select("email, line_id").in("role", roles);
   const recipients = (data ?? []) as Recipient[];
 
-  let count = 0;
-  for (const r of recipients) {
-    const sent = await notifyBoth(r.email, r.line_id, title, body, "bulk", { email: viaEmail, line: viaLine });
-    if (sent > 0) count++;
-  }
+  const count = await notifyMany(recipients, title, body, "bulk", { email: viaEmail, line: viaLine });
 
-  const { error } = await db.from("bulk_messages").insert({
+  // 履歴保存に失敗しても送信自体は完了している (失敗扱いにすると再送信→重複配信につながるため ok を返す)
+  await db.from("bulk_messages").insert({
     audience,
     title,
     body,
@@ -51,7 +48,6 @@ export async function sendBulkMessageAction(_prev: ActionState, formData: FormDa
     recipient_count: count,
     sent_by: profile.id,
   });
-  if (error) return { error: "送信履歴の保存に失敗しました" };
 
   revalidatePath("/admin/messages");
   revalidatePath("/admin/notifications");

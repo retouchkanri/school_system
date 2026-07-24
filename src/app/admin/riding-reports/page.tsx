@@ -1,3 +1,4 @@
+import { requireRole } from "@/lib/auth";
 import Link from "next/link";
 import { adminDb } from "@/lib/supabase/admin";
 import { fmtDate, toDateInput } from "@/lib/format";
@@ -15,6 +16,7 @@ export default async function RidingReportsPage({
 }: {
   searchParams: Promise<{ horse?: string }>;
 }) {
+  await requireRole("admin");
   const sp = await searchParams;
   const horseFilter = sp.horse ?? "";
 

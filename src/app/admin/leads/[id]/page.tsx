@@ -1,3 +1,4 @@
+import { requireRole } from "@/lib/auth";
 import { notFound } from "next/navigation";
 import { adminDb } from "@/lib/supabase/admin";
 import { fmtDate, fmtDateTime, fmtYen } from "@/lib/format";
@@ -62,6 +63,7 @@ const paymentTone: Record<PaymentStatus, BadgeTone> = {
   paid: "blue",
   confirmed: "green",
   refunded: "gray",
+  cancelled: "gray",
 };
 const judgementTone: Record<AiJudgement, BadgeTone> = {
   approved: "green",
@@ -108,6 +110,7 @@ function AnswerList({
 }
 
 export default async function AdminLeadDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  await requireRole("admin");
   const { id } = await params;
   const db = adminDb();
 

@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 /**
  * 画面右側に常時表示する LINE / お問い合わせボタン。
  * 管理画面(/admin)では非表示。
- * LINEのリンク先は公式アカウントのURLに差し替えてください。
+ * LINEのリンク先は NEXT_PUBLIC_LINE_ADD_FRIEND_URL (公式アカウントの友だち追加URL) で設定できます。
  */
 export default function FloatingContact() {
   const pathname = usePathname();
@@ -16,7 +16,7 @@ export default function FloatingContact() {
   return (
     <div className="pointer-events-none fixed inset-y-0 right-0 z-50 flex flex-col items-end justify-center gap-2 pr-2">
       <a
-        href="https://line.me"
+        href={process.env.NEXT_PUBLIC_LINE_ADD_FRIEND_URL || "https://line.me"}
         target="_blank"
         rel="noopener noreferrer"
         className="shine pointer-events-auto relative flex h-44 w-12 flex-col items-center justify-center gap-1.5 overflow-hidden rounded-md bg-[#06C755] shadow-md transition hover:bg-[#05b34c]"

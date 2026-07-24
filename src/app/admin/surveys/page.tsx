@@ -1,3 +1,4 @@
+import { requireRole } from "@/lib/auth";
 import { adminDb } from "@/lib/supabase/admin";
 import { fmtDate, fmtDateTime } from "@/lib/format";
 import { PageHeader, Card, Badge, EmptyState, btnSmall } from "@/components/ui";
@@ -13,6 +14,7 @@ const TARGET_LABELS: Record<string, string> = {
 type ResponseRow = StudentSurveyResponse & { student: Pick<Student, "id" | "name"> | null };
 
 export default async function SurveysPage() {
+  await requireRole("admin");
   const db = adminDb();
   const [{ data: surveysData }, { data: responsesData }, { count: studentCount }] = await Promise.all([
     db.from("student_surveys").select("*").order("created_at", { ascending: false }),

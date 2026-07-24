@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth";
 import { adminDb } from "@/lib/supabase/admin";
-import { getLeadForUser, advanceLeadStatus, markPaymentConfirmed } from "@/lib/data";
+import { getLeadForUser, advanceLeadStatus, markPaymentConfirmed, notifyPaymentConfirmed } from "@/lib/data";
 import { skipPaymentInDev } from "@/lib/dev";
 import { notifyStaff } from "@/lib/notify";
 import { createCheckoutSession, stripeEnabled } from "@/lib/stripe";
@@ -59,7 +59,19 @@ export async function bookEventAction(_prev: BookingState, formData: FormData): 
   const existing = (existingData as OpenCampusBooking | null) ?? null;
   if (existing && existing.status !== "cancelled") return { error: "このイベントはすでに仮予約済みです" };
 
-  const { error: bookingError } = await adminDb()
+  // 定員チェック (キャンセル済みを除く予約数)
+  if (event.capacity > 0) {
+    const { count } = await adminDb()
+      .from("open_campus_bookings")
+      .select("id", { count: "exact", head: true })
+      .eq("event_id", event.id)
+      .neq("status", "cancelled");
+    if ((count ?? 0) >= event.capacity) {
+      return { error: "申し訳ありません。このイベントは満席となりました。別の日程をご検討ください。" };
+    }
+  }
+
+  const { data: bookingData, error: bookingError } = await adminDb()
     .from("open_campus_bookings")
     .upsert(
       {
@@ -70,8 +82,10 @@ export async function bookEventAction(_prev: BookingState, formData: FormData): 
         payment_status: "pending",
       },
       { onConflict: "lead_id,event_id" }
-    );
-  if (bookingError) return { error: "仮予約の登録に失敗しました" };
+    )
+    .select("id")
+    .single();
+  if (bookingError || !bookingData) return { error: "仮予約の登録に失敗しました" };
 
   const { data: paymentData, error: paymentError } = await adminDb()
     .from("payments")
@@ -80,16 +94,20 @@ export async function bookEventAction(_prev: BookingState, formData: FormData): 
     .single();
   if (paymentError || !paymentData) return { error: "決済情報の作成に失敗しました" };
 
+  // 決済と予約を紐付け (booking_id 列が未追加の既存DBでも動作するよう、失敗は無視する)
+  await adminDb().from("payments").update({ booking_id: bookingData.id }).eq("id", paymentData.id);
+
   await advanceLeadStatus(lead.id, "visit_reserved");
 
-  // 開発中は決済をスキップし、入金確認済みとして扱う
+  // 決済スキップ時: 支払いボタン押下で即時「入金確認済み」とし、確認通知を送って次のページへ進む
   if (bypass) {
     await adminDb()
       .from("open_campus_bookings")
       .update({ payment_status: "confirmed", status: "attended" })
       .eq("lead_id", lead.id)
       .eq("event_id", event.id);
-    await markPaymentConfirmed(paymentData.id);
+    const confirmed = await markPaymentConfirmed(paymentData.id);
+    if (confirmed) await notifyPaymentConfirmed(paymentData.id);
     await advanceLeadStatus(lead.id, "visit_attended");
     revalidatePath("/mypage/events");
     revalidatePath("/mypage");
@@ -134,6 +152,15 @@ export async function cancelBookingAction(formData: FormData): Promise<void> {
   if (booking.status !== "reserved") return;
 
   await adminDb().from("open_campus_bookings").update({ status: "cancelled" }).eq("id", booking.id);
+
+  // 未入金の参加費決済レコードはキャンセル扱いに (削除しない: 決済途中のカード課金や振込済みの入金が後から届いても照合できるように)
+  await adminDb()
+    .from("payments")
+    .update({ status: "cancelled" })
+    .eq("lead_id", lead.id)
+    .eq("type", "open_campus")
+    .eq("status", "pending")
+    .eq("booking_id", booking.id);
 
   revalidatePath("/mypage/events");
   revalidatePath("/mypage");

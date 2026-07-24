@@ -89,12 +89,29 @@ export async function markReimbursementPaidAction(formData: FormData): Promise<v
   if (!id) return;
 
   const db = adminDb();
-  const { data: reimbursementData } = await db.from("reimbursements").select("student_id, status").eq("id", id).maybeSingle();
-  const reimbursement = reimbursementData as Pick<Reimbursement, "student_id" | "status"> | null;
+  const { data: reimbursementData } = await db.from("reimbursements").select("*").eq("id", id).maybeSingle();
+  const reimbursement = reimbursementData as Reimbursement | null;
   if (!reimbursement || reimbursement.status === "paid") return;
 
-  await db.from("reimbursements").update({ status: "paid", paid_at: new Date().toISOString() }).eq("id", id);
+  // paid への遷移をアトミックに行い、二重送信時の重複通知を防ぐ
+  const { data: updated } = await db
+    .from("reimbursements")
+    .update({ status: "paid", paid_at: new Date().toISOString() })
+    .eq("id", id)
+    .neq("status", "paid")
+    .select("id");
+  if (!updated || updated.length === 0) return;
+
+  // 事前通知で「完了次第改めてご連絡」と案内しているため、返金完了も本人・保護者へ通知する
+  const { data: studentData } = await db.from("students").select("name").eq("id", reimbursement.student_id).maybeSingle();
+  const studentName = (studentData as Pick<Student, "name"> | null)?.name ?? "";
+  const recipients = await studentRecipients(reimbursement.student_id);
+  const body = `${studentName}さんの諸経費について、返金手続きが完了しましたのでお知らせいたします。\n\n内容: ${reimbursement.title}\n金額: ${fmtYen(reimbursement.amount)}\n\nご確認のほどよろしくお願いいたします。`;
+  await Promise.all(
+    recipients.map((r) => notifyBoth(r.email, r.line_id, "【東関東馬事学院】諸経費返金完了のお知らせ", body, "reimbursement"))
+  );
 
   revalidatePath("/admin/reimbursements");
+  revalidatePath("/admin/notifications");
   revalidatePath(`/admin/students/${reimbursement.student_id}`);
 }

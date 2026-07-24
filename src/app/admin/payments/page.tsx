@@ -29,6 +29,7 @@ const STATUS_TONES: Record<Payment["status"], BadgeTone> = {
   paid: "blue",
   confirmed: "green",
   refunded: "gray",
+  cancelled: "gray",
 };
 
 export default async function AdminPaymentsPage() {

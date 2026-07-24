@@ -1,17 +1,36 @@
-/** 日付・金額の表示ヘルパー */
+/** 日付・金額の表示ヘルパー (表示は日本時間で統一。UTCホストにデプロイしてもズレない) */
+
+const TOKYO_DATE = new Intl.DateTimeFormat("ja-JP", {
+  timeZone: "Asia/Tokyo",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+const TOKYO_TIME = new Intl.DateTimeFormat("ja-JP", {
+  timeZone: "Asia/Tokyo",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+});
 
 export function fmtDate(d: string | Date | null | undefined): string {
   if (!d) return "—";
+  // 日付のみの文字列 (YYYY-MM-DD) はタイムゾーン変換せずそのまま整形する
+  if (typeof d === "string") {
+    const m = d.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (m) return `${m[1]}/${m[2]}/${m[3]}`;
+  }
   const date = typeof d === "string" ? new Date(d) : d;
   if (isNaN(date.getTime())) return "—";
-  return `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, "0")}/${String(date.getDate()).padStart(2, "0")}`;
+  return TOKYO_DATE.format(date);
 }
 
 export function fmtDateTime(d: string | Date | null | undefined): string {
   if (!d) return "—";
   const date = typeof d === "string" ? new Date(d) : d;
   if (isNaN(date.getTime())) return "—";
-  return `${fmtDate(date)} ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+  return `${fmtDate(date)} ${TOKYO_TIME.format(date)}`;
 }
 
 export function fmtYen(n: number | null | undefined): string {

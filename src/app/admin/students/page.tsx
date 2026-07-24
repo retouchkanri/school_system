@@ -1,9 +1,10 @@
+import { requireRole } from "@/lib/auth";
 import Link from "next/link";
 import { adminDb } from "@/lib/supabase/admin";
 import { fmtDate, toDateInput } from "@/lib/format";
 import { PageHeader, Card, Table, Td, Badge, EmptyState, StatCard, type BadgeTone } from "@/components/ui";
 import type { Student, Horse, StudentState } from "@/lib/types";
-import StudentForm, { type HorseOption } from "./student-form";
+import StudentForm, { type AccountOption, type HorseOption } from "./student-form";
 
 const STATE_LABELS: Record<StudentState, string> = {
   enrolled: "在籍",
@@ -20,18 +21,27 @@ const STATE_TONES: Record<StudentState, BadgeTone> = {
 type StudentRow = Student & { horse: Pick<Horse, "id" | "name" | "is_retouch"> | null };
 
 export default async function StudentsPage() {
+  await requireRole("admin");
   const db = adminDb();
-  const [{ data: studentsData }, { data: horsesData }] = await Promise.all([
+  const [{ data: studentsData }, { data: horsesData }, { data: accountsData }] = await Promise.all([
     db
       .from("students")
       .select("*, horse:horses(id, name, is_retouch)")
       .order("student_number", { ascending: true }),
     db.from("horses").select("*").order("name", { ascending: true }),
+    db.from("profiles").select("id, full_name, email, role").in("role", ["student", "parent"]).order("full_name", { ascending: true }),
   ]);
 
   const students = (studentsData ?? []) as StudentRow[];
   const horses = (horsesData ?? []) as Horse[];
   const horseOptions: HorseOption[] = horses.map((h) => ({ id: h.id, name: h.name, is_retouch: h.is_retouch }));
+  const accounts = (accountsData ?? []) as { id: string; full_name: string; email: string | null; role: string }[];
+  const toAccountOption = (a: { id: string; full_name: string; email: string | null }): AccountOption => ({
+    id: a.id,
+    label: a.email ? `${a.full_name} (${a.email})` : a.full_name,
+  });
+  const studentAccounts = accounts.filter((a) => a.role === "student").map(toAccountOption);
+  const parentAccounts = accounts.filter((a) => a.role === "parent").map(toAccountOption);
 
   const enrolled = students.filter((s) => s.status === "enrolled").length;
   const graduated = students.filter((s) => s.status === "graduated").length;
@@ -49,7 +59,12 @@ export default async function StudentsPage() {
       </div>
 
       <Card title="新規生徒登録" className="mb-6">
-        <StudentForm horses={horseOptions} defaultDate={toDateInput()} />
+        <StudentForm
+          horses={horseOptions}
+          defaultDate={toDateInput()}
+          studentAccounts={studentAccounts}
+          parentAccounts={parentAccounts}
+        />
       </Card>
 
       {students.length === 0 ? (

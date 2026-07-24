@@ -39,6 +39,7 @@ export async function submitRequestAction(_prev: RequestState, formData: FormDat
   const email = String(formData.get("email") ?? "").trim();
   const birthDate = String(formData.get("birth_date") ?? "").trim();
   if (!name || !email) return { error: "氏名とメールアドレスは必須です" };
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: "メールアドレスの形式が正しくありません" };
   if (!birthDate) return { error: "生年月日は必須です(マイページの初回ログインパスワードに使用します)" };
 
   const { data: lead, error } = await adminDb()
@@ -65,15 +66,23 @@ export async function submitRequestAction(_prev: RequestState, formData: FormDat
   const { data: existingProfile } = await db.from("profiles").select("id").eq("email", email).maybeSingle();
 
   let userId: string | null = (existingProfile as { id: string } | null)?.id ?? null;
-  let isNewAccount = !userId;
+  let isNewAccount = false;
 
   if (!userId) {
     const password = birthDate.replaceAll("-", "");
-    const { data: created } = await db.auth.admin.createUser({ email, password, email_confirm: true });
-    if (created?.user) {
+    const { data: created, error: createError } = await db.auth.admin.createUser({ email, password, email_confirm: true });
+    if (created?.user && !createError) {
       userId = created.user.id;
       isNewAccount = true;
-      await db.from("profiles").insert({ id: userId, role: "applicant", full_name: name, email, phone: String(formData.get("phone") ?? "") || null });
+      const { error: profileError } = await db
+        .from("profiles")
+        .insert({ id: userId, role: "applicant", full_name: name, email, phone: String(formData.get("phone") ?? "") || null });
+      if (profileError) {
+        // profiles 作成失敗時は auth 側の孤児ユーザーを残さない (残ると同メールで恒久的に再登録不能になる)
+        await db.auth.admin.deleteUser(userId);
+        userId = null;
+        isNewAccount = false;
+      }
     }
   }
 

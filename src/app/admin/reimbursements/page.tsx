@@ -1,3 +1,4 @@
+import { requireRole } from "@/lib/auth";
 import Link from "next/link";
 import { adminDb } from "@/lib/supabase/admin";
 import { fmtDateTime, fmtYen } from "@/lib/format";
@@ -16,6 +17,7 @@ const STATUS_TONES: Record<ReimbursementStatus, BadgeTone> = {
 };
 
 export default async function AdminReimbursementsPage() {
+  await requireRole("admin");
   const db = adminDb();
 
   const [{ data: reimbursementsData }, { data: studentsData }] = await Promise.all([

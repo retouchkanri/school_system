@@ -11,7 +11,7 @@ export default async function AdminHorsesPage() {
 
   const [horsesRes, studentsRes] = await Promise.all([
     db.from("horses").select("*").order("name"),
-    db.from("students").select("*").not("assigned_horse_id", "is", null),
+    db.from("students").select("*").not("assigned_horse_id", "is", null).eq("status", "enrolled"),
   ]);
   const horses = (horsesRes.data ?? []) as Horse[];
   const students = (studentsRes.data ?? []) as Student[];

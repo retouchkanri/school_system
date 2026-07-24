@@ -1,3 +1,4 @@
+import { requireRole } from "@/lib/auth";
 import Link from "next/link";
 import { adminDb } from "@/lib/supabase/admin";
 import { fmtDate } from "@/lib/format";
@@ -12,6 +13,7 @@ export default async function AdminGradesPage({
 }: {
   searchParams: Promise<{ student?: string }>;
 }) {
+  await requireRole("admin");
   const sp = await searchParams;
   const studentFilter = sp.student ?? "";
 

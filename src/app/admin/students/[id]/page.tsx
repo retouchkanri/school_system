@@ -1,3 +1,4 @@
+import { requireRole } from "@/lib/auth";
 import { notFound } from "next/navigation";
 import { adminDb } from "@/lib/supabase/admin";
 import { fmtDate, toDateInput, daysAgo, fmtYen } from "@/lib/format";
@@ -13,7 +14,7 @@ import type {
   OvernightLeaveRequest, MealRecord, AttendanceStatus, ApprovalStatus, StudentState, MealType,
   GradeRecord, CompetencyAssessment, CareerRecord, Reimbursement, CareerOutcomeType, ReimbursementStatus,
 } from "@/lib/types";
-import StudentEditForm, { type HorseOption } from "./edit-form";
+import StudentEditForm, { type AccountOption, type HorseOption } from "./edit-form";
 
 const STATE_LABELS: Record<StudentState, string> = {
   enrolled: "在籍",
@@ -58,6 +59,7 @@ type StudentDetail = Student & { horse: Horse | null };
 type ReportRow = RidingReport & { horse: Pick<Horse, "name" | "is_retouch"> | null };
 
 export default async function StudentDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  await requireRole("admin");
   const { id } = await params;
   const db = adminDb();
 
@@ -83,6 +85,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
     { data: competencyData },
     { data: careerData },
     { data: reimbursementsData },
+    { data: accountsData },
   ] = await Promise.all([
     db.from("attendance_records").select("*").eq("student_id", id).gte("date", attendanceFrom).order("date", { ascending: false }),
     db.from("riding_reports").select("*, horse:horses(name, is_retouch)").eq("student_id", id).order("report_date", { ascending: false }).order("created_at", { ascending: false }).limit(5),
@@ -94,6 +97,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
     db.from("competency_assessments").select("*").eq("student_id", id).order("created_at", { ascending: false }).limit(1),
     db.from("career_records").select("*").eq("student_id", id).order("created_at", { ascending: false }),
     db.from("reimbursements").select("*").eq("student_id", id).order("created_at", { ascending: false }).limit(5),
+    db.from("profiles").select("id, full_name, email, role").in("role", ["student", "parent"]).order("full_name", { ascending: true }),
   ]);
 
   const attendance = (attendanceData ?? []) as AttendanceRecord[];
@@ -107,6 +111,26 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
   const careerRecords = (careerData ?? []) as CareerRecord[];
   const reimbursements = (reimbursementsData ?? []) as Reimbursement[];
   const horseOptions: HorseOption[] = horses.map((h) => ({ id: h.id, name: h.name, is_retouch: h.is_retouch }));
+  const accounts = (accountsData ?? []) as { id: string; full_name: string; email: string | null; role: string }[];
+  const toAccountOption = (a: { id: string; full_name: string; email: string | null }): AccountOption => ({
+    id: a.id,
+    label: a.email ? `${a.full_name} (${a.email})` : a.full_name,
+  });
+  const studentAccounts = accounts.filter((a) => a.role === "student").map(toAccountOption);
+  const parentAccounts = accounts.filter((a) => a.role === "parent").map(toAccountOption);
+
+  // 連携済みプロフィールのロールが変わっていても選択肢に必ず含める
+  // (含めないと defaultValue が一致せず、無関係な保存操作で連携が黙って外れてしまう)
+  for (const [linkedId, list] of [
+    [student.user_id, studentAccounts],
+    [student.parent_user_id, parentAccounts],
+  ] as const) {
+    if (linkedId && !list.some((a) => a.id === linkedId)) {
+      const { data: missing } = await db.from("profiles").select("id, full_name, email").eq("id", linkedId).maybeSingle();
+      const m = missing as { id: string; full_name: string; email: string | null } | null;
+      list.unshift(m ? { ...toAccountOption(m), label: `${toAccountOption(m).label} (現在の連携)` } : { id: linkedId, label: "(現在の連携アカウント)" });
+    }
+  }
 
   const mealMap = new Map<string, boolean>();
   for (const m of meals) mealMap.set(`${m.date}_${m.meal}`, m.eaten);
@@ -167,13 +191,21 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
             <StudentEditForm
               student={{
                 id: student.id,
+                name: student.name,
+                kana: student.kana,
+                student_number: student.student_number,
+                enrollment_date: student.enrollment_date,
                 class_name: student.class_name,
                 dorm_room: student.dorm_room,
                 assigned_horse_id: student.assigned_horse_id,
                 stall_number: student.stall_number,
+                user_id: student.user_id,
+                parent_user_id: student.parent_user_id,
                 status: student.status,
               }}
               horses={horseOptions}
+              studentAccounts={studentAccounts}
+              parentAccounts={parentAccounts}
             />
           </Card>
         </div>

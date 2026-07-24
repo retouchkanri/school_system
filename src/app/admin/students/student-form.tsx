@@ -10,12 +10,21 @@ export interface HorseOption {
   is_retouch: boolean;
 }
 
+export interface AccountOption {
+  id: string;
+  label: string;
+}
+
 export default function StudentForm({
   horses,
   defaultDate,
+  studentAccounts,
+  parentAccounts,
 }: {
   horses: HorseOption[];
   defaultDate: string;
+  studentAccounts: AccountOption[];
+  parentAccounts: AccountOption[];
 }) {
   const [state, formAction, pending] = useActionState<ActionState, FormData>(createStudent, {});
 
@@ -54,7 +63,30 @@ export default function StudentForm({
         <Field label="入学日">
           <input type="date" name="enrollment_date" defaultValue={defaultDate} className={inputCls} />
         </Field>
+        <Field label="本人アカウント">
+          <select name="user_id" defaultValue="" className={inputCls}>
+            <option value="">未連携</option>
+            {studentAccounts.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.label}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="保護者アカウント">
+          <select name="parent_user_id" defaultValue="" className={inputCls}>
+            <option value="">未連携</option>
+            {parentAccounts.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.label}
+              </option>
+            ))}
+          </select>
+        </Field>
       </div>
+      <p className="text-xs text-gray-400">
+        ※ 本人・保護者アカウントを連携すると、生徒・保護者ポータルの閲覧やメール・LINE通知の宛先として使用されます。
+      </p>
 
       {state.error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{state.error}</p>}
       {state.ok && (

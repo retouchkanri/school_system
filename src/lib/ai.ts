@@ -1,13 +1,14 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { PRE_SCREENING_QUESTIONS } from "@/lib/constants";
+import { PRE_SCREENING_QUESTIONS, POST_VISIT_QUESTIONS } from "@/lib/constants";
 import { APTITUDE_QUESTIONS, TraitKey } from "@/lib/aptitude";
 import { isDevPhase } from "@/lib/dev";
 import type { AiJudgement } from "@/lib/types";
 
 /**
  * AI分析モジュール。
- * ANTHROPIC_API_KEY が設定されていれば Claude で自然文の分析を生成し、
- * 未設定の場合は決定的なルールベース分析にフォールバックする(デモでも常に動作)。
+ * OPENAI_API_KEY が設定されていれば OpenAI で自然文の分析を生成する(本システムの標準構成)。
+ * OPENAI_API_KEY が無く ANTHROPIC_API_KEY がある場合は Claude を使用し、
+ * どちらも未設定の場合は決定的なルールベース分析にフォールバックする(デモでも常に動作)。
  */
 
 const hasClaude = () => !!process.env.ANTHROPIC_API_KEY;
@@ -18,7 +19,7 @@ async function askClaude(prompt: string): Promise<string | null> {
   try {
     const client = new Anthropic();
     const response = await client.messages.create({
-      model: "claude-opus-4-8",
+      model: "claude-haiku-4-5-20251001",
       max_tokens: 2048,
       messages: [{ role: "user", content: prompt }],
     });
@@ -51,13 +52,13 @@ async function askOpenAI(prompt: string): Promise<string | null> {
   }
 }
 
-/** ANTHROPIC_API_KEY を優先し、なければ OPENAI_API_KEY で自然文生成。両方未設定/失敗時は null (ルールベースへフォールバック) */
+/** OPENAI_API_KEY を優先し、なければ ANTHROPIC_API_KEY で自然文生成。両方未設定/失敗時は null (ルールベースへフォールバック) */
 async function askAI(prompt: string): Promise<string | null> {
-  if (hasClaude()) {
-    const text = await askClaude(prompt);
+  if (hasOpenAI()) {
+    const text = await askOpenAI(prompt);
     if (text) return text;
   }
-  if (hasOpenAI()) return askOpenAI(prompt);
+  if (hasClaude()) return askClaude(prompt);
   return null;
 }
 
@@ -198,6 +199,39 @@ export function computeEnrollmentProbability(answers: Record<string, string> | n
   if (tuition && tuition !== "特に考えていない") p -= 3; // 分割希望 = 学費への懸念の軽微なシグナル
 
   return Math.max(3, Math.min(98, Math.round(p)));
+}
+
+export interface ExperienceAnalysis {
+  probability: number;
+  /** 本人向けの返信メッセージ (点数・合否には触れない) */
+  message: string;
+}
+
+const EXPERIENCE_FALLBACK_MESSAGE =
+  "本日はご参加いただき誠にありがとうございました。いただいたご感想は今後の学校づくりの参考にさせていただきます。ご不安な点があれば、いつでもお気軽にご相談ください。";
+
+/** 体験終了アンケートをAIが分析し、入学確率の推定と本人向けメッセージを生成する */
+export async function analyzeExperienceSurvey(answers: Record<string, string>): Promise<ExperienceAnalysis> {
+  const ruleProbability = computeEnrollmentProbability(answers);
+
+  if (hasAI()) {
+    const qa = POST_VISIT_QUESTIONS.map((q) => `${q.text}: ${answers[q.id] || "(未回答)"}`).join("\n");
+    const text = await askAI(
+      `あなたは馬の学校(東関東馬事高等学院)の入学相談担当AIです。学校見学・体験に参加した生徒からのアンケート回答を読み、` +
+        `(1)入学確率を0〜100の整数で推定し、(2)本人へ向けた温かい返信メッセージを日本語で3〜4文書いてください。` +
+        `メッセージは本人が直接読むものなので、点数・確率・合否には一切触れず、感想への共感、不安点があれば安心材料の提示、入学への前向きな後押しを含めてください。\n` +
+        `フォーマット:\n1行目: 確率の数値のみ\n2行目以降: メッセージ本文\n\n回答:\n${qa}`
+    );
+    if (text) {
+      const lines = text.trim().split("\n").filter(Boolean);
+      const parsed = parseInt(lines[0]?.replace(/[^0-9]/g, "") ?? "", 10);
+      const probability = Number.isFinite(parsed) ? Math.max(0, Math.min(100, parsed)) : ruleProbability;
+      const message = lines.slice(1).join("\n").trim();
+      if (message) return { probability, message };
+    }
+  }
+
+  return { probability: ruleProbability, message: EXPERIENCE_FALLBACK_MESSAGE };
 }
 
 /* ============ ステップ5: 適性検査の採点とレポート ============ */

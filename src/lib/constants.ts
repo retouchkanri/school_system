@@ -119,12 +119,11 @@ export function statusIndex(status: LeadStatus): number {
   return PROGRESS_STEPS.findIndex((s) => s.key === status);
 }
 
-/** 完了済みステップ数 (X / Y 完了 の X) */
+/** 完了済みステップ数 (X / Y 完了 の X)。lead.status は「完了した最新ステップ」を指す */
 export function completedStepCount(status: LeadStatus): number {
   const idx = statusIndex(status);
   if (idx < 0) return 0;
-  if (status === "enrolled") return PROGRESS_STEPS.length;
-  return idx;
+  return idx + 1;
 }
 
 export function progressTitle(status: LeadStatus): string {
@@ -172,6 +171,7 @@ export const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
   paid: "決済済",
   confirmed: "入金確認済",
   refunded: "返金済",
+  cancelled: "キャンセル",
 };
 
 export const PAYMENT_TYPE_LABELS: Record<PaymentType, string> = {

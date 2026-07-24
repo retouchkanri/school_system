@@ -19,7 +19,10 @@ export default function AvatarPicker({
   function onChange(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    setPreview(URL.createObjectURL(file));
+    setPreview((prev) => {
+      if (prev?.startsWith("blob:")) URL.revokeObjectURL(prev);
+      return URL.createObjectURL(file);
+    });
   }
 
   const initial = (fallbackInitial ?? "?").trim().charAt(0) || "?";

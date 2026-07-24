@@ -62,7 +62,8 @@ function StepModal({
 }
 
 export function ProgressTracker({ status, compact = false }: { status: LeadStatus; compact?: boolean }) {
-  const current = statusIndex(status);
+  // lead.status は「完了した最新ステップ」を指すため、現在(未完了)のステップはその次
+  const current = statusIndex(status) + 1;
   const [openKey, setOpenKey] = useState<LeadStatus | null>(null);
   const openStep = openKey ? PROGRESS_STEPS.find((s) => s.key === openKey) : null;
   const openIndex = openKey ? statusIndex(openKey) : -1;
@@ -86,7 +87,7 @@ export function ProgressTracker({ status, compact = false }: { status: LeadStatu
           <span
             key={s.key}
             title={s.label}
-            className={`h-2 w-2 rounded-full ${i <= current ? "bg-brand-500" : "bg-gray-200"}`}
+            className={`h-2 w-2 rounded-full ${i < current ? "bg-brand-500" : "bg-gray-200"}`}
           />
         ))}
         <span className="ml-2 text-xs text-gray-500">

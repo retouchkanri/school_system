@@ -169,6 +169,7 @@ create table if not exists leads (
 -- 資料請求フォーム追加項目 (既存DBへの追記用: 再実行しても安全)
 alter table leads add column if not exists relationship text; -- 続柄: 本人・保護者・学校の先生・代理人等
 alter table leads add column if not exists remarks text;      -- 備考欄 (本人記入。スタッフ用の notes とは別)
+alter table leads add column if not exists ai_enrollment_summary text; -- 体験終了アンケートのAI分析メッセージ (本人向け)
 
 -- ---------- ステップ2: 動画視聴 ----------
 create table if not exists video_progress (
@@ -747,3 +748,69 @@ create policy "rmb_read" on reimbursements for select
   using (student_id in (select my_student_ids()) or is_admin());
 drop policy if exists "rmb_admin" on reimbursements;
 create policy "rmb_admin" on reimbursements for all using (is_admin());
+
+-- ---------- セキュリティ強化 (再実行安全 / 既存DBにもそのまま適用可) ----------
+
+-- profiles: 本人更新に WITH CHECK を付与
+drop policy if exists "profiles_own_update" on profiles;
+create policy "profiles_own_update" on profiles for update
+  using (id = auth.uid() or is_admin())
+  with check (id = auth.uid() or is_admin());
+
+-- profiles.role の自己変更(権限昇格)をトリガーで禁止。
+-- サーバー(service_role)と管理者のみ role を変更できる。
+create or replace function public.prevent_role_escalation()
+returns trigger language plpgsql as $$
+begin
+  if new.role is distinct from old.role
+     and current_user not in ('service_role', 'postgres', 'supabase_admin', 'supabase_auth_admin')
+     and not is_admin() then
+    raise exception 'role change is not allowed';
+  end if;
+  return new;
+end;
+$$;
+drop trigger if exists trg_prevent_role_escalation on profiles;
+create trigger trg_prevent_role_escalation
+  before update on profiles
+  for each row execute function public.prevent_role_escalation();
+
+-- leads: 本人による直接更新を廃止 (status / ai_judgement 等の選考列を守る。全ての更新はサーバーアクション経由)
+drop policy if exists "leads_own_update" on leads;
+drop policy if exists "leads_admin_update" on leads;
+create policy "leads_admin_update" on leads for update using (is_admin()) with check (is_admin());
+
+-- open_campus_bookings: 本人は閲覧のみ (payment_status / status の自己書き換えを防止)
+drop policy if exists "ocb_rw" on open_campus_bookings;
+drop policy if exists "ocb_read" on open_campus_bookings;
+create policy "ocb_read" on open_campus_bookings for select
+  using (lead_id in (select my_lead_ids()) or is_admin());
+drop policy if exists "ocb_admin" on open_campus_bookings;
+create policy "ocb_admin" on open_campus_bookings for all using (is_admin()) with check (is_admin());
+
+-- payments: 予約との紐付け (銀行振込確認・Webhook確定時に対象予約を特定するため)
+alter table payments add column if not exists booking_id uuid references open_campus_bookings(id) on delete set null;
+
+-- 決済ステータスに「キャンセル」を追加 (予約キャンセル時、決済レコードは削除せずキャンセル扱いで残す)
+alter type payment_status add value if not exists 'cancelled';
+
+-- 既存DBに二重行があると一意インデックス作成が失敗するため、先に重複を整理する
+-- (confirmed/paid を優先して残し、それ以外は最新の1件を残す — アプリ側の判定ロジックと同一)
+delete from payments
+where type in ('admission_fee','uniform','materials')
+  and lead_id is not null
+  and id not in (
+    select distinct on (lead_id, type) id
+    from payments
+    where type in ('admission_fee','uniform','materials')
+      and lead_id is not null
+    order by lead_id, type, (status in ('confirmed','paid')) desc, created_at desc, id desc
+  );
+
+-- 入学手続き系の支払い(入学金・制服代・教材費)は1リード1件に制限 (二重行の発生を防止)
+create unique index if not exists payments_lead_type_uniq
+  on payments(lead_id, type) where type in ('admission_fee','uniform','materials');
+
+-- 本人アカウントは1生徒にのみ連携可能 (保護者は複数の子を持てるため制限しない)
+create unique index if not exists students_user_id_uniq
+  on students(user_id) where user_id is not null;

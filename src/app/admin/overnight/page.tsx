@@ -1,3 +1,4 @@
+import { requireRole } from "@/lib/auth";
 import Link from "next/link";
 import { adminDb } from "@/lib/supabase/admin";
 import { fmtDate } from "@/lib/format";
@@ -19,6 +20,7 @@ type RequestRow = OvernightLeaveRequest & {
 };
 
 export default async function OvernightPage() {
+  await requireRole("admin");
   const db = adminDb();
   const { data: requestsData } = await db
     .from("overnight_leave_requests")

@@ -1,3 +1,4 @@
+import { requireRole } from "@/lib/auth";
 import Link from "next/link";
 import { adminDb } from "@/lib/supabase/admin";
 import { fmtDate } from "@/lib/format";
@@ -19,6 +20,7 @@ export default async function AdminLeadsPage({
 }: {
   searchParams: Promise<{ q?: string; status?: string }>;
 }) {
+  await requireRole("admin");
   const sp = await searchParams;
   const q = (sp.q ?? "").trim();
   const status = PROGRESS_STEPS.some((s) => s.key === sp.status) ? (sp.status as LeadStatus) : "";

@@ -1,3 +1,4 @@
+import { requireRole } from "@/lib/auth";
 import Link from "next/link";
 import { adminDb } from "@/lib/supabase/admin";
 import { FOLLOW_UP_RULES } from "@/lib/constants";
@@ -23,6 +24,7 @@ function daysSince(dateStr: string): number {
 }
 
 export default async function AdminFollowUpsPage() {
+  await requireRole("admin");
   const db = adminDb();
   const [
     { data: leadsData },

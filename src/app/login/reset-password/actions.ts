@@ -1,5 +1,6 @@
 "use server";
 
+import crypto from "crypto";
 import { redirect } from "next/navigation";
 import { adminDb } from "@/lib/supabase/admin";
 import type { PasswordResetToken } from "@/lib/types";
@@ -22,10 +23,12 @@ export async function resetPasswordAction(
   if (password !== passwordConfirmation) return { error: "パスワードが一致しません" };
 
   const db = adminDb();
+  // DBにはハッシュのみ保存されている (forgot-password側と対応)
+  const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
   const { data: resetToken } = await db
     .from("password_reset_tokens")
     .select("*")
-    .eq("token", token)
+    .eq("token", tokenHash)
     .maybeSingle();
 
   const record = resetToken as PasswordResetToken | null;

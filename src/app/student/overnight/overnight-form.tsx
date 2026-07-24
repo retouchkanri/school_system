@@ -9,9 +9,14 @@ export default function OvernightForm({ defaultDate }: { defaultDate: string }) 
 
   return (
     <form action={formAction} className="space-y-4">
-      {state.ok && (
+      {state.ok && state.parentNotified && (
         <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
           ✓ 外泊届を提出しました。保護者へ承認依頼を送信しています。
+        </p>
+      )}
+      {state.ok && !state.parentNotified && (
+        <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700">
+          ✓ 外泊届を提出しました。保護者アカウントが未連携のため承認依頼は送信されていません。学校職員へお声がけください。
         </p>
       )}
       {state.error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{state.error}</p>}

@@ -1,5 +1,6 @@
 "use server";
 
+import crypto from "crypto";
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth";
 import { adminDb } from "@/lib/supabase/admin";
@@ -17,7 +18,10 @@ export interface ActionState {
 const ROLES: UserRole[] = ["admin", "applicant", "student", "parent", "supporter"];
 
 function genTempPassword(): string {
-  return `baji${Math.floor(10000000 + Math.random() * 90000000)}`;
+  // 暗号学的に安全な乱数で12桁の仮パスワードを生成 (紛らわしい文字は除外)
+  const chars = "abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const bytes = crypto.randomBytes(12);
+  return `baji-${Array.from(bytes, (b) => chars[b % chars.length]).join("")}`;
 }
 
 async function countAdmins(): Promise<number> {
@@ -56,7 +60,11 @@ export async function createAdminAction(_prev: ActionState, formData: FormData):
     phone: phone || null,
     line_id: lineId || null,
   });
-  if (profileError) return { error: "プロフィールの作成に失敗しました" };
+  if (profileError) {
+    // auth 側の孤児ユーザーを残さない (残ると同メールで恒久的に再登録不能になる)
+    await db.auth.admin.deleteUser(created.user.id);
+    return { error: "プロフィールの作成に失敗しました" };
+  }
 
   await notifyBoth(
     email,
@@ -145,21 +153,25 @@ export async function resetPasswordAction(_prev: ActionState, formData: FormData
 }
 
 /** ユーザーアカウントの削除 */
-export async function deleteUserAction(formData: FormData): Promise<void> {
+export async function deleteUserAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const me = await requireRole("admin");
   const id = String(formData.get("id") ?? "");
-  if (!id) return;
-  if (id === me.id) return; // 自分自身は削除不可
+  if (!id) return { error: "ユーザーIDが不正です" };
+  if (id === me.id) return { error: "自分自身は削除できません" };
 
   const { data: targetData } = await adminDb().from("profiles").select("role").eq("id", id).maybeSingle();
   const target = targetData as { role: UserRole } | null;
-  if (!target) return;
+  if (!target) return { error: "対象のユーザーが見つかりません" };
 
   if (target.role === "admin") {
     const adminCount = await countAdmins();
-    if (adminCount <= 1) return; // 最後の管理者は削除不可
+    if (adminCount <= 1) return { error: "最後の管理者は削除できません" };
   }
 
-  await adminDb().auth.admin.deleteUser(id);
+  const { error } = await adminDb().auth.admin.deleteUser(id);
+  if (error) {
+    return { error: "削除に失敗しました。この生徒・ユーザーに紐づく記録(出欠・騎乗報告など)がある場合は削除できません。" };
+  }
   revalidatePath("/admin/users");
+  return { ok: true, message: "ユーザーを削除しました" };
 }
