@@ -1,4 +1,4 @@
-import nodemailer, { type Transporter } from "nodemailer";
+import nodemailer, { type Transporter, type SendMailOptions } from "nodemailer";
 import { adminDb } from "@/lib/supabase/admin";
 import type { NotifyChannel } from "@/lib/types";
 
@@ -34,26 +34,51 @@ export interface NotifyPayload {
   attachments?: EmailAttachment[];
 }
 
-let _transporter: Transporter | null | undefined;
-
-function smtpTransporter(): Transporter | null {
-  if (_transporter !== undefined) return _transporter;
-  const host = process.env.SMTP_HOST;
-  if (!host) {
-    _transporter = null;
-    return null;
-  }
-  _transporter = nodemailer.createTransport({
-    host,
-    port: Number(process.env.SMTP_PORT ?? 465),
-    secure: process.env.SMTP_SECURE !== "false",
+function buildTransport(port: number, secure: boolean): Transporter {
+  return nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port,
+    secure, // 465=true(暗黙TLS) / 587=false(STARTTLS)
     auth: process.env.SMTP_USER ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS } : undefined,
     // SMTP接続先が不安定/到達不能でもリクエストが長時間ブロックされないよう上限を設ける
-    connectionTimeout: 8000,
-    greetingTimeout: 8000,
-    socketTimeout: 8000,
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 10000,
   });
-  return _transporter;
+}
+
+export interface SmtpSendResult {
+  ok: boolean;
+  port?: number;
+  messageId?: string;
+  error?: string;
+}
+
+/**
+ * SMTP送信を試みる。設定ポート(既定465/secure)で失敗したら、もう一方(587/STARTTLS または 465/secure)に
+ * フォールバックする。ポート固有の遮断に強くするため。成功可否・使用ポート・エラーを返す。
+ */
+async function smtpSendMail(mail: SendMailOptions): Promise<SmtpSendResult> {
+  const host = process.env.SMTP_HOST;
+  if (!host) return { ok: false, error: "SMTP_HOST が未設定です" };
+
+  const primaryPort = Number(process.env.SMTP_PORT ?? 465);
+  const primarySecure = process.env.SMTP_SECURE !== "false";
+  const attempts: [number, boolean][] = [[primaryPort, primarySecure]];
+  // フォールバック: 465↔587 のもう一方を試す
+  attempts.push(primaryPort === 465 ? [587, false] : [465, true]);
+
+  let lastError = "";
+  for (const [port, secure] of attempts) {
+    try {
+      const info = await buildTransport(port, secure).sendMail(mail);
+      return { ok: true, port, messageId: info.messageId };
+    } catch (e) {
+      lastError = e instanceof Error ? `${e.name}: ${e.message}` : String(e);
+      console.error(`[notify] SMTP送信失敗 (port ${port}, secure=${secure}):`, lastError);
+    }
+  }
+  return { ok: false, error: lastError };
 }
 
 function mailFrom(): string {
@@ -66,29 +91,33 @@ async function deliverEmail(to: string, title: string, body: string, attachments
   const useSmtp = process.env.NOTIFY_TRANSPORT === "smtp" || (!process.env.NOTIFY_TRANSPORT && !!process.env.SMTP_HOST);
 
   if (useSmtp) {
-    const transporter = smtpTransporter();
-    if (!transporter) {
-      console.error("[notify] SMTP未設定 (SMTP_HOST) のためメール未送信:", to);
+    const result = await smtpSendMail({
+      from: mailFrom(),
+      to,
+      subject: title,
+      text: body,
+      replyTo: process.env.CONTACT_EMAIL || undefined,
+      attachments: attachments?.map((a) => ({ filename: a.filename, content: a.content, href: a.href })),
+    });
+    if (result.ok) {
+      console.info("[notify] メール送信成功:", to, `port ${result.port}`, result.messageId ?? "");
       return;
     }
-    try {
-      const info = await transporter.sendMail({
-        from: mailFrom(),
-        to,
-        subject: title,
-        text: body,
-        replyTo: process.env.CONTACT_EMAIL || undefined,
-        attachments: attachments?.map((a) => ({ filename: a.filename, content: a.content, href: a.href })),
-      });
-      console.info("[notify] メール送信成功:", to, info.messageId ?? "");
-    } catch (e) {
-      // 実配信の失敗は notifications ログの記録を妨げない (呼び出し元で常にログは残す)。
-      // 原因調査のため必ずログに出す (Vercelのファンクションログで確認できる)。
-      console.error("[notify] SMTPメール送信失敗:", to, e instanceof Error ? `${e.name}: ${e.message}` : e);
+    // 実配信の失敗は notifications ログの記録を妨げない。原因調査のため必ずログに出す(Vercelのファンクションログで確認可能)。
+    console.error("[notify] SMTPメール送信失敗 (全経路):", to, result.error);
+    // SMTPが遮断/失敗しても、RESEND_API_KEY があれば Resend(HTTPS API)へ自動フォールバックする。
+    if (process.env.RESEND_API_KEY) {
+      console.info("[notify] Resend へフォールバックします:", to);
+      await resendSend(to, title, body, attachments);
     }
     return;
   }
 
+  await resendSend(to, title, body, attachments);
+}
+
+/** Resend (HTTPS API) でメール送信。SMTPポートが遮断される環境(サーバーレス等)向けの手段 */
+async function resendSend(to: string, title: string, body: string, attachments?: EmailAttachment[]) {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
     console.error("[notify] メール配信手段が未設定 (NOTIFY_TRANSPORT=smtp か RESEND_API_KEY が必要) のため未送信:", to);
@@ -110,7 +139,8 @@ async function deliverEmail(to: string, title: string, body: string, attachments
         ),
       }),
     });
-    if (!res.ok) console.error("[notify] Resendメール送信失敗:", to, res.status, await res.text().catch(() => ""));
+    if (res.ok) console.info("[notify] Resendメール送信成功:", to);
+    else console.error("[notify] Resendメール送信失敗:", to, res.status, await res.text().catch(() => ""));
   } catch (e) {
     console.error("[notify] Resendメール送信失敗:", to, e);
   }
@@ -129,6 +159,67 @@ async function deliverLine(to: string, title: string, body: string) {
   } catch (e) {
     console.error("[notify] LINE送信失敗:", to, e);
   }
+}
+
+/* ============ 診断用 (メールが届かない原因を特定するため) ============ */
+
+/** メール設定の状態を返す (シークレット値は含めず、設定有無のみ)。診断エンドポイント用 */
+export function emailConfigStatus() {
+  const useSmtp = process.env.NOTIFY_TRANSPORT === "smtp" || (!process.env.NOTIFY_TRANSPORT && !!process.env.SMTP_HOST);
+  return {
+    NOTIFY_TRANSPORT: process.env.NOTIFY_TRANSPORT ?? null,
+    SMTP_HOST: process.env.SMTP_HOST ?? null,
+    SMTP_PORT: process.env.SMTP_PORT ?? null,
+    SMTP_SECURE: process.env.SMTP_SECURE ?? null,
+    SMTP_USER: process.env.SMTP_USER ?? null,
+    SMTP_PASS_present: !!process.env.SMTP_PASS,
+    MAIL_FROM: process.env.MAIL_FROM || process.env.EMAIL_FROM || null,
+    MAIL_FROM_NAME: process.env.MAIL_FROM_NAME ?? null,
+    RESEND_API_KEY_present: !!process.env.RESEND_API_KEY,
+    resolved_transport: useSmtp ? "smtp" : process.env.RESEND_API_KEY ? "resend" : "none(ログのみ)",
+  };
+}
+
+/** SMTPの接続・認証のみを検証する (メールは送らない)。診断エンドポイント用 */
+export async function verifySmtp(): Promise<SmtpSendResult> {
+  const host = process.env.SMTP_HOST;
+  if (!host) return { ok: false, error: "SMTP_HOST が未設定です" };
+  const port = Number(process.env.SMTP_PORT ?? 465);
+  const secure = process.env.SMTP_SECURE !== "false";
+  try {
+    await buildTransport(port, secure).verify();
+    return { ok: true, port };
+  } catch (e) {
+    return { ok: false, port, error: e instanceof Error ? `${e.name}: ${e.message}` : String(e) };
+  }
+}
+
+/** テストメールを実際に送信して結果(成功/エラー)を返す。診断エンドポイント用 */
+export async function sendTestEmail(to: string): Promise<SmtpSendResult> {
+  return smtpSendMail({
+    from: mailFrom(),
+    to,
+    subject: "【東関東馬事学院】メール送信テスト",
+    text: "これはメール配信の動作確認用テストです。\nこのメールが届いていれば、SMTP設定は正常に機能しています。",
+    replyTo: process.env.CONTACT_EMAIL || undefined,
+  });
+}
+
+/**
+ * 資料請求の自動返信メールと全く同じ内容(本文+2つの申込用紙の添付)をテスト送信する。
+ * DBには何も登録しないため、本番環境でも安全に配信内容を確認できる。診断エンドポイント用。
+ */
+export async function sendWelcomeEmailTest(to: string, origin: string): Promise<SmtpSendResult> {
+  const { WELCOME_SUBJECT, welcomeEmailBody } = await import("@/lib/welcome-email");
+  const { formAttachments } = await import("@/lib/form-attachments");
+  return smtpSendMail({
+    from: mailFrom(),
+    to,
+    subject: WELCOME_SUBJECT,
+    text: welcomeEmailBody({ name: "テスト 太郎", email: to, birthDateLogin: true, origin }),
+    replyTo: process.env.CONTACT_EMAIL || undefined,
+    attachments: formAttachments().map((a) => ({ filename: a.filename, content: a.content })),
+  });
 }
 
 export async function sendNotification(payload: NotifyPayload) {

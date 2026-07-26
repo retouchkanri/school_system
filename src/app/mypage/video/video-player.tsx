@@ -62,14 +62,6 @@ export default function VideoPlayer({ initialCompleted }: { initialCompleted: bo
         >
           お使いのブラウザは動画の再生に対応していません。
         </video>
-
-        {/* 進捗バー */}
-        <div className="h-2 bg-black/30">
-          <div
-            className="h-full bg-amber-300 transition-[width] duration-200 ease-linear"
-            style={{ width: `${percent}%` }}
-          />
-        </div>
       </div>
 
       <div className="mt-3 flex items-center justify-between text-xs text-gray-500">

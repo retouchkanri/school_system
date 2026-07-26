@@ -5,44 +5,11 @@ import { adminDb } from "@/lib/supabase/admin";
 import { sendNotification } from "@/lib/notify";
 import { formAttachments } from "@/lib/form-attachments";
 import { siteOrigin } from "@/lib/url";
-import { INTRO_VIDEO_URL } from "@/lib/constants";
+import { WELCOME_SUBJECT, welcomeEmailBody } from "@/lib/welcome-email";
 
 export interface RequestState {
   error?: string;
 }
-
-const WELCOME_BODY = (name: string, birthDateLogin: boolean, email: string, origin: string) => {
-  const loginUrl = `${origin}/login`;
-  const surveyUrl = `${origin}/mypage/survey`;
-  const eventsUrl = `${origin}/mypage/events`;
-  return `${name}様
-
-この度は、本校への資料をご請求して頂きまして誠にありがとうございます。
-${name}様には、以下3つの情報をご用意しましたので、お届けいたします。
-
-(1) 学校の紹介ビデオ(5分程度)
-    ${INTRO_VIDEO_URL}
-(2) 入学仮審査(お試し)フォーム
-    ${surveyUrl}
-(3) 学校見学お申し込みフォーム
-    ${eventsUrl}
-
-マイページにログインして頂くと、上記3つをまとめてご利用いただけます。
-※ (1)の動画は上記URLからそのままご覧いただけます。(2)(3)のフォームはログイン後にご利用いただけます。
-
-■ ログイン方法
-ログインURL: ${loginUrl}
-メールアドレス: ${email}
-${
-  birthDateLogin
-    ? "パスワード: ご入力いただいた生年月日(半角数字8桁 例:20250102)"
-    : "パスワード: 既にお持ちのアカウントのパスワードでログインしてください"
-}
-
-パスワードはログイン後、マイページの「アカウント設定」からいつでも変更いただけます。
-
-パンフレットは追ってご郵送いたします。到着まで今しばらくお待ちください。`;
-};
 
 export async function submitRequestAction(_prev: RequestState, formData: FormData): Promise<RequestState> {
   const name = String(formData.get("name") ?? "").trim();
@@ -121,8 +88,8 @@ export async function submitRequestAction(_prev: RequestState, formData: FormDat
     await sendNotification({
       channel: "email",
       recipient: email,
-      title: "【東関東馬事学院】資料請求ありがとうございます",
-      body: WELCOME_BODY(name, birthDateLogin, email, origin),
+      title: WELCOME_SUBJECT,
+      body: welcomeEmailBody({ name, email, birthDateLogin, origin }),
       relatedType: "material_request",
       attachments: formAttachments(),
     });
