@@ -115,11 +115,12 @@ function QuestionFields({
             )}
             <Label required={q.required}>{labelText}</Label>
             {(q.type === "choice" || q.type === "checkbox") && q.options && (
-              <div className="mt-1 flex flex-wrap gap-2">
+              // 選択肢は1行に1項目ずつ縦に並べる (仮審査アンケートと表示を統一)
+              <div className="mt-1 flex flex-col gap-2">
                 {q.options.map((opt) => (
                   <label
                     key={opt}
-                    className="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 transition hover:bg-brand-50 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-50 has-[:checked]:font-semibold has-[:checked]:text-brand-700"
+                    className="flex w-full cursor-pointer items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 transition hover:bg-brand-50 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-50 has-[:checked]:font-semibold has-[:checked]:text-brand-700"
                   >
                     <input
                       type={q.type === "choice" ? "radio" : "checkbox"}

@@ -34,12 +34,35 @@ export interface NotifyPayload {
   attachments?: EmailAttachment[];
 }
 
+/**
+ * SMTPホスト名を正規化 (前後の空白・誤って含まれた引用符を除去)。
+ * 環境変数をコンソールへ貼り付ける際の事故を吸収する。
+ */
+function smtpHost(): string | undefined {
+  return process.env.SMTP_HOST?.trim().replace(/^["']|["']$/g, "") || undefined;
+}
+
+function smtpUser(): string | undefined {
+  return process.env.SMTP_USER?.trim().replace(/^["']|["']$/g, "") || undefined;
+}
+
+/**
+ * SMTPパスワードを正規化。
+ * Googleのアプリパスワードは管理画面で「abcd efgh ijkl mnop」と4桁区切りで表示されるため、
+ * 空白ごとコピーされることが非常に多い。空白を含むと認証は 535-5.7.8 で必ず失敗するので、
+ * 空白と前後の引用符を除去してから使用する。
+ */
+function smtpPass(): string | undefined {
+  return process.env.SMTP_PASS?.replace(/\s+/g, "").replace(/^["']|["']$/g, "") || undefined;
+}
+
 function buildTransport(port: number, secure: boolean): Transporter {
+  const user = smtpUser();
   return nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
+    host: smtpHost(),
     port,
     secure, // 465=true(暗黙TLS) / 587=false(STARTTLS)
-    auth: process.env.SMTP_USER ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS } : undefined,
+    auth: user ? { user, pass: smtpPass() } : undefined,
     // SMTP接続先が不安定/到達不能でもリクエストが長時間ブロックされないよう上限を設ける
     connectionTimeout: 10000,
     greetingTimeout: 10000,
@@ -59,7 +82,7 @@ export interface SmtpSendResult {
  * フォールバックする。ポート固有の遮断に強くするため。成功可否・使用ポート・エラーを返す。
  */
 async function smtpSendMail(mail: SendMailOptions): Promise<SmtpSendResult> {
-  const host = process.env.SMTP_HOST;
+  const host = smtpHost();
   if (!host) return { ok: false, error: "SMTP_HOST が未設定です" };
 
   const primaryPort = Number(process.env.SMTP_PORT ?? 465);
@@ -163,9 +186,13 @@ async function deliverLine(to: string, title: string, body: string) {
 
 /* ============ 診断用 (メールが届かない原因を特定するため) ============ */
 
-/** メール設定の状態を返す (シークレット値は含めず、設定有無のみ)。診断エンドポイント用 */
+/** メール設定の状態を返す (シークレットの値そのものは含めず、形式の検査結果のみ)。診断エンドポイント用 */
 export function emailConfigStatus() {
   const useSmtp = process.env.NOTIFY_TRANSPORT === "smtp" || (!process.env.NOTIFY_TRANSPORT && !!process.env.SMTP_HOST);
+  const rawPass = process.env.SMTP_PASS ?? "";
+  const cleanPass = smtpPass() ?? "";
+  const rawUser = process.env.SMTP_USER ?? "";
+
   return {
     NOTIFY_TRANSPORT: process.env.NOTIFY_TRANSPORT ?? null,
     SMTP_HOST: process.env.SMTP_HOST ?? null,
@@ -177,12 +204,27 @@ export function emailConfigStatus() {
     MAIL_FROM_NAME: process.env.MAIL_FROM_NAME ?? null,
     RESEND_API_KEY_present: !!process.env.RESEND_API_KEY,
     resolved_transport: useSmtp ? "smtp" : process.env.RESEND_API_KEY ? "resend" : "none(ログのみ)",
+
+    /** 認証情報の形式チェック (値そのものは出力しない。535エラーの原因切り分け用) */
+    credential_check: {
+      // Googleアプリパスワードは英小文字16桁。空白除去後にこの形式でなければ設定ミス
+      pass_length_raw: rawPass.length,
+      pass_length_normalized: cleanPass.length,
+      pass_had_whitespace: /\s/.test(rawPass),
+      pass_had_quotes: /^["']|["']$/.test(rawPass),
+      pass_is_16_lowercase_letters: /^[a-z]{16}$/.test(cleanPass),
+      user_had_whitespace: rawUser !== rawUser.trim(),
+      user_is_email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawUser.trim()),
+      // SMTP_USER と MAIL_FROM が別アカウントだとGmailは送信を拒否することがある
+      user_matches_mail_from:
+        rawUser.trim().toLowerCase() === (process.env.MAIL_FROM ?? "").trim().toLowerCase(),
+    },
   };
 }
 
 /** SMTPの接続・認証のみを検証する (メールは送らない)。診断エンドポイント用 */
 export async function verifySmtp(): Promise<SmtpSendResult> {
-  const host = process.env.SMTP_HOST;
+  const host = smtpHost();
   if (!host) return { ok: false, error: "SMTP_HOST が未設定です" };
   const port = Number(process.env.SMTP_PORT ?? 465);
   const secure = process.env.SMTP_SECURE !== "false";

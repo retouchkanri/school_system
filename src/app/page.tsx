@@ -28,6 +28,7 @@ import HomeHero from "@/components/home/home-hero";
 import Reveal from "@/components/home/reveal";
 import Counter from "@/components/home/counter";
 import PhotoMarquee from "@/components/home/photo-marquee";
+import AdminStepsAccordion, { type AdminStepGroup } from "@/components/home/admin-steps-accordion";
 import { KOUTOU_IMAGES, KOUTOU_DETAIL, KOUTOU_FUTURE, SENMON_IMAGES, OFFICIAL_SITES } from "@/lib/site-images";
 
 /* ============ セクションデータ ============ */
@@ -216,10 +217,12 @@ const PORTALS = [
   { icon: Building2, name: "職員ダッシュボード", href: "/admin", desc: "全生徒の進捗と学院運営を一元管理", tone: "bg-purple-50 text-purple-700" },
 ];
 
-const ADMIN_STEPS = [
-  "資料請求", "資料発送", "動画視聴", "仮審査回答", "AI判定", "見学予約",
-  "入金確認", "体験参加", "アンケート", "出願", "性格診断", "面接",
-  "合否通知", "入学手続き", "入学金確認", "制服注文", "入寮準備", "入学式",
+const ADMIN_STEP_GROUPS: AdminStepGroup[] = [
+  { title: "資料請求・準備", steps: ["資料請求", "資料発送", "動画視聴"] },
+  { title: "仮審査・見学", steps: ["仮審査回答", "AI判定", "見学予約", "入金確認", "体験参加"] },
+  { title: "出願・選考", steps: ["アンケート", "出願", "性格診断", "面接"] },
+  { title: "合否・入学手続き", steps: ["合否通知", "入学手続き", "入学金確認"] },
+  { title: "入学準備", steps: ["制服注文", "入寮準備", "入学式"] },
 ];
 
 const FOLLOW_UPS = [
@@ -567,30 +570,16 @@ export default function HomePage() {
                 対応漏れを、ゼロへ。
               </h2>
               <p className="mx-auto mt-6 max-w-2xl text-center text-sm leading-relaxed text-gray-600">
-                生徒ごとの進捗が18ステップでひと目で分かる職員用ダッシュボード。
+                生徒ごとの進捗を5つの主要ステップでひと目に把握できる職員用ダッシュボード。
                 フォローが必要な生徒はシステムが自動で抽出し、メール・LINEでアプローチできます。
               </p>
             </Reveal>
 
             <Reveal delay={150}>
               <div className="mt-12 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
-                <h3 className="text-sm font-bold text-gray-700">入学までの進捗管理 (18ステップ)</h3>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {ADMIN_STEPS.map((step, i) => (
-                    <span
-                      key={step}
-                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold ${
-                        i < 5
-                          ? "bg-brand-600 text-white"
-                          : i < 9
-                            ? "bg-brand-100 text-brand-700"
-                            : "border border-gray-200 bg-gray-50 text-gray-500"
-                      }`}
-                    >
-                      <span className="text-[10px] opacity-70">{String(i + 1).padStart(2, "0")}</span>
-                      {step}
-                    </span>
-                  ))}
+                <h3 className="text-sm font-bold text-gray-700">入学までの進捗管理 (5ステップ・全18項目)</h3>
+                <div className="mt-4">
+                  <AdminStepsAccordion groups={ADMIN_STEP_GROUPS} />
                 </div>
                 <div className="mt-8 grid gap-4 sm:grid-cols-3">
                   {FOLLOW_UPS.map((follow, i) => (

@@ -289,6 +289,11 @@ export type SurveyQuestion = {
   note?: string;
   /** この設問から新しいセクション見出しを表示する場合に設定 */
   section?: string;
+  /**
+   * 条件付き表示: 親設問で指定の選択肢が選ばれたときのみ表示する。
+   * values のいずれかが選ばれていれば表示 (choice=単一一致 / checkbox=含む)。
+   */
+  dependsOn?: { questionId: string; values: string[] };
 };
 
 export const PRE_SCREENING_QUESTIONS: SurveyQuestion[] = [
@@ -304,7 +309,12 @@ export const PRE_SCREENING_QUESTIONS: SurveyQuestion[] = [
       "高校中退", "通信制高校", "専門学校等", "社会人", "その他",
     ],
   },
-  { id: "current_status_other", text: "「その他」を選んだ方はこちらにご記入ください", type: "text" },
+  {
+    id: "current_status_other",
+    text: "「その他」を選んだ方はこちらにご記入ください",
+    type: "text",
+    dependsOn: { questionId: "current_status", values: ["その他"] },
+  },
   {
     id: "attendance",
     text: "現在の出席状況を教えてください",
@@ -313,7 +323,12 @@ export const PRE_SCREENING_QUESTIONS: SurveyQuestion[] = [
     options: ["毎日通っている", "時々休む", "あまり学校にいっていない", "ほとんど学校にいっていない", "別室登校", "フリースクール", "その他"],
     note: "※この回答によって合否が決まることはありません。",
   },
-  { id: "attendance_other", text: "「その他」を選んだ方はこちらにご記入ください", type: "text" },
+  {
+    id: "attendance_other",
+    text: "「その他」を選んだ方はこちらにご記入ください",
+    type: "text",
+    dependsOn: { questionId: "attendance", values: ["その他"] },
+  },
 
   {
     id: "horse_experience_level",
@@ -328,6 +343,7 @@ export const PRE_SCREENING_QUESTIONS: SurveyQuestion[] = [
     id: "horse_experience_detail",
     text: "「経験者」を選んだ方は、乗馬経験の年数・回数・技術レベルなど具体的に教えてください",
     type: "textarea",
+    dependsOn: { questionId: "horse_experience_level", values: ["経験者"] },
   },
   {
     id: "horse_career_intent",
@@ -345,7 +361,12 @@ export const PRE_SCREENING_QUESTIONS: SurveyQuestion[] = [
       "引退競走馬の関連", "観光牧場", "その他動物関係全般", "まだわからない", "その他",
     ],
   },
-  { id: "future_jobs_other", text: "「その他」を選んだ方はこちらにご記入ください", type: "text" },
+  {
+    id: "future_jobs_other",
+    text: "「その他」を選んだ方はこちらにご記入ください",
+    type: "text",
+    dependsOn: { questionId: "future_jobs", values: ["その他"] },
+  },
 
   {
     id: "dorm_life",
@@ -355,7 +376,12 @@ export const PRE_SCREENING_QUESTIONS: SurveyQuestion[] = [
     required: true,
     options: ["問題ない", "少し不安", "とても不安"],
   },
-  { id: "dorm_life_worry", text: "不安な点があれば教えてください(300文字以内)", type: "textarea" },
+  {
+    id: "dorm_life_worry",
+    text: "不安な点があれば教えてください(300文字以内)",
+    type: "textarea",
+    dependsOn: { questionId: "dorm_life", values: ["少し不安", "とても不安"] },
+  },
   {
     id: "group_life",
     text: "共同生活について",
@@ -363,7 +389,12 @@ export const PRE_SCREENING_QUESTIONS: SurveyQuestion[] = [
     required: true,
     options: ["楽しみ", "少し心配", "不安"],
   },
-  { id: "group_life_worry", text: "不安な点があれば教えてください(300文字以内)", type: "textarea" },
+  {
+    id: "group_life_worry",
+    text: "不安な点があれば教えてください(300文字以内)",
+    type: "textarea",
+    dependsOn: { questionId: "group_life", values: ["少し心配", "不安"] },
+  },
   { id: "early_riser", text: "早起き", type: "choice", required: true, options: ["得意", "普通", "苦手"] },
   { id: "animal_care", text: "動物のお世話", type: "choice", required: true, options: ["好き", "やったことがない", "不安"] },
   { id: "physical_fitness", text: "体力について", type: "choice", required: true, options: ["自信がある", "普通", "少し不安"] },
@@ -375,7 +406,12 @@ export const PRE_SCREENING_QUESTIONS: SurveyQuestion[] = [
     type: "checkbox",
     options: ["学費", "寮生活", "就職", "人間関係", "不登校への対応", "先生との距離", "安全面", "その他"],
   },
-  { id: "concerns_other", text: "「その他」を選んだ方はこちらにご記入ください", type: "text" },
+  {
+    id: "concerns_other",
+    text: "「その他」を選んだ方はこちらにご記入ください",
+    type: "text",
+    dependsOn: { questionId: "concerns", values: ["その他"] },
+  },
   {
     id: "tuition_concern",
     text: "学費について",

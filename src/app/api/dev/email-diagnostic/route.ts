@@ -42,10 +42,13 @@ export async function GET(req: Request) {
       verify, // { ok, port, error } — 接続/認証の結果
       send, // to 指定時のみ: { ok, port, messageId, error } — 実送信の結果
       hint:
-        "verify/send の error に 'timeout' が出れば送信元からGmailへの接続が遮断されています。" +
-        "'Invalid login'/'535' なら SMTP_USER/SMTP_PASS(Googleアプリパスワード)が誤りです。" +
-        "config.resolved_transport が 'none' なら NOTIFY_TRANSPORT/SMTP_HOST がデプロイ先に未設定です。" +
-        "send.ok が true なのに届かない場合は迷惑メールフォルダをご確認ください。",
+        "【535 Invalid login の場合】Gmailへの接続自体は成功しており、アプリパスワードが拒否されています。" +
+        "credential_check の pass_is_16_lowercase_letters が false なら値が不正(空白混入・引用符・通常のGoogleパスワードを設定している等)です。" +
+        "true の場合はアプリパスワードが失効しています(Googleアカウントのパスワード変更で全アプリパスワードが無効化されます) → 再発行してください。" +
+        "また2段階認証が有効なアカウントでないとアプリパスワードは使用できません。" +
+        "【timeout の場合】送信元からGmailへの接続が遮断されています。" +
+        "【resolved_transport が none】NOTIFY_TRANSPORT/SMTP_HOST がデプロイ先に未設定です。" +
+        "【send.ok が true なのに届かない】迷惑メールフォルダをご確認ください。",
     },
     { status: 200 }
   );
