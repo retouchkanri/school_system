@@ -4,8 +4,36 @@ import { getLeadForUser } from "@/lib/data";
 import { isDevPhase } from "@/lib/dev";
 import { adminDb } from "@/lib/supabase/admin";
 import { fmtDate } from "@/lib/format";
+import { KOUTOU_IMAGES, KOUTOU_DETAIL, SENMON_IMAGES } from "@/lib/site-images";
 import { Card, PageHeader, Badge, EmptyState, InfoRow, btnPrimary } from "@/components/ui";
 import type { AdmissionDecision, Announcement, EnrollmentProcedure, Horse, Student } from "@/lib/types";
+
+function InfoSection({
+  image,
+  alt,
+  title,
+  content,
+}: {
+  image: string;
+  alt: string;
+  title: string;
+  content: string | null;
+}) {
+  return (
+    <div className="overflow-hidden border border-gray-200 bg-white shadow-sm sm:flex">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={image} alt={alt} className="h-36 w-full object-cover sm:h-auto sm:w-40 sm:shrink-0" />
+      <div className="p-4">
+        <h3 className="text-sm font-bold text-gray-800">{title}</h3>
+        {content ? (
+          <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-gray-700">{content}</p>
+        ) : (
+          <p className="mt-2 text-sm text-gray-400">追ってご案内いたします。</p>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export default async function EnrolleePage() {
   const profile = await requireRole("applicant");
@@ -126,6 +154,62 @@ export default async function EnrolleePage() {
             ※ クラス・寮・担当馬は入学式当日に発表します。楽しみにお待ちください。
           </p>
         )}
+      </div>
+
+      <h2 className="mb-3 text-base font-bold text-gray-800">入学に向けたご案内</h2>
+      <div className="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <InfoSection
+          image={KOUTOU_DETAIL.tokucho1.src}
+          alt={KOUTOU_DETAIL.tokucho1.alt}
+          title="オリエンテーション情報"
+          content={student?.orientation_info ?? null}
+        />
+        <InfoSection
+          image={KOUTOU_IMAGES.campus2.src}
+          alt={KOUTOU_IMAGES.campus2.alt}
+          title="持ち物"
+          content={student?.items_to_bring ?? null}
+        />
+        <InfoSection
+          image={KOUTOU_DETAIL.shisetsuDorm.src}
+          alt={KOUTOU_DETAIL.shisetsuDorm.alt}
+          title="寮情報"
+          content={
+            [student?.dorm_room ? `お部屋: ${student.dorm_room}` : null, student?.dorm_info ?? null]
+              .filter(Boolean)
+              .join("\n") || null
+          }
+        />
+        <InfoSection
+          image={KOUTOU_DETAIL.shisetsuKyusha.src}
+          alt={KOUTOU_DETAIL.shisetsuKyusha.alt}
+          title="配属馬房"
+          content={student?.stall_number ?? null}
+        />
+        <InfoSection
+          image={SENMON_IMAGES.tokuchoTanto.src}
+          alt={SENMON_IMAGES.tokuchoTanto.alt}
+          title="担当馬"
+          content={horse ? `${horse.name}号` : null}
+        />
+        <InfoSection
+          image={KOUTOU_DETAIL.shisetsuKosha.src}
+          alt={KOUTOU_DETAIL.shisetsuKosha.alt}
+          title="クラス発表"
+          content={student?.class_name ?? null}
+        />
+        <InfoSection
+          image={KOUTOU_IMAGES.riding1.src}
+          alt={KOUTOU_IMAGES.riding1.alt}
+          title="授業スケジュール"
+          content={student?.class_schedule ?? null}
+        />
+        <InfoSection
+          image={KOUTOU_IMAGES.campus3.src}
+          alt={KOUTOU_IMAGES.campus3.alt}
+          title="制服発送状況"
+          content={student?.uniform_status ?? null}
+        />
       </div>
 
       <h2 className="mb-3 text-base font-bold text-gray-800">学院からのお知らせ</h2>

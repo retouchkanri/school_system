@@ -1,109 +1,83 @@
 import { requireRole } from "@/lib/auth";
 import Link from "next/link";
-import { adminDb } from "@/lib/supabase/admin";
 import { FOLLOW_UP_RULES } from "@/lib/constants";
-import { PageHeader, Card, Table, Td, Badge, LeadStatusBadge, EmptyState, btnSmall, btnPrimary } from "@/components/ui";
-import type {
-  Lead,
-  VideoProgress,
-  PreScreeningSurvey,
-  OpenCampusBooking,
-  OpenCampusEvent,
-  Application,
-  FollowUpLog,
-} from "@/lib/types";
-import { sendFollowUpAction, sendFollowUpBulkAction } from "./actions";
-
-type BookingWithEvent = OpenCampusBooking & { open_campus_events: OpenCampusEvent | null };
-type FollowRow = { lead: Lead; days: number };
-
-function daysSince(dateStr: string): number {
-  const d = new Date(dateStr);
-  if (isNaN(d.getTime())) return 0;
-  return Math.max(0, Math.floor((Date.now() - d.getTime()) / 86400000));
-}
+import { findFollowUpTargets, getFollowUpSettings } from "@/lib/follow-ups";
+import { fmtDateTime } from "@/lib/format";
+import {
+  PageHeader,
+  Card,
+  Table,
+  Td,
+  Badge,
+  LeadStatusBadge,
+  EmptyState,
+  btnSmall,
+  btnPrimary,
+  btnSecondary,
+  inputCls,
+} from "@/components/ui";
+import {
+  sendFollowUpAction,
+  sendFollowUpBulkAction,
+  saveFollowUpSettingAction,
+  runAutoFollowUpsNowAction,
+} from "./actions";
 
 export default async function AdminFollowUpsPage() {
   await requireRole("admin");
-  const db = adminDb();
-  const [
-    { data: leadsData },
-    { data: videosData },
-    { data: surveysData },
-    { data: bookingsData },
-    { data: appsData },
-    { data: logsData },
-  ] = await Promise.all([
-    db.from("leads").select("*").order("created_at", { ascending: false }),
-    db.from("video_progress").select("*").eq("status", "completed"),
-    db.from("pre_screening_surveys").select("*"),
-    db.from("open_campus_bookings").select("*, open_campus_events(*)"),
-    db.from("applications").select("*"),
-    db.from("follow_up_logs").select("*"),
-  ]);
+  const [targets, settings] = await Promise.all([findFollowUpTargets(), getFollowUpSettings()]);
 
-  const leads = (leadsData ?? []) as Lead[];
-  const videos = (videosData ?? []) as VideoProgress[];
-  const surveys = (surveysData ?? []) as PreScreeningSurvey[];
-  const bookings = (bookingsData ?? []) as BookingWithEvent[];
-  const applications = (appsData ?? []) as Application[];
-  const logs = (logsData ?? []) as FollowUpLog[];
-
-  /* 集計用マップ */
-  const videoCompletedAt = new Map<string, string>();
-  for (const v of videos) {
-    const prev = videoCompletedAt.get(v.lead_id);
-    if (!prev || new Date(v.updated_at) > new Date(prev)) videoCompletedAt.set(v.lead_id, v.updated_at);
-  }
-  const surveyAt = new Map<string, string>();
-  for (const s of surveys) surveyAt.set(s.lead_id, s.submitted_at);
-  const bookingLeadIds = new Set(bookings.map((b) => b.lead_id));
-  const attendedAt = new Map<string, string>();
-  for (const b of bookings) {
-    if (b.status !== "attended") continue;
-    const d = b.open_campus_events?.event_date ?? b.created_at;
-    const prev = attendedAt.get(b.lead_id);
-    if (!prev || new Date(d) > new Date(prev)) attendedAt.set(b.lead_id, d);
-  }
-  const appliedIds = new Set(applications.map((a) => a.lead_id));
-  const sentSet = new Set(logs.map((l) => `${l.lead_id}:${l.rule}`));
-
-  /* 3ルールの抽出 */
-  const rule1: FollowRow[] = leads
-    .filter((l) => videoCompletedAt.has(l.id) && !surveyAt.has(l.id))
-    .map((l) => ({ lead: l, days: daysSince(videoCompletedAt.get(l.id) as string) }));
-
-  const rule2: FollowRow[] = leads
-    .filter((l) => surveyAt.has(l.id) && !bookingLeadIds.has(l.id))
-    .map((l) => ({ lead: l, days: daysSince(surveyAt.get(l.id) as string) }));
-
-  const rule3: FollowRow[] = leads
-    .filter((l) => attendedAt.has(l.id) && !appliedIds.has(l.id))
-    .map((l) => ({ lead: l, days: daysSince(attendedAt.get(l.id) as string) }))
-    .filter((r) => r.days >= 14);
-
-  const ruleRows: Record<string, FollowRow[]> = {
-    video_no_survey: rule1,
-    survey_no_booking: rule2,
-    attended_no_application: rule3,
-  };
-  const dayLabels: Record<string, string> = {
-    video_no_survey: "視聴完了からの経過日数",
-    survey_no_booking: "回答からの経過日数",
-    attended_no_application: "体験参加からの経過日数",
-  };
+  const autoOnCount = FOLLOW_UP_RULES.filter((r) => settings[r.key].auto_enabled).length;
+  const lastRunAt = FOLLOW_UP_RULES.map((r) => settings[r.key].last_run_at)
+    .filter((d): d is string => !!d)
+    .sort()
+    .pop();
+  const cronConfigured = !!process.env.CRON_SECRET;
 
   return (
     <div>
       <PageHeader
         title="フォロー対象"
-        description="自動抽出ルールに該当する見込み客へ、リマインドのメール/LINEを送信できます"
+        description="条件に該当する見込み客を自動抽出し、リマインドのメール/LINEを送信します"
+        action={
+          <form action={runAutoFollowUpsNowAction}>
+            <button type="submit" className={btnSecondary}>
+              ⚡ 自動送信を今すぐ実行
+            </button>
+          </form>
+        }
       />
+
+      <div className="mb-6 border border-brand-200 bg-brand-50/60 p-4">
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+          <span className="font-bold text-brand-700">自動送信</span>
+          <span className="text-gray-700">
+            有効なルール: <span className="font-bold">{autoOnCount}</span> / {FOLLOW_UP_RULES.length}
+          </span>
+          <span className="text-gray-700">最終実行: {lastRunAt ? fmtDateTime(lastRunAt) : "未実行"}</span>
+          <Badge tone={cronConfigured ? "green" : "amber"}>
+            {cronConfigured ? "定期実行 設定済 (毎日10:00)" : "定期実行 未設定"}
+          </Badge>
+        </div>
+        <p className="mt-2 text-xs leading-relaxed text-gray-500">
+          自動送信をONにしたルールは、条件成立から「待機日数」が経過した未送信の見込み客へ毎日自動でフォロー通知を送ります。
+          同じ方へ同じルールで二重に送ることはありません。
+          {!cronConfigured && (
+            <>
+              <br />
+              ※ 定期実行には環境変数 <code className="font-mono">CRON_SECRET</code> の設定が必要です。未設定の間は上の「今すぐ実行」ボタンからの手動実行のみ動作します。
+            </>
+          )}
+        </p>
+      </div>
 
       <div className="space-y-6">
         {FOLLOW_UP_RULES.map((rule) => {
-          const rows = ruleRows[rule.key] ?? [];
-          const unsent = rows.filter((r) => !sentSet.has(`${r.lead.id}:${rule.key}`));
+          const rows = targets[rule.key] ?? [];
+          const setting = settings[rule.key];
+          const unsent = rows.filter((r) => !r.sent);
+          const autoQueued = unsent.filter((r) => r.days >= setting.min_days && (r.lead.email || r.lead.line_id));
+
           return (
             <Card
               key={rule.key}
@@ -123,12 +97,54 @@ export default async function AdminFollowUpsPage() {
               }
             >
               <p className="mb-3 text-xs text-gray-400">{rule.description}</p>
+
+              <form
+                action={saveFollowUpSettingAction}
+                className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-2 border border-gray-200 bg-gray-50 px-3 py-2.5"
+              >
+                <input type="hidden" name="rule" value={rule.key} />
+                <label className="flex cursor-pointer items-center gap-2 text-sm font-semibold text-gray-700">
+                  <input
+                    type="checkbox"
+                    name="auto_enabled"
+                    defaultChecked={setting.auto_enabled}
+                    className="accent-brand-600"
+                  />
+                  このルールを自動送信する
+                </label>
+                <label className="flex items-center gap-2 text-sm text-gray-700">
+                  待機日数
+                  <input
+                    type="number"
+                    name="min_days"
+                    min={0}
+                    max={365}
+                    defaultValue={setting.min_days}
+                    className={`${inputCls} w-20`}
+                  />
+                  日以上
+                </label>
+                <button type="submit" className={btnSmall}>
+                  設定を保存
+                </button>
+                <span className="text-xs text-gray-500">
+                  {setting.auto_enabled ? (
+                    <>
+                      次回の自動送信対象: <span className="font-bold text-brand-700">{autoQueued.length}件</span>
+                      {setting.last_run_at && ` / 最終実行 ${fmtDateTime(setting.last_run_at)} (${setting.last_sent_count}件送信)`}
+                    </>
+                  ) : (
+                    "自動送信は停止中です (手動送信のみ)"
+                  )}
+                </span>
+              </form>
+
               {rows.length === 0 ? (
                 <EmptyState message="該当するリードはいません" />
               ) : (
-                <Table headers={["氏名", "ステータス", dayLabels[rule.key], "連絡先", "フォロー"]}>
-                  {rows.map(({ lead, days }) => {
-                    const sent = sentSet.has(`${lead.id}:${rule.key}`);
+                <Table headers={["氏名", "ステータス", rule.elapsedLabel, "連絡先", "フォロー"]}>
+                  {rows.map(({ lead, days, sent }) => {
+                    const queued = !sent && setting.auto_enabled && days >= setting.min_days && (lead.email || lead.line_id);
                     return (
                       <tr key={lead.id} className="hover:bg-gray-50">
                         <Td>
@@ -157,16 +173,19 @@ export default async function AdminFollowUpsPage() {
                         <Td>
                           {sent ? (
                             <Badge tone="green">送信済 ✓</Badge>
-                          ) : lead.email || lead.line_id ? (
-                            <form action={sendFollowUpAction}>
-                              <input type="hidden" name="lead_id" value={lead.id} />
-                              <input type="hidden" name="rule" value={rule.key} />
-                              <button type="submit" className={btnSmall}>
-                                ✉️ フォロー送信
-                              </button>
-                            </form>
-                          ) : (
+                          ) : !lead.email && !lead.line_id ? (
                             <Badge tone="gray">連絡先なし</Badge>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <form action={sendFollowUpAction}>
+                                <input type="hidden" name="lead_id" value={lead.id} />
+                                <input type="hidden" name="rule" value={rule.key} />
+                                <button type="submit" className={btnSmall}>
+                                  ✉️ フォロー送信
+                                </button>
+                              </form>
+                              {queued && <Badge tone="blue">自動送信待ち</Badge>}
+                            </div>
                           )}
                         </Td>
                       </tr>

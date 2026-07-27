@@ -3,45 +3,30 @@ import Link from "next/link";
 import { adminDb } from "@/lib/supabase/admin";
 import { fmtDate } from "@/lib/format";
 import { PROGRESS_STEPS, statusIndex, FOLLOW_UP_RULES } from "@/lib/constants";
+import { findFollowUpTargets, getFollowUpSettings } from "@/lib/follow-ups";
 import { Card, PageHeader, StatCard, LeadStatusBadge, Table, Td, EmptyState, Badge } from "@/components/ui";
-import type {
-  Lead,
-  VideoProgress,
-  PreScreeningSurvey,
-  OpenCampusBooking,
-  OpenCampusEvent,
-  Application,
-  Payment,
-  OvernightLeaveRequest,
-} from "@/lib/types";
-
-type BookingWithEvent = OpenCampusBooking & { open_campus_events: OpenCampusEvent | null };
+import type { Lead, Application, Payment, OvernightLeaveRequest } from "@/lib/types";
 
 export default async function AdminDashboardPage() {
   await requireRole("admin");
   const db = adminDb();
   const [
     { data: leadsData },
-    { data: videosData },
-    { data: surveysData },
-    { data: bookingsData },
     { data: appsData },
     { data: paymentsData },
     { data: overnightData },
+    followTargets,
+    followSettings,
   ] = await Promise.all([
     db.from("leads").select("*").order("created_at", { ascending: false }),
-    db.from("video_progress").select("*").eq("status", "completed"),
-    db.from("pre_screening_surveys").select("*"),
-    db.from("open_campus_bookings").select("*, open_campus_events(*)"),
     db.from("applications").select("*"),
     db.from("payments").select("*"),
     db.from("overnight_leave_requests").select("*"),
+    findFollowUpTargets(),
+    getFollowUpSettings(),
   ]);
 
   const leads = (leadsData ?? []) as Lead[];
-  const videos = (videosData ?? []) as VideoProgress[];
-  const surveys = (surveysData ?? []) as PreScreeningSurvey[];
-  const bookings = (bookingsData ?? []) as BookingWithEvent[];
   const applications = (appsData ?? []) as Application[];
   const payments = (paymentsData ?? []) as Payment[];
   const overnights = (overnightData ?? []) as OvernightLeaveRequest[];
@@ -58,27 +43,17 @@ export default async function AdminDashboardPage() {
   const funnel = PROGRESS_STEPS.map((_, i) => leads.filter((l) => statusIndex(l.status) >= i).length);
   const funnelMax = Math.max(funnel[0], 1);
 
-  /* ---- フォロー対象 3ルール件数 ---- */
-  const videoDoneIds = new Set(videos.map((v) => v.lead_id));
-  const surveyIds = new Set(surveys.map((s) => s.lead_id));
-  const bookingIds = new Set(bookings.map((b) => b.lead_id));
-  const appliedIds = new Set(applications.map((a) => a.lead_id));
-  const fourteenDaysAgo = new Date();
-  fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
-
-  const rule1 = leads.filter((l) => videoDoneIds.has(l.id) && !surveyIds.has(l.id)).length;
-  const rule2 = leads.filter((l) => surveyIds.has(l.id) && !bookingIds.has(l.id)).length;
-  const attendedOld = new Set(
-    bookings
-      .filter((b) => {
-        if (b.status !== "attended") return false;
-        const d = b.open_campus_events?.event_date ?? b.created_at;
-        return new Date(d) <= fourteenDaysAgo;
-      })
-      .map((b) => b.lead_id)
-  );
-  const rule3 = leads.filter((l) => attendedOld.has(l.id) && !appliedIds.has(l.id)).length;
-  const followCounts = [rule1, rule2, rule3];
+  /* ---- フォロー対象 3ルール件数 (admin/follow-ups と同じ判定ロジックを共有) ---- */
+  const followStats = FOLLOW_UP_RULES.map((rule) => {
+    const rows = followTargets[rule.key] ?? [];
+    const setting = followSettings[rule.key];
+    return {
+      rule,
+      total: rows.length,
+      unsent: rows.filter((r) => !r.sent).length,
+      autoEnabled: setting.auto_enabled,
+    };
+  });
 
   /* ---- 承認待ち・要対応 ---- */
   const bankTransferWaiting = payments.filter(
@@ -130,10 +105,15 @@ export default async function AdminDashboardPage() {
             }
           >
             <ul className="space-y-3">
-              {FOLLOW_UP_RULES.map((rule, i) => (
-                <li key={rule.key} className="flex items-center justify-between gap-3">
-                  <span className="text-xs text-gray-600">{rule.label}</span>
-                  <Badge tone={followCounts[i] > 0 ? "amber" : "gray"}>{followCounts[i]}件</Badge>
+              {followStats.map(({ rule, total, unsent, autoEnabled }) => (
+                <li key={rule.key} className="flex items-start justify-between gap-3">
+                  <span className="text-xs text-gray-600">
+                    {rule.label}
+                    <span className="mt-0.5 block text-[11px] text-gray-400">
+                      未送信 {unsent}件 ・ {autoEnabled ? "自動送信ON" : "自動送信OFF"}
+                    </span>
+                  </span>
+                  <Badge tone={autoEnabled ? "blue" : total > 0 ? "amber" : "gray"}>{total}件</Badge>
                 </li>
               ))}
             </ul>

@@ -19,7 +19,7 @@ do $$ begin
   'visit_reserved',      -- 見学予約
   'payment_confirmed',   -- 入金確認
   'visit_attended',      -- 体験参加
-  'exp_survey_answered', -- 体験アンケート
+  'exp_survey_answered', -- アンケート
   'applied',             -- 出願
   'aptitude_done',       -- 性格診断
   'interview',           -- 面接
@@ -328,6 +328,13 @@ create table if not exists students (
   status student_state not null default 'enrolled',
   created_at timestamptz not null default now()
 );
+-- 入学者専用ページに掲載する案内情報 (設定・更新時にメール/LINEでも通知される)
+alter table students add column if not exists orientation_info text; -- オリエンテーション情報
+alter table students add column if not exists items_to_bring text;   -- 持ち物
+alter table students add column if not exists dorm_info text;        -- 寮情報 (部屋番号以外の案内文)
+alter table students add column if not exists class_schedule text;   -- 授業スケジュール
+alter table students add column if not exists uniform_status text;   -- 制服発送状況
+alter table students add column if not exists info_sent_at timestamptz; -- 上記案内をメール/LINEで最後に送信した日時
 
 do $$ begin
   alter table payments add constraint payments_student_fk
@@ -485,6 +492,18 @@ create table if not exists follow_up_logs (
   channel notify_channel not null,
   sent_at timestamptz not null default now()
 );
+-- 手動送信と自動送信を見分けるため (true = cronによる自動送信)
+alter table follow_up_logs add column if not exists automated boolean not null default false;
+
+-- フォロー自動送信の設定 (ルールごと。管理画面のフォロー対象ページから変更する)
+create table if not exists follow_up_settings (
+  rule text primary key,
+  auto_enabled boolean not null default false, -- 自動送信のON/OFF
+  min_days int not null default 3,             -- 条件成立から何日経過したら自動送信するか
+  last_run_at timestamptz,                     -- 最後に自動送信処理が走った日時
+  last_sent_count int not null default 0,      -- 直近の自動送信で送った件数
+  updated_at timestamptz not null default now()
+);
 
 -- 成績表 (先生が科目ごとに記載)
 create table if not exists grade_records (
@@ -583,6 +602,7 @@ alter table student_survey_responses enable row level security;
 alter table horse_monthly_summaries enable row level security;
 alter table supporters enable row level security;
 alter table follow_up_logs enable row level security;
+alter table follow_up_settings enable row level security;
 alter table password_reset_tokens enable row level security; -- ポリシーなし = サービスロールのみアクセス可
 alter table grade_records enable row level security;
 alter table competency_assessments enable row level security;
@@ -648,6 +668,8 @@ drop policy if exists "pay_admin" on payments;
 create policy "pay_admin" on payments for all using (is_admin());
 drop policy if exists "ful_admin" on follow_up_logs;
 create policy "ful_admin" on follow_up_logs for all using (is_admin());
+drop policy if exists "fus_admin" on follow_up_settings;
+create policy "fus_admin" on follow_up_settings for all using (is_admin());
 
 -- イベント・お知らせは閲覧可
 drop policy if exists "oce_read" on open_campus_events;

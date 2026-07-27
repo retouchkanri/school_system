@@ -2,6 +2,7 @@ import { adminDb } from "@/lib/supabase/admin";
 import { advanceLeadStatus } from "@/lib/data";
 import { notifyBoth } from "@/lib/notify";
 import { analyzeAdmissionDecision } from "@/lib/ai";
+import { decisionAttachments } from "@/lib/decision-attachments";
 import { DECISION_DOCUMENTS } from "@/lib/constants";
 import { isApplicationDocumentFile } from "@/lib/documents";
 import type { Application, Lead } from "@/lib/types";
@@ -87,5 +88,8 @@ export async function runAutomaticAdmissionDecision(
   await advanceLeadStatus(leadId, "decision_sent");
 
   const { title, body } = composeDecisionMessage(lead.name, decision.result);
-  await notifyBoth(lead.email, lead.line_id, title, body, "admission_decision");
+  const sentKeys = Object.keys(documentsSent).filter((k) => documentsSent[k]);
+  await notifyBoth(lead.email, lead.line_id, title, body, "admission_decision", {
+    attachments: decisionAttachments(sentKeys),
+  });
 }

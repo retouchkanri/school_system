@@ -10,7 +10,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <div className="min-h-screen bg-white">
       <header className="sticky top-0 z-40 flex w-full items-center justify-between border-b border-gray-200 bg-white/95 px-4 py-3 backdrop-blur sm:px-6">
-        <SiteLogo height={44} className="shrink-0" />
+        <SiteLogo href="/" height={44} className="shrink-0" />
         <UserMenu
           name={profile.full_name}
           roleLabel="所有者"

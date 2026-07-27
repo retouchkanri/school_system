@@ -5,6 +5,7 @@ import { requireRole } from "@/lib/auth";
 import { adminDb } from "@/lib/supabase/admin";
 import { advanceLeadStatus } from "@/lib/data";
 import { notifyBoth } from "@/lib/notify";
+import { decisionAttachments } from "@/lib/decision-attachments";
 import { DECISION_DOCUMENTS } from "@/lib/constants";
 import type { AdmissionResult, Lead } from "@/lib/types";
 
@@ -34,6 +35,10 @@ function parseDocumentsSent(formData: FormData): Record<string, boolean> {
     documentsSent[doc.key] = formData.get(`doc_${doc.key}`) === "on";
   }
   return documentsSent;
+}
+
+function sentDocKeys(documentsSent: Record<string, boolean>): string[] {
+  return Object.keys(documentsSent).filter((k) => documentsSent[k]);
 }
 
 /** 合否結果メール・LINE通知の本文を組み立てる。isAmendment=true の場合は訂正通知として文面を変える */
@@ -127,6 +132,7 @@ export async function registerDecisionAction(
   await notifyBoth(lead.email, lead.line_id, title, body, "admission_decision", {
     email: notifiedVia.includes("email"),
     line: notifiedVia.includes("line"),
+    attachments: decisionAttachments(sentDocKeys(documentsSent)),
   });
 
   revalidatePath("/admin/decisions");
@@ -189,6 +195,7 @@ export async function amendDecisionAction(
   await notifyBoth(lead.email, lead.line_id, title, body, "admission_decision", {
     email: notifiedVia.includes("email"),
     line: notifiedVia.includes("line"),
+    attachments: decisionAttachments(sentDocKeys(documentsSent)),
   });
 
   revalidatePath("/admin/decisions");

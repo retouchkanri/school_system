@@ -549,23 +549,36 @@ export const SUITABILITY_LABELS: Record<string, string> = {
 };
 
 /** フォローアップ自動抽出ルール */
+/**
+ * フォロー自動抽出ルール。
+ * elapsedLabel は「条件成立からの経過日数」列の見出し、
+ * defaultMinDays は自動送信を有効にした際の既定の待機日数 (DB未設定時に使用)。
+ */
 export const FOLLOW_UP_RULES = [
   {
     key: "video_no_survey",
     label: "動画視聴済み・仮審査アンケート未回答",
     description: "紹介動画を見たがアンケートに回答していない見込み客",
+    elapsedLabel: "視聴完了からの経過日数",
+    defaultMinDays: 3,
   },
   {
     key: "survey_no_booking",
     label: "仮審査回答済み・見学予約なし",
     description: "アンケートに回答したが見学予約をしていない見込み客",
+    elapsedLabel: "回答からの経過日数",
+    defaultMinDays: 3,
   },
   {
     key: "attended_no_application",
     label: "体験参加後14日経過・出願なし",
     description: "体験に参加してから14日以上経過したが出願していない見込み客",
+    elapsedLabel: "体験参加からの経過日数",
+    defaultMinDays: 14,
   },
 ] as const;
+
+export type FollowUpRuleKey = (typeof FOLLOW_UP_RULES)[number]["key"];
 
 /** 成績評価の選択肢 (5段階) */
 export const GRADE_EVALUATION_OPTIONS = ["S", "A", "B", "C", "D"];

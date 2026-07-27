@@ -28,7 +28,7 @@ export default async function AccountPage() {
     <div className="min-h-screen bg-white">
       <header className="sticky top-0 z-20 border-b border-gray-200 bg-white">
         <div className="flex w-full items-center justify-between px-[5vw] py-4">
-          <SiteLogo />
+          <SiteLogo href="/" />
           <Link
             href={roleHome(profile.role)}
             className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50"

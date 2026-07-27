@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { Field, inputCls, btnPrimary } from "@/components/ui";
+import { Field, Label, inputCls, btnPrimary } from "@/components/ui";
 import { updateStudent, type ActionState } from "./actions";
 
 export interface HorseOption {
@@ -25,6 +25,11 @@ export interface EditableStudent {
   dorm_room: string | null;
   assigned_horse_id: string | null;
   stall_number: string | null;
+  orientation_info: string | null;
+  items_to_bring: string | null;
+  dorm_info: string | null;
+  class_schedule: string | null;
+  uniform_status: string | null;
   user_id: string | null;
   parent_user_id: string | null;
   status: string;
@@ -110,6 +115,60 @@ export default function StudentEditForm({
       <p className="text-xs text-gray-400">
         ※ 本人・保護者アカウントを連携すると、生徒・保護者ポータルの閲覧やメール・LINE通知の宛先として使用されます。アカウントは「システム管理」から作成できます。
       </p>
+
+      <div className="border-t border-gray-100 pt-4">
+        <Label>入学者専用ページの案内 (入力すると本人のマイページに表示され、保存時にメール・LINEでも通知されます)</Label>
+        <div className="mt-2 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Field label="オリエンテーション情報">
+            <textarea
+              name="orientation_info"
+              defaultValue={student.orientation_info ?? ""}
+              rows={3}
+              placeholder="例: 4月8日(水)10:00より本校馬場にて実施します。"
+              className={inputCls}
+            />
+          </Field>
+          <Field label="持ち物">
+            <textarea
+              name="items_to_bring"
+              defaultValue={student.items_to_bring ?? ""}
+              rows={3}
+              placeholder="例: 入学通知書、筆記用具、印鑑"
+              className={inputCls}
+            />
+          </Field>
+          <Field label="寮情報 (部屋番号以外のご案内)">
+            <textarea
+              name="dorm_info"
+              defaultValue={student.dorm_info ?? ""}
+              rows={3}
+              placeholder="例: 入寮日は4月6日(月)です。"
+              className={inputCls}
+            />
+          </Field>
+          <Field label="授業スケジュール">
+            <textarea
+              name="class_schedule"
+              defaultValue={student.class_schedule ?? ""}
+              rows={3}
+              placeholder="例: 月〜金 1限9:00〜 騎乗実習は火・木"
+              className={inputCls}
+            />
+          </Field>
+          <Field label="制服発送状況" className="sm:col-span-2">
+            <input
+              name="uniform_status"
+              defaultValue={student.uniform_status ?? ""}
+              placeholder="例: 3月25日発送予定"
+              className={inputCls}
+            />
+          </Field>
+        </div>
+        <label className="mt-4 flex cursor-pointer items-center gap-2 text-sm text-gray-700">
+          <input type="checkbox" name="notify" defaultChecked className="accent-brand-600" />
+          この内容を保存時にメール・LINEで本人に通知する
+        </label>
+      </div>
 
       {state.error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{state.error}</p>}
       {state.ok && <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">✓ 保存しました</p>}

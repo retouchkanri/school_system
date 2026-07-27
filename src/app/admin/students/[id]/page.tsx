@@ -1,7 +1,7 @@
 import { requireRole } from "@/lib/auth";
 import { notFound } from "next/navigation";
 import { adminDb } from "@/lib/supabase/admin";
-import { fmtDate, toDateInput, daysAgo, fmtYen } from "@/lib/format";
+import { fmtDate, fmtDateTime, toDateInput, daysAgo, fmtYen } from "@/lib/format";
 import {
   ATTENDANCE_STATUS_LABELS, APPROVAL_STATUS_LABELS, MEAL_LABELS,
   CAREER_OUTCOME_LABELS, REIMBURSEMENT_STATUS_LABELS,
@@ -188,6 +188,11 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
           </Card>
 
           <Card title="情報の編集">
+            {student.info_sent_at && (
+              <p className="mb-3 text-xs text-gray-400">
+                入学者専用ページの案内を最後に通知した日時: {fmtDateTime(student.info_sent_at)}
+              </p>
+            )}
             <StudentEditForm
               student={{
                 id: student.id,
@@ -199,6 +204,11 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
                 dorm_room: student.dorm_room,
                 assigned_horse_id: student.assigned_horse_id,
                 stall_number: student.stall_number,
+                orientation_info: student.orientation_info,
+                items_to_bring: student.items_to_bring,
+                dorm_info: student.dorm_info,
+                class_schedule: student.class_schedule,
+                uniform_status: student.uniform_status,
                 user_id: student.user_id,
                 parent_user_id: student.parent_user_id,
                 status: student.status,

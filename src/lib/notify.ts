@@ -278,19 +278,19 @@ export async function sendNotification(payload: NotifyPayload) {
   });
 }
 
-/** メール+LINE の両チャネルへまとめて送信 */
+/** メール+LINE の両チャネルへまとめて送信。attachments はメールにのみ添付される (LINEは非対応) */
 export async function notifyBoth(
   email: string | null,
   lineId: string | null,
   title: string,
   body: string,
   relatedType: string,
-  opts: { email?: boolean; line?: boolean } = { email: true, line: true }
+  opts: { email?: boolean; line?: boolean; attachments?: EmailAttachment[] } = { email: true, line: true }
 ) {
   const sends: Promise<void>[] = [];
   let count = 0;
   if (opts.email !== false && email) {
-    sends.push(sendNotification({ channel: "email", recipient: email, title, body, relatedType }));
+    sends.push(sendNotification({ channel: "email", recipient: email, title, body, relatedType, attachments: opts.attachments }));
     count++;
   }
   if (opts.line !== false && lineId) {

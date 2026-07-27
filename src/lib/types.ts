@@ -243,6 +243,12 @@ export interface Student {
   dorm_room: string | null;
   assigned_horse_id: string | null;
   stall_number: string | null;
+  orientation_info: string | null;
+  items_to_bring: string | null;
+  dorm_info: string | null;
+  class_schedule: string | null;
+  uniform_status: string | null;
+  info_sent_at: string | null;
   enrollment_date: string | null;
   status: StudentState;
   created_at: string;
@@ -371,7 +377,17 @@ export interface FollowUpLog {
   lead_id: string;
   rule: string;
   channel: NotifyChannel;
+  automated: boolean;
   sent_at: string;
+}
+
+export interface FollowUpSetting {
+  rule: string;
+  auto_enabled: boolean;
+  min_days: number;
+  last_run_at: string | null;
+  last_sent_count: number;
+  updated_at: string;
 }
 
 export interface PasswordResetToken {
