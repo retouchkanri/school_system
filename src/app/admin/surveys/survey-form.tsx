@@ -37,7 +37,7 @@ export default function SurveyForm() {
         />
       </Field>
 
-      <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+      <div className="border border-gray-200 bg-gray-50 p-4">
         <p className="mb-2 text-xs font-bold text-gray-500">設問 (標準設問をそのまま使用します)</p>
         <ol className="list-inside list-decimal space-y-1 text-sm text-gray-700">
           {QUESTIONS.map((q) => (

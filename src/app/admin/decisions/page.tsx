@@ -1,41 +1,21 @@
 import { requireRole } from "@/lib/auth";
 import { adminDb } from "@/lib/supabase/admin";
-import { fmtDate, fmtDateTime } from "@/lib/format";
-import { ADMISSION_RESULT_LABELS, APPLICATION_STATUS_LABELS } from "@/lib/constants";
-import {
-  Card,
-  PageHeader,
-  EmptyState,
-  Badge,
-  Table,
-  Td,
-  SectionTitle,
-  type BadgeTone,
-} from "@/components/ui";
-import type { AdmissionDecision, AdmissionResult, Application, Lead } from "@/lib/types";
+import { fmtDate } from "@/lib/format";
+import { APPLICATION_STATUS_LABELS } from "@/lib/constants";
+import { Card, PageHeader, EmptyState, Badge, Table, Td, SectionTitle, type BadgeTone } from "@/components/ui";
+import type { AdmissionDecision, Application, Lead } from "@/lib/types";
 import DecisionForm from "./decision-form";
+import DecisionsTable from "./decisions-table";
 
 type CandidateRow = Application & {
   leads: Pick<Lead, "id" | "name" | "ai_type" | "ai_enrollment_probability"> | null;
 };
-type DecisionRow = AdmissionDecision & { leads: { name: string } | null };
-
-const RESULT_TONES: Record<AdmissionResult, BadgeTone> = {
-  accepted: "green",
-  rejected: "red",
-  waitlist: "amber",
-};
+type DecisionQueryRow = AdmissionDecision & { leads: { name: string } | null };
 
 const APP_STATUS_TONES: Record<string, BadgeTone> = {
   under_review: "amber",
   interview_scheduled: "purple",
   decided: "green",
-};
-
-const NOTIFY_LABELS: Record<string, string> = {
-  email: "メール",
-  line: "LINE",
-  postal: "郵送",
 };
 
 export default async function AdminDecisionsPage() {
@@ -54,7 +34,7 @@ export default async function AdminDecisionsPage() {
       .order("created_at", { ascending: false }),
   ]);
   const candidates = (candidatesData ?? []) as CandidateRow[];
-  const decisions = (decisionsData ?? []) as DecisionRow[];
+  const decisions = (decisionsData ?? []) as DecisionQueryRow[];
 
   const decidedLeadIds = new Set(decisions.map((d) => d.lead_id));
   const formCandidates: { leadId: string; name: string }[] = [];
@@ -126,22 +106,19 @@ export default async function AdminDecisionsPage() {
       {decisions.length === 0 ? (
         <EmptyState message="合否登録がまだありません" />
       ) : (
-        <Table headers={["氏名", "結果", "通知方法", "通知日時"]}>
-          {decisions.map((d) => (
-            <tr key={d.id} className="hover:bg-gray-50">
-              <Td className="font-medium text-gray-900">{d.leads?.name ?? "—"}</Td>
-              <Td>
-                <Badge tone={RESULT_TONES[d.result]}>{ADMISSION_RESULT_LABELS[d.result]}</Badge>
-              </Td>
-              <Td className="text-gray-600">
-                {d.notified_via.length > 0
-                  ? d.notified_via.map((v) => NOTIFY_LABELS[v] ?? v).join(" / ")
-                  : "—"}
-              </Td>
-              <Td className="text-gray-600">{fmtDateTime(d.notified_at)}</Td>
-            </tr>
-          ))}
-        </Table>
+        <DecisionsTable
+          decisions={decisions.map((d) => ({
+            id: d.id,
+            leadName: d.leads?.name ?? "—",
+            result: d.result,
+            notifiedVia: d.notified_via,
+            documentsSent: d.documents_sent,
+            aiProbability: d.ai_probability,
+            aiSummary: d.ai_summary,
+            amendedAt: d.amended_at,
+            notifiedAt: d.notified_at,
+          }))}
+        />
       )}
     </div>
   );

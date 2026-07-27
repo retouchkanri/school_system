@@ -272,7 +272,7 @@ export default function HomePage() {
           <div className="mx-auto mt-12 grid max-w-6xl gap-8 lg:grid-cols-2">
             {SCHOOLS.map((school, i) => (
               <Reveal key={school.key} variant={i === 0 ? "right" : "left"} delay={i * 150}>
-                <div className="group h-full overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-500 hover:-translate-y-1 hover:shadow-xl">
+                <div className="group h-full overflow-hidden border border-gray-200 bg-white shadow-sm transition-all duration-500 hover:-translate-y-1 hover:shadow-xl">
                   <div className="img-zoom relative h-56 sm:h-64">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={school.photo} alt={school.name} className="h-full w-full object-cover" loading="lazy" />
@@ -337,7 +337,7 @@ export default function HomePage() {
           <div className="mx-auto mt-12 grid max-w-5xl gap-6 sm:grid-cols-3">
             {PILLARS.map((pillar, i) => (
               <Reveal key={pillar.title} delay={i * 150} variant="zoom">
-                <div className="h-full rounded-2xl border border-gray-200 bg-white p-7 text-center shadow-sm transition-all duration-500 hover:-translate-y-1 hover:border-brand-300 hover:shadow-lg">
+                <div className="h-full border border-gray-200 bg-white p-7 text-center shadow-sm transition-all duration-500 hover:-translate-y-1 hover:border-brand-300 hover:shadow-lg">
                   <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-brand-50 text-brand-600">
                     <pillar.icon className="h-7 w-7" />
                   </div>
@@ -381,7 +381,7 @@ export default function HomePage() {
                           <div className="absolute inset-0 bg-gradient-to-t from-brand-900/30 to-transparent" />
                         </div>
                         <div className="sm:w-1/2">
-                          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-500 hover:-translate-y-1 hover:shadow-lg sm:p-7">
+                          <div className="border border-gray-200 bg-white p-6 shadow-sm transition-all duration-500 hover:-translate-y-1 hover:shadow-lg sm:p-7">
                             <div className="flex items-center gap-3">
                               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-600 text-white">
                                 <item.icon className="h-5 w-5" />
@@ -431,7 +431,7 @@ export default function HomePage() {
           <div className="mx-auto mt-12 grid max-w-5xl gap-6 sm:grid-cols-2">
             {AI_FEATURES.map((feature, i) => (
               <Reveal key={feature.title} delay={i * 130}>
-                <div className="animate-glow-pulse h-full rounded-2xl border border-gray-200 bg-white p-7 transition-all duration-300 hover:-translate-y-1 hover:border-accent-300">
+                <div className="animate-glow-pulse h-full border border-gray-200 bg-white p-7 transition-all duration-300 hover:-translate-y-1 hover:border-accent-300">
                   <div className="flex items-center gap-4">
                     <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
                       <feature.icon className="h-6 w-6" />
@@ -464,7 +464,7 @@ export default function HomePage() {
               <div className="mt-8 grid grid-cols-2 gap-4">
                 {STUDENT_FEATURES.map((feature, i) => (
                   <Reveal key={feature.title} delay={i * 80} variant="up">
-                    <div className="flex h-full items-start gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-md">
+                    <div className="flex h-full items-start gap-3 border border-gray-200 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-md">
                       <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
                         <feature.icon className="h-4 w-4" />
                       </span>
@@ -576,7 +576,7 @@ export default function HomePage() {
             </Reveal>
 
             <Reveal delay={150}>
-              <div className="mt-12 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
+              <div className="mt-12 border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
                 <h3 className="text-sm font-bold text-gray-700">入学までの進捗管理 (5ステップ・全18項目)</h3>
                 <div className="mt-4">
                   <AdminStepsAccordion groups={ADMIN_STEP_GROUPS} />
@@ -584,7 +584,7 @@ export default function HomePage() {
                 <div className="mt-8 grid gap-4 sm:grid-cols-3">
                   {FOLLOW_UPS.map((follow, i) => (
                     <Reveal key={follow} delay={i * 120}>
-                      <div className="flex h-full items-start gap-3 rounded-xl border border-amber-200 bg-amber-50/70 p-4">
+                      <div className="flex h-full items-start gap-3 border border-amber-200 bg-amber-50/70 p-4">
                         <Bell className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
                         <div>
                           <p className="text-xs font-bold text-amber-800">自動抽出</p>
@@ -615,7 +615,7 @@ export default function HomePage() {
               <Reveal key={portal.name} delay={i * 100} variant="zoom">
                 <Link
                   href={portal.href}
-                  className="group flex h-full flex-col rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-500 hover:-translate-y-1 hover:border-brand-300 hover:shadow-xl"
+                  className="group flex h-full flex-col border border-gray-200 bg-white p-6 shadow-sm transition-all duration-500 hover:-translate-y-1 hover:border-brand-300 hover:shadow-xl"
                 >
                   <span className={`flex h-11 w-11 items-center justify-center rounded-xl ${portal.tone}`}>
                     <portal.icon className="h-5 w-5" />

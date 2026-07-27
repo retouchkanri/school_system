@@ -96,7 +96,7 @@ export default async function SurveysPage() {
                   </div>
                 </div>
 
-                <details className="mt-4 rounded-lg border border-gray-200">
+                <details className="mt-4 border border-gray-200">
                   <summary className="cursor-pointer select-none rounded-lg bg-gray-50 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-100">
                     回答一覧を表示 ({surveyResponses.length}件)
                   </summary>
@@ -105,7 +105,7 @@ export default async function SurveysPage() {
                       <EmptyState message="まだ回答がありません" />
                     ) : (
                       surveyResponses.map((res) => (
-                        <div key={res.id} className="rounded-lg border border-gray-100 bg-gray-50 p-4">
+                        <div key={res.id} className="border border-gray-100 bg-gray-50 p-4">
                           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                             <p className="text-sm font-bold text-gray-800">👤 {res.student?.name ?? "不明な生徒"}</p>
                             <p className="text-xs text-gray-400">{fmtDateTime(res.submitted_at)}</p>

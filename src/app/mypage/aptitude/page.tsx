@@ -91,13 +91,13 @@ export default async function AptitudePage() {
         </Card>
 
         {test.ai_report && (
-          <div className="mb-6 rounded-xl border border-purple-200 bg-purple-50/50 p-6 shadow-sm">
+          <div className="mb-6 border border-purple-200 bg-purple-50/50 p-6 shadow-sm">
             <p className="text-xs font-bold text-purple-600">AI分析レポート</p>
             <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-gray-700">{test.ai_report}</p>
           </div>
         )}
 
-        <div className="rounded-xl border border-brand-200 bg-brand-50 p-5 text-center">
+        <div className="border border-brand-200 bg-brand-50 p-5 text-center">
           <p className="text-sm font-bold text-brand-700">次のステップ: 面接</p>
           <p className="mt-1 text-sm text-gray-600">面接日程は決まり次第、出願ページでご案内します。</p>
           <Link href="/mypage/application" className={`${btnPrimary} mt-3`}>
@@ -112,7 +112,7 @@ export default async function AptitudePage() {
     <div>
       <PageHeader
         title="性格・適性検査"
-        description="全96問・約10分。あなたの強みと向いている仕事が分かります。深く考えず、直感でお答えください。"
+        description="全100問・約10分。あなたの強みと向いている仕事が分かります。深く考えず、直感でお答えください。"
       />
       <AptitudeForm />
     </div>

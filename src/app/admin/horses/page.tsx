@@ -39,7 +39,7 @@ export default async function AdminHorsesPage() {
         <StatCard label="担当生徒" value={`${students.length}名`} sub="担当馬が割り当てられた生徒" />
       </div>
 
-      <details className="mb-6 rounded-xl border border-gray-200 bg-white shadow-sm">
+      <details className="mb-6 border border-gray-200 bg-white shadow-sm">
         <summary className="cursor-pointer select-none px-5 py-3 text-sm font-bold text-brand-700 hover:bg-brand-50">
           ＋ 新しい馬を登録する
         </summary>
@@ -55,7 +55,7 @@ export default async function AdminHorsesPage() {
           {horses.map((h) => {
             const assigned = studentsByHorse.get(h.id) ?? [];
             return (
-              <div key={h.id} className="flex flex-col rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+              <div key={h.id} className="flex flex-col border border-gray-200 bg-white p-5 shadow-sm">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-3">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -122,7 +122,7 @@ export default async function AdminHorsesPage() {
                   <summary className="cursor-pointer select-none text-xs font-semibold text-brand-600 hover:underline">
                     ✏️ 編集する
                   </summary>
-                  <div className="mt-3 rounded-lg border border-gray-100 bg-gray-50 p-3">
+                  <div className="mt-3 border border-gray-100 bg-gray-50 p-3">
                     <HorseEditForm horse={h} />
                   </div>
                 </details>

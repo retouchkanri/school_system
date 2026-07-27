@@ -91,7 +91,7 @@ export default function LoginPage() {
             <p className="mt-1 text-sm text-gray-500">統合管理システム</p>
           </div>
 
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-lg">
+          <div className="border border-gray-200 bg-white p-6 shadow-lg">
             <Suspense fallback={null}>
               <LoginForm />
             </Suspense>

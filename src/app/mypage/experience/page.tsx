@@ -75,13 +75,13 @@ export default async function ExperiencePage() {
       />
 
       {bypass && !attended && (
-        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+        <div className="mb-4 border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
           開発モード: 決済・参加確認をスキップしてアンケートに回答できます
         </div>
       )}
 
       {answers && (
-        <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 p-5 text-center">
+        <div className="mb-6 border border-emerald-200 bg-emerald-50 p-5 text-center">
           <p className="text-sm font-bold text-emerald-800">ご回答ありがとうございました</p>
           <p className="mt-1 text-sm text-emerald-700">入学をご希望の方は出願にお進みください。</p>
           <Link href="/mypage/application" className={`${btnPrimary} mt-4`}>
@@ -90,7 +90,11 @@ export default async function ExperiencePage() {
         </div>
       )}
 
-      <ExperienceForm answers={answers} aiMessage={lead.ai_enrollment_summary} />
+      <ExperienceForm
+        answers={answers}
+        aiMessage={lead.ai_enrollment_summary}
+        aiProbability={lead.ai_enrollment_probability}
+      />
     </div>
   );
 }

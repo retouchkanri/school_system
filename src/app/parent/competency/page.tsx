@@ -59,7 +59,7 @@ export default async function ParentCompetencyPage() {
                           {group.keys.map((key) => {
                             const score = a.scores[key];
                             return (
-                              <div key={key} className="flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50 px-3 py-2">
+                              <div key={key} className="flex items-center justify-between border border-gray-100 bg-gray-50 px-3 py-2">
                                 <span className="text-sm text-gray-700">{key}</span>
                                 <span className="text-sm font-bold text-brand-700">{score != null ? `${score} / 5` : "—"}</span>
                               </div>

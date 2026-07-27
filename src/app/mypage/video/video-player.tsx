@@ -48,7 +48,7 @@ export default function VideoPlayer({ initialCompleted }: { initialCompleted: bo
 
   return (
     <div>
-      <div className="overflow-hidden rounded-xl bg-brand-900 shadow-md">
+      <div className="overflow-hidden bg-brand-900 shadow-md">
         <video
           src={INTRO_VIDEO_URL}
           poster="/images/banner-video.jpg"
@@ -70,7 +70,7 @@ export default function VideoPlayer({ initialCompleted }: { initialCompleted: bo
       </div>
 
       {completed && (
-        <div className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-5 text-center">
+        <div className="mt-6 border border-emerald-200 bg-emerald-50 p-5 text-center">
           <p className="text-sm font-bold text-emerald-800">動画のご視聴ありがとうございました🎉</p>
           <p className="mt-1 text-sm text-emerald-700">次は入学仮審査アンケートにご回答ください。</p>
           <Link href="/mypage/survey" className={`${btnPrimary} mt-4`}>

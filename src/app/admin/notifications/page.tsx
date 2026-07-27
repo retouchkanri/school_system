@@ -78,11 +78,11 @@ export default async function AdminNotificationsPage({
           <Link
             key={t.href}
             href={t.href}
-            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-              t.active
-                ? "bg-brand-600 text-white shadow-sm"
-                : "border border-gray-300 bg-white text-gray-600 hover:bg-gray-50"
-            }`}
+            className={`px-3 py-1.5 text-xs font-semibold transition ${
+ t.active
+ ? "bg-brand-600 text-white shadow-sm"
+ : "border border-gray-300 bg-white text-gray-600 hover:bg-gray-50"
+ }`}
           >
             {t.label}
           </Link>

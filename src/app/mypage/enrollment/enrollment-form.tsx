@@ -5,6 +5,7 @@ import { UNIFORM_SIZES, BOOTS_SIZES, HELMET_SIZES } from "@/lib/constants";
 import { Card, Field, Label, inputCls, btnPrimary } from "@/components/ui";
 import { showErrorToast, showSuccessToast } from "@/lib/toast";
 import { saveEnrollmentAction, type ActionState } from "./actions";
+import IdDocumentsSection from "./id-document-upload";
 import type { EnrollmentProcedure } from "@/lib/types";
 
 const AGREEMENT_TEXT = `東関東馬事学院 入学規約
@@ -38,7 +39,13 @@ const AGREEMENT_TEXT = `東関東馬事学院 入学規約
 
 以上の内容に同意のうえ、入学手続きを行ってください。`;
 
-export default function EnrollmentForm({ procedure }: { procedure: EnrollmentProcedure | null }) {
+export default function EnrollmentForm({
+  procedure,
+  documentUrls,
+}: {
+  procedure: EnrollmentProcedure | null;
+  documentUrls: Record<string, string | null>;
+}) {
   const [state, formAction, pending] = useActionState<ActionState, FormData>(saveEnrollmentAction, {});
 
   useEffect(() => {
@@ -56,37 +63,9 @@ export default function EnrollmentForm({ procedure }: { procedure: EnrollmentPro
     <form action={formAction} className="space-y-6">
       <Card title="1. 提出物の確認">
         <p className="mb-3 text-xs text-gray-500">
-          以下の書類は郵送でご提出ください。提出がお済みのものにチェックを入れてください(自己申告)。
+          以下の書類の画像をアップロードしてください。表面・裏面それぞれをタップして選択できます。
         </p>
-        <div className="grid gap-2 sm:grid-cols-3">
-          <label className={checkLabelCls}>
-            <input
-              type="checkbox"
-              name="photo_submitted"
-              defaultChecked={procedure?.photo_submitted ?? false}
-              className="accent-brand-600"
-            />
-            顔写真 提出済み
-          </label>
-          <label className={checkLabelCls}>
-            <input
-              type="checkbox"
-              name="insurance_card_submitted"
-              defaultChecked={procedure?.insurance_card_submitted ?? false}
-              className="accent-brand-600"
-            />
-            保険証の写し 提出済み
-          </label>
-          <label className={checkLabelCls}>
-            <input
-              type="checkbox"
-              name="my_number_submitted"
-              defaultChecked={procedure?.my_number_submitted ?? false}
-              className="accent-brand-600"
-            />
-            マイナンバー 提出済み
-          </label>
-        </div>
+        <IdDocumentsSection documentUrls={documentUrls} />
       </Card>
 
       <Card title="2. 制服・装具のサイズ">
@@ -215,7 +194,7 @@ export default function EnrollmentForm({ procedure }: { procedure: EnrollmentPro
       </Card>
 
       <Card title="6. 入学規約への同意・電子署名">
-        <div className="max-h-56 overflow-y-auto whitespace-pre-wrap rounded-lg border border-gray-200 bg-gray-50 p-4 text-xs leading-relaxed text-gray-600">
+        <div className="max-h-56 overflow-y-auto whitespace-pre-wrap border border-gray-200 bg-gray-50 p-4 text-xs leading-relaxed text-gray-600">
           {AGREEMENT_TEXT}
         </div>
         <label className={`${checkLabelCls} mt-4`}>

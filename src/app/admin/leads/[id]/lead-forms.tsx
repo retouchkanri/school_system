@@ -137,7 +137,7 @@ export function CreateAccountButton({ leadId }: { leadId: string }) {
         <Feedback state={state} />
       </form>
       {state.ok && state.password && (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        <div className="border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
           仮パスワード: <span className="font-mono text-base font-bold">{state.password}</span>
           <p className="mt-1 text-xs text-amber-600">
             本人へメール/LINEで通知済みです。この画面を閉じると再表示できません。

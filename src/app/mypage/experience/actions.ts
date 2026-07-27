@@ -12,6 +12,7 @@ export interface ActionState {
   ok?: boolean;
   error?: string;
   message?: string;
+  probability?: number;
 }
 
 /** 学校見学後アンケートの送信 → 入学確率の更新 */
@@ -72,5 +73,5 @@ export async function submitExperienceAction(_prev: ActionState, formData: FormD
 
   revalidatePath("/mypage/experience");
   revalidatePath("/mypage");
-  return { ok: true, message };
+  return { ok: true, message, probability };
 }

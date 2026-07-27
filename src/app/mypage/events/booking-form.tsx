@@ -25,7 +25,7 @@ export default function BookingForm({
     return (
       <div className="rounded-lg bg-emerald-50 p-4">
         <p className="text-sm font-bold text-emerald-800">仮予約を受け付けました</p>
-        <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+        <div className="mt-2 border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
           <p className="font-bold">お振込のご案内</p>
           <p className="mt-1">下記口座へ参加費のお振込をお願いいたします。入金確認をもって参加確定となります。</p>
           <p className="mt-2 rounded bg-white px-3 py-2 font-semibold">{BANK_TRANSFER_INFO}</p>
@@ -52,7 +52,7 @@ export default function BookingForm({
         ))}
       </div>
       {skipPayment && (
-        <p className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+        <p className="mt-2 border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
           決済スキップ中: 予約ボタンを押すと、その場で入金確認済み・参加済みとなり体験アンケートへ進みます (実際の課金は行われません)
         </p>
       )}

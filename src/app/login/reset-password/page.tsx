@@ -19,7 +19,7 @@ export default async function ResetPasswordPage({
             <p className="mt-1 text-sm text-gray-500">新しいパスワードを設定してください</p>
           </div>
 
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-lg">
+          <div className="border border-gray-200 bg-white p-6 shadow-lg">
             {token ? (
               <ResetPasswordForm token={token} />
             ) : (

@@ -8,8 +8,9 @@ import { adminDb } from "@/lib/supabase/admin";
 import { getLeadForUser, advanceLeadStatus, markPaymentConfirmed, notifyPaymentConfirmed } from "@/lib/data";
 import { isDevPhase, skipPaymentInDev } from "@/lib/dev";
 import { createCheckoutSession, stripeEnabled } from "@/lib/stripe";
-import { UNIFORM_SIZES, BOOTS_SIZES, HELMET_SIZES, PAYMENT_TYPE_LABELS } from "@/lib/constants";
-import type { AdmissionDecision, Lead, Payment, PaymentType, Profile } from "@/lib/types";
+import { UNIFORM_SIZES, BOOTS_SIZES, HELMET_SIZES, PAYMENT_TYPE_LABELS, ENROLLMENT_ID_DOCUMENTS } from "@/lib/constants";
+import { uploadEnrollmentDocument } from "@/lib/documents";
+import type { AdmissionDecision, ApplicationDocumentFile, Lead, Payment, PaymentType, Profile } from "@/lib/types";
 
 export interface ActionState {
   ok?: boolean;
@@ -78,10 +79,9 @@ export async function saveEnrollmentAction(_prev: ActionState, formData: FormDat
     .from("enrollment_procedures")
     .upsert(
       {
+        // photo_submitted / insurance_card_submitted / my_number_submitted は
+        // uploadEnrollmentDocumentAction が表裏アップロード完了時に自動更新するため、ここでは触れない
         lead_id: lead.id,
-        photo_submitted: formData.get("photo_submitted") === "on",
-        insurance_card_submitted: formData.get("insurance_card_submitted") === "on",
-        my_number_submitted: formData.get("my_number_submitted") === "on",
         uniform_size: uniformSize || null,
         boots_size: bootsSize || null,
         helmet_size: helmetSize || null,
@@ -105,6 +105,53 @@ export async function saveEnrollmentAction(_prev: ActionState, formData: FormDat
 
   revalidatePath("/mypage/enrollment");
   revalidatePath("/mypage");
+  return { ok: true };
+}
+
+const ENROLLMENT_DOC_FILE_KEYS: string[] = ENROLLMENT_ID_DOCUMENTS.flatMap((d) => [`${d.key}_front`, `${d.key}_back`]);
+
+/**
+ * 本人確認書類(顔写真・保険証・マイナンバー)の表/裏を1枚アップロードする。
+ * 表裏両方が揃った時点で、対応する自己申告カラム(photo_submitted等)を自動でtrueにする。
+ */
+export async function uploadEnrollmentDocumentAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const profile = await requireRole("applicant");
+  const lead = await getAcceptedLead(profile);
+  if (!lead) return { error: "入学手続きは合格された方のみご利用いただけます" };
+
+  const fileKey = String(formData.get("file_key") ?? "");
+  if (!ENROLLMENT_DOC_FILE_KEYS.includes(fileKey)) return { error: "不正な項目です" };
+
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) return { error: "画像を選択してください" };
+
+  const uploaded = await uploadEnrollmentDocument(profile.id, fileKey, file);
+  if ("error" in uploaded) return { error: uploaded.error };
+
+  const { data: existing } = await adminDb()
+    .from("enrollment_procedures")
+    .select("document_files")
+    .eq("lead_id", lead.id)
+    .maybeSingle();
+  const documentFiles: Record<string, ApplicationDocumentFile> = {
+    ...(existing?.document_files ?? {}),
+    [fileKey]: uploaded,
+  };
+
+  const derivedBooleans: Record<string, boolean> = {};
+  for (const doc of ENROLLMENT_ID_DOCUMENTS) {
+    derivedBooleans[doc.boolField] = !!documentFiles[`${doc.key}_front`] && !!documentFiles[`${doc.key}_back`];
+  }
+
+  const { error } = await adminDb()
+    .from("enrollment_procedures")
+    .upsert(
+      { lead_id: lead.id, document_files: documentFiles, ...derivedBooleans, updated_at: new Date().toISOString() },
+      { onConflict: "lead_id" }
+    );
+  if (error) return { error: "保存に失敗しました" };
+
+  revalidatePath("/mypage/enrollment");
   return { ok: true };
 }
 

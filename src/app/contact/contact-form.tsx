@@ -15,7 +15,7 @@ export default function ContactForm() {
 
   if (state.ok) {
     return (
-      <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-8 text-center shadow-sm">
+      <div className="border border-emerald-200 bg-emerald-50 p-8 text-center shadow-sm">
         <p className="text-base font-bold text-emerald-800">お問い合わせを受け付けました</p>
         <p className="mt-2 text-sm leading-relaxed text-emerald-700">
           ご記入いただいたメールアドレス宛に受付確認をお送りしました。
@@ -27,7 +27,7 @@ export default function ContactForm() {
   }
 
   return (
-    <form action={formAction} className="space-y-5 rounded-2xl border border-gray-200 bg-white p-6 shadow-lg sm:p-8">
+    <form action={formAction} className="space-y-5 border border-gray-200 bg-white p-6 shadow-lg sm:p-8">
       <div>
         <Label required>お名前</Label>
         <input name="name" required className={inputCls} placeholder="山田 太郎" autoComplete="name" />

@@ -28,7 +28,7 @@ export default function AttendanceForm({
     <form action={formAction} className="flex flex-wrap items-center gap-2">
       <input type="hidden" name="student_id" value={studentId} />
       <input type="hidden" name="date" value={date} />
-      <div className="flex overflow-hidden rounded-lg border border-gray-300">
+      <div className="flex overflow-hidden border border-gray-300">
         {BUTTONS.map((b, i) => (
           <button
             key={b.value}

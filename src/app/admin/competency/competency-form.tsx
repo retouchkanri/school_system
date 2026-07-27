@@ -36,7 +36,7 @@ export default function CompetencyForm({ students }: { students: StudentOption[]
 
       <div className="space-y-4">
         {COMPETENCY_CATEGORIES.map((group) => (
-          <div key={group.group} className="rounded-lg border border-gray-100 bg-gray-50 p-3">
+          <div key={group.group} className="border border-gray-100 bg-gray-50 p-3">
             <p className="mb-2 text-xs font-bold text-gray-500">{group.group}</p>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {group.keys.map((key) => (

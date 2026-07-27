@@ -59,7 +59,7 @@ export default async function AdminUsersPage({
         <CreateAdminForm />
       </Card>
 
-      <form method="GET" className="mb-4 flex flex-wrap items-end gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+      <form method="GET" className="mb-4 flex flex-wrap items-end gap-3 border border-gray-200 bg-white p-4 shadow-sm">
         <input type="hidden" name="role" value={roleFilter} />
         <div className="w-64">
           <label className="mb-1 block text-xs font-semibold text-gray-600">キーワード検索</label>

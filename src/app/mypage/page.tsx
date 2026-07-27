@@ -97,7 +97,7 @@ const NEXT_ACTIONS: Record<LeadStatus, { title: string; description: string; hre
   },
   applied: {
     title: "出願を受け付けました",
-    description: "続いて性格・適性検査(96問)を受検してください。あなたの強みと向いている仕事が分かります。",
+    description: "続いて性格・適性検査(100問)を受検してください。あなたの強みと向いている仕事が分かります。",
     href: "/mypage/aptitude",
     button: "適性検査を受ける",
   },
@@ -205,7 +205,7 @@ export default async function MypageHome() {
       <Card title="ご利用いただける3つのメニュー" className="mb-6">
         <div className="grid gap-4 md:grid-cols-3">
           {WELCOME_MENU.map((item) => (
-            <div key={item.key} className="flex flex-col rounded-lg border border-gray-200 p-4">
+            <div key={item.key} className="flex flex-col border border-gray-200 p-4">
               <div className="mb-1 flex items-start justify-between gap-2">
                 <h3 className="min-w-0 flex-1 text-sm font-bold leading-snug text-gray-800">{item.title}</h3>
                 {menuDone[item.key] && <Badge tone="green">完了</Badge>}
@@ -219,7 +219,7 @@ export default async function MypageHome() {
         </div>
       </Card>
 
-      <div className="mb-6 rounded-xl border border-brand-200 bg-brand-50/50 p-6 shadow-sm">
+      <div className="mb-6 border border-brand-200 bg-brand-50/50 p-6 shadow-sm">
         <p className="text-xs font-bold text-brand-600">
           現在のステップ: {(lead.status === "enrolled" ? PROGRESS_STEPS[idx] : PROGRESS_STEPS[idx + 1])?.label}
         </p>
@@ -231,7 +231,7 @@ export default async function MypageHome() {
       </div>
 
       {lead.ai_judgement && (
-        <div className="rounded-xl border border-purple-200 bg-purple-50/50 p-6 shadow-sm">
+        <div className="border border-purple-200 bg-purple-50/50 p-6 shadow-sm">
           <p className="text-xs font-bold text-purple-600">入学仮審査結果</p>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <Badge tone={JUDGEMENT_TONE[lead.ai_judgement]}>{AI_JUDGEMENT_LABELS[lead.ai_judgement]}</Badge>

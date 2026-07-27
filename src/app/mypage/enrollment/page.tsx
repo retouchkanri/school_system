@@ -7,7 +7,9 @@ import {
   PAYMENT_STATUS_LABELS,
   PAYMENT_METHOD_LABELS,
   BANK_TRANSFER_INFO,
+  ENROLLMENT_ID_DOCUMENTS,
 } from "@/lib/constants";
+import { getEnrollmentDocumentSignedUrl, isApplicationDocumentFile } from "@/lib/documents";
 import { fmtDateTime, fmtYen } from "@/lib/format";
 import {
   Card,
@@ -118,6 +120,15 @@ export default async function EnrollmentPage({
   const procedure = (procedureData as EnrollmentProcedure | null) ?? null;
   const payments = ((paymentsData as Payment[] | null) ?? []).slice();
   const status: ProcedureStatus = procedure?.status ?? "not_started";
+
+  const documentFileKeys = ENROLLMENT_ID_DOCUMENTS.flatMap((d) => [`${d.key}_front`, `${d.key}_back`]);
+  const documentUrls: Record<string, string | null> = {};
+  await Promise.all(
+    documentFileKeys.map(async (key) => {
+      const file = procedure?.document_files?.[key];
+      documentUrls[key] = isApplicationDocumentFile(file) ? await getEnrollmentDocumentSignedUrl(file.path) : null;
+    })
+  );
   // 支払いアクションと同じ「種別ごとの最新行」で表示を揃える (旧データの重複行があっても画面が古い行で固まらないように)
   const latestByType = new Map<Payment["type"], Payment>();
   for (const p of payments) latestByType.set(p.type, p); // created_at 昇順のため最後の代入が最新
@@ -139,30 +150,30 @@ export default async function EnrollmentPage({
       )}
 
       {sp.stripe === "success" && (
-        <div className="mb-6 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+        <div className="mb-6 border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
           ✓ お支払いが完了しました(確認メールをお送りしています)。
         </div>
       )}
       {sp.stripe === "cancel" && (
-        <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        <div className="mb-6 border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
           カード決済がキャンセルされました。お支払いは完了していません。あらためてお手続きください。
         </div>
       )}
 
       {bypass && !accepted && (
-        <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+        <div className="mb-6 border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
           開発モード: 選考結果に関わらず入学手続きページを確認できます
         </div>
       )}
 
       {status === "completed" && (
-        <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 p-5 text-sm text-emerald-800">
+        <div className="mb-6 border border-emerald-200 bg-emerald-50 p-5 text-sm text-emerald-800">
           <p className="font-bold">✓ 手続き入力は完了しています (署名日時: {fmtDateTime(procedure?.signed_at)})</p>
           <p className="mt-1">内容の変更が必要な場合は、フォームを修正して再度保存してください。</p>
         </div>
       )}
 
-      <EnrollmentForm procedure={procedure} />
+      <EnrollmentForm procedure={procedure} documentUrls={documentUrls} />
 
       <SectionTitle>お支払い</SectionTitle>
       <p className="mb-3 text-xs text-gray-400">
@@ -220,7 +231,7 @@ export default async function EnrollmentPage({
       </div>
 
       {hasPendingBank && (
-        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-800">
+        <div className="mt-4 border border-amber-200 bg-amber-50 p-5 text-sm text-amber-800">
           <p className="font-bold">お振込のご案内 (銀行振込を選択された方)</p>
           <p className="mt-1">下記口座へお振込をお願いいたします。入金確認後、お支払い状況が更新されます。</p>
           <p className="mt-2 rounded bg-white px-3 py-2 font-semibold">{BANK_TRANSFER_INFO}</p>

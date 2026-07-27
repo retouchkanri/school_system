@@ -335,6 +335,70 @@ function buildAptitudeReport(scores: Record<TraitKey, number>, suitability: Reco
   return lines.join(" ");
 }
 
+/* ============ ステップ6: 合否判定 (書類選考・面接なし) ============ */
+
+/** 面接を伴わない書類選考における合格基準 (総合評価スコア50点以上で合格) */
+export const DOCUMENT_ONLY_ACCEPT_THRESHOLD = 50;
+
+export interface AdmissionDecisionInput {
+  aptitudeScores: Record<TraitKey, number> | null;
+  aptitudeSuitability: Record<string, number> | null;
+  enrollmentProbability: number | null; // leads.ai_enrollment_probability (見学後アンケート由来)
+  preScreeningSummary: string | null; // leads.ai_summary
+  documentsSubmittedCount: number; // 0-3 (入学願書・顔写真・成績証明書)
+  hasEssay: boolean;
+}
+
+export interface AdmissionDecisionResult {
+  probability: number; // 0-100
+  result: "accepted" | "rejected";
+  summary: string; // 判定理由 (スタッフ向け)
+}
+
+/** 書類選考のみ(面接なし)の受験生について、これまでの提出データからAIが合否を即時判定する */
+export async function analyzeAdmissionDecision(input: AdmissionDecisionInput): Promise<AdmissionDecisionResult> {
+  const aptitudeAvg = input.aptitudeScores
+    ? Math.round(
+        Object.values(input.aptitudeScores).reduce((a, b) => a + b, 0) / Object.values(input.aptitudeScores).length
+      )
+    : 50;
+  const bestSuitability = input.aptitudeSuitability
+    ? Math.max(...Object.values(input.aptitudeSuitability))
+    : 50;
+  const enrollmentProbability = input.enrollmentProbability ?? 50;
+  const docScore = Math.round((input.documentsSubmittedCount / 3) * 100);
+  const documentCompleteness = Math.round(docScore * 0.7 + (input.hasEssay ? 100 : 0) * 0.3);
+
+  const probability = Math.max(
+    0,
+    Math.min(
+      100,
+      Math.round(enrollmentProbability * 0.3 + aptitudeAvg * 0.3 + bestSuitability * 0.2 + documentCompleteness * 0.2)
+    )
+  );
+  const result: "accepted" | "rejected" = probability >= DOCUMENT_ONLY_ACCEPT_THRESHOLD ? "accepted" : "rejected";
+
+  const rule =
+    `総合評価スコア ${probability}点(書類選考の合格基準: ${DOCUMENT_ONLY_ACCEPT_THRESHOLD}点以上)。` +
+    `適性検査平均${aptitudeAvg}点・最高適性${bestSuitability}点、見学後アンケートの入学確率${enrollmentProbability}%、` +
+    `提出書類${input.documentsSubmittedCount}/3件・作文${input.hasEssay ? "あり" : "なし"}を基に算出しました。`;
+
+  if (hasAI()) {
+    const text = await askAI(
+      `あなたは馬の学校(東関東馬事高等学院)の入学選考委員AIです。書類選考のみ(面接なし)の受験生について、` +
+        `以下のデータをもとに選考結果への短いコメントを日本語で3〜4文書いてください。合否そのものの再判定は不要です(結果は別途システムが算出済みです)。` +
+        `受験生の強み、あるいは合格基準に届かなかった場合の理由を客観的かつ丁寧に述べてください。\n` +
+        `適性検査平均スコア: ${aptitudeAvg}点\n最も適性の高い職業スコア: ${bestSuitability}点\n` +
+        `見学後アンケートの入学確率: ${enrollmentProbability}%\n提出書類: ${input.documentsSubmittedCount}/3件、作文: ${input.hasEssay ? "あり" : "なし"}\n` +
+        `総合評価スコア: ${probability}点 (${result === "accepted" ? "合格ラインに到達" : "合格ラインに未到達"})` +
+        (input.preScreeningSummary ? `\n仮審査時のコメント: ${input.preScreeningSummary}` : "")
+    );
+    if (text) return { probability, result, summary: text.trim() };
+  }
+
+  return { probability, result, summary: rule };
+}
+
 /* ============ リタッチ馬 月次要約 ============ */
 
 export interface ReportForSummary {

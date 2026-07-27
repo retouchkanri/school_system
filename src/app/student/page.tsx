@@ -88,7 +88,7 @@ export default async function StudentHomePage() {
       <PageHeader title="ホーム" description={`こんにちは、${student.name} さん`} />
 
       {pendingRequests.length > 0 && (
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-2 border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
           <span>🌙 保護者の承認待ちの外泊届が {pendingRequests.length} 件あります。</span>
           <Link href="/student/overnight" className="font-semibold text-amber-900 underline">
             外泊届を確認する →

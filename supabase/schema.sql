@@ -256,6 +256,9 @@ create table if not exists admission_decisions (
   notified_at timestamptz,
   created_at timestamptz not null default now()
 );
+alter table admission_decisions add column if not exists ai_probability int; -- AI自動判定時の総合評価スコア(0-100)。管理者による手動登録時はnull
+alter table admission_decisions add column if not exists ai_summary text;   -- AI自動判定の理由(スタッフ確認用)。管理者による手動登録時はnull
+alter table admission_decisions add column if not exists amended_at timestamptz; -- 管理者がAI自動判定等を変更した日時。未変更ならnull
 
 -- ---------- ステップ7: 入学手続き ----------
 create table if not exists enrollment_procedures (
@@ -279,6 +282,8 @@ create table if not exists enrollment_procedures (
   status procedure_status not null default 'not_started',
   updated_at timestamptz not null default now()
 );
+-- 本人確認書類の画像 (顔写真/保険証/マイナンバーそれぞれ表裏): {photo_front, photo_back, insurance_front, insurance_back, my_number_front, my_number_back}
+alter table enrollment_procedures add column if not exists document_files jsonb not null default '{}'::jsonb;
 
 -- ---------- 決済 ----------
 create table if not exists payments (
@@ -726,6 +731,44 @@ create policy "avatars_own_update" on storage.objects for update
 drop policy if exists "avatars_own_delete" on storage.objects;
 create policy "avatars_own_delete" on storage.objects for delete
   using (bucket_id = 'avatars' and auth.uid()::text = (storage.foldername(name))[1]);
+
+-- ---------- ストレージ: 出願書類 (入学願書・顔写真・成績証明書) ----------
+-- 非公開バケット。ダウンロードはサーバー側(サービスロール)で署名付きURLを発行する。
+insert into storage.buckets (id, name, public)
+values ('application-documents', 'application-documents', false)
+on conflict (id) do nothing;
+
+drop policy if exists "appdocs_own_read" on storage.objects;
+create policy "appdocs_own_read" on storage.objects for select
+  using (bucket_id = 'application-documents' and auth.uid()::text = (storage.foldername(name))[1]);
+drop policy if exists "appdocs_own_write" on storage.objects;
+create policy "appdocs_own_write" on storage.objects for insert
+  with check (bucket_id = 'application-documents' and auth.uid()::text = (storage.foldername(name))[1]);
+drop policy if exists "appdocs_own_update" on storage.objects;
+create policy "appdocs_own_update" on storage.objects for update
+  using (bucket_id = 'application-documents' and auth.uid()::text = (storage.foldername(name))[1]);
+drop policy if exists "appdocs_admin_read" on storage.objects;
+create policy "appdocs_admin_read" on storage.objects for select
+  using (bucket_id = 'application-documents' and is_admin());
+
+-- ---------- ストレージ: 入学手続きの本人確認書類 (顔写真・保険証・マイナンバー、表裏) ----------
+-- 非公開バケット。ダウンロードはサーバー側(サービスロール)で署名付きURLを発行する。
+insert into storage.buckets (id, name, public)
+values ('enrollment-documents', 'enrollment-documents', false)
+on conflict (id) do nothing;
+
+drop policy if exists "enrdocs_own_read" on storage.objects;
+create policy "enrdocs_own_read" on storage.objects for select
+  using (bucket_id = 'enrollment-documents' and auth.uid()::text = (storage.foldername(name))[1]);
+drop policy if exists "enrdocs_own_write" on storage.objects;
+create policy "enrdocs_own_write" on storage.objects for insert
+  with check (bucket_id = 'enrollment-documents' and auth.uid()::text = (storage.foldername(name))[1]);
+drop policy if exists "enrdocs_own_update" on storage.objects;
+create policy "enrdocs_own_update" on storage.objects for update
+  using (bucket_id = 'enrollment-documents' and auth.uid()::text = (storage.foldername(name))[1]);
+drop policy if exists "enrdocs_admin_read" on storage.objects;
+create policy "enrdocs_admin_read" on storage.objects for select
+  using (bucket_id = 'enrollment-documents' and is_admin());
 
 -- 成績・社会人基礎力・進路・諸経費 (本人 or 保護者 = 閲覧のみ、記載・編集は管理者(職員)のみ)
 drop policy if exists "grd_read" on grade_records;

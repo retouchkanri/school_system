@@ -31,7 +31,7 @@ export default function RequestPage() {
           </p>
         </div>
 
-        <form action={formAction} className="space-y-5 rounded-2xl border border-gray-200 bg-white p-6 shadow-lg sm:p-8">
+        <form action={formAction} className="space-y-5 border border-gray-200 bg-white p-6 shadow-lg sm:p-8">
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <Label required>氏名</Label>

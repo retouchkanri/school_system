@@ -205,12 +205,23 @@ function findMissingRequired(form: HTMLFormElement): { id: string; page: number;
   return null;
 }
 
+function AiProbabilityBadge({ probability }: { probability: number }) {
+  const pct = Math.max(0, Math.min(100, Math.round(probability)));
+  return (
+    <p className="mt-1 text-2xl font-bold text-brand-700">
+      入学確率 {pct}%
+    </p>
+  );
+}
+
 export default function ExperienceForm({
   answers,
   aiMessage,
+  aiProbability,
 }: {
   answers: Record<string, string> | null;
   aiMessage?: string | null;
+  aiProbability?: number | null;
 }) {
   const [state, formAction, pending] = useActionState<ActionState, FormData>(submitExperienceAction, {});
   const [page, setPage] = useState(1);
@@ -227,14 +238,15 @@ export default function ExperienceForm({
 
   if (answers) {
     return (
-      <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+      <div className="border border-gray-200 bg-white p-5 shadow-sm">
         <p className="mb-4 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
           ご回答ありがとうございました。回答内容は以下のとおりです。
         </p>
         {aiMessage && (
-          <div className="mb-4 rounded-xl border border-purple-200 bg-purple-50/50 p-4">
+          <div className="mb-4 border border-purple-200 bg-purple-50/50 p-4">
             <p className="text-xs font-bold text-purple-600">AIからのメッセージ</p>
             <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-gray-700">{aiMessage}</p>
+            {aiProbability != null && <AiProbabilityBadge probability={aiProbability} />}
           </div>
         )}
         <ReadOnlyAnswers questions={POST_VISIT_QUESTIONS} answers={answers} />
@@ -244,12 +256,13 @@ export default function ExperienceForm({
 
   if (state.ok) {
     return (
-      <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-6 text-center">
+      <div className="border border-emerald-200 bg-emerald-50 p-6 text-center">
         <p className="text-sm font-bold text-emerald-800">ご回答ありがとうございました</p>
         {state.message && (
-          <div className="mx-auto mt-4 max-w-lg rounded-xl border border-purple-200 bg-purple-50/50 p-4 text-left">
+          <div className="mx-auto mt-4 max-w-lg border border-purple-200 bg-purple-50/50 p-4 text-left">
             <p className="text-xs font-bold text-purple-600">AIからのメッセージ</p>
             <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-gray-700">{state.message}</p>
+            {state.probability != null && <AiProbabilityBadge probability={state.probability} />}
           </div>
         )}
       </div>
@@ -278,7 +291,7 @@ export default function ExperienceForm({
       action={formAction}
       onSubmit={handleSubmit}
       noValidate
-      className="space-y-5 rounded-xl border border-gray-200 bg-white p-5 shadow-sm"
+      className="space-y-5 border border-gray-200 bg-white p-5 shadow-sm"
     >
       <div className="flex border-b border-gray-200" role="tablist" aria-label="アンケートページ">
         {TABS.map((tab) => {

@@ -49,7 +49,7 @@ export default async function AdminLeadsPage({
         description={`資料請求から入学までの全リードを管理します(${leads.length}件)`}
       />
 
-      <form method="GET" className="mb-4 flex flex-wrap items-end gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+      <form method="GET" className="mb-4 flex flex-wrap items-end gap-3 border border-gray-200 bg-white p-4 shadow-sm">
         <div className="w-64">
           <label className="mb-1 block text-xs font-semibold text-gray-600">キーワード検索</label>
           <input

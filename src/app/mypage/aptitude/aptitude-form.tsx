@@ -30,7 +30,7 @@ export default function AptitudeForm() {
 
   if (state.ok) {
     return (
-      <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-6 text-center">
+      <div className="border border-emerald-200 bg-emerald-50 p-6 text-center">
         <p className="text-3xl">🧠</p>
         <p className="mt-2 text-sm font-bold text-emerald-800">受検が完了しました</p>
         <p className="mt-1 text-sm text-emerald-700">採点とAIレポートの生成が完了しました。ページの結果をご確認ください。</p>
@@ -43,7 +43,7 @@ export default function AptitudeForm() {
       <input type="hidden" name="answers" value={JSON.stringify(answers)} />
 
       {/* 進捗バー */}
-      <div className="mb-6 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+      <div className="mb-6 border border-gray-200 bg-white p-4 shadow-sm">
         <div className="flex items-center justify-between text-xs font-semibold text-gray-500">
           <span>
             ページ {page + 1} / {PAGE_COUNT}
@@ -65,7 +65,7 @@ export default function AptitudeForm() {
         {pageQuestions.map((q) => {
           const num = Number(q.id.slice(1));
           return (
-            <div key={q.id} className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+            <div key={q.id} className="border border-gray-200 bg-white p-5 shadow-sm">
               <p className="text-sm font-bold text-gray-800">
                 <span className="mr-2 text-brand-600">Q{num}</span>
                 {q.text}

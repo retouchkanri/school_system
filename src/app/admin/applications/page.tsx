@@ -7,6 +7,7 @@ import {
   APTITUDE_TRAITS,
   SUITABILITY_LABELS,
 } from "@/lib/constants";
+import { isApplicationDocumentFile } from "@/lib/documents";
 import {
   PageHeader,
   EmptyState,
@@ -14,6 +15,7 @@ import {
   Table,
   Td,
   SectionTitle,
+  btnSmall,
   type BadgeTone,
 } from "@/components/ui";
 import type { Application, AptitudeTest } from "@/lib/types";
@@ -53,13 +55,17 @@ export default async function AdminApplicationsPage() {
         <EmptyState message="出願がまだありません" />
       ) : (
         <Table headers={["氏名", "提出書類", "ステータス", "面接日", "提出日", "ステータス変更"]}>
-          {applications.map((app) => (
+          {applications.map((app) => {
+            const hasAnyDoc = APPLICATION_DOCUMENTS.some((doc) =>
+              doc.kind === "text" ? !!app.essay?.trim() : isApplicationDocumentFile(app.documents?.[doc.key])
+            );
+            return (
             <tr key={app.id} className="hover:bg-gray-50">
               <Td className="font-medium text-gray-900">{app.leads?.name ?? "—"}</Td>
               <Td>
                 <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs">
                   {APPLICATION_DOCUMENTS.map((doc) => {
-                    const ok = app.documents?.[doc.key] === true;
+                    const ok = doc.kind === "text" ? !!app.essay?.trim() : isApplicationDocumentFile(app.documents?.[doc.key]);
                     return (
                       <span key={doc.key} className={ok ? "text-emerald-600" : "text-gray-400"}>
                         <span className="font-bold">{ok ? "○" : "×"}</span> {doc.label}
@@ -67,6 +73,11 @@ export default async function AdminApplicationsPage() {
                     );
                   })}
                 </div>
+                {hasAnyDoc && (
+                  <a href={`/api/admin/applications/${app.id}/documents`} className={`${btnSmall} mt-2`}>
+                    書類を一括ダウンロード
+                  </a>
+                )}
               </Td>
               <Td>
                 <Badge tone={STATUS_TONES[app.status]}>{APPLICATION_STATUS_LABELS[app.status]}</Badge>
@@ -87,7 +98,8 @@ export default async function AdminApplicationsPage() {
                 )}
               </Td>
             </tr>
-          ))}
+            );
+          })}
         </Table>
       )}
 
@@ -102,7 +114,7 @@ export default async function AdminApplicationsPage() {
             return (
               <details
                 key={test.id}
-                className="group rounded-xl border border-gray-200 bg-white shadow-sm"
+                className="group border border-gray-200 bg-white shadow-sm"
               >
                 <summary className="flex cursor-pointer list-none flex-wrap items-center gap-3 px-5 py-3">
                   <span className="text-gray-400 transition group-open:rotate-90">▶</span>

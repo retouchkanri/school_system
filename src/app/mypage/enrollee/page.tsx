@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireRole } from "@/lib/auth";
 import { getLeadForUser } from "@/lib/data";
+import { isDevPhase } from "@/lib/dev";
 import { adminDb } from "@/lib/supabase/admin";
 import { fmtDate } from "@/lib/format";
 import { Card, PageHeader, Badge, EmptyState, InfoRow, btnPrimary } from "@/components/ui";
@@ -34,11 +35,13 @@ export default async function EnrolleePage() {
   const decision = (decisionData as AdmissionDecision | null) ?? null;
   const procedure = (procedureData as EnrollmentProcedure | null) ?? null;
 
+  const bypass = isDevPhase();
   const isAccepted = !!decision && decision.result === "accepted" && !!decision.notified_at;
   const procedureStarted = !!procedure && procedure.status !== "not_started";
+  const canView = isAccepted && procedureStarted;
 
-  // 合格 + 入学手続き着手済みのみ閲覧可
-  if (!isAccepted || !procedureStarted) {
+  // 合格 + 入学手続き着手済みのみ閲覧可 (開発中はスキップ可)
+  if (!canView && !bypass) {
     return (
       <div>
         <PageHeader title="入学者専用ページ" />
@@ -98,7 +101,13 @@ export default async function EnrolleePage() {
         description={`${lead.name}さん、ご入学おめでとうございます。学院からのお知らせをご確認ください。`}
       />
 
-      <div className="mb-6 rounded-xl border border-pink-200 bg-pink-50/60 p-6 shadow-sm">
+      {bypass && !canView && (
+        <div className="mb-6 border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+          開発モード: 選考結果・入学手続きの状態に関わらず入学者専用ページを確認できます
+        </div>
+      )}
+
+      <div className="mb-6 border border-pink-200 bg-pink-50/60 p-6 shadow-sm">
         <p className="text-xs font-bold text-pink-600">🌸 あなたの入学情報</p>
         <dl className="mt-3">
           <InfoRow label="お名前" value={lead.name} />

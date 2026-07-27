@@ -218,7 +218,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
             ) : (
               <div className="flex flex-wrap gap-2">
                 {attendance.map((a) => (
-                  <div key={a.id} className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-center">
+                  <div key={a.id} className="border border-gray-100 bg-gray-50 px-3 py-2 text-center">
                     <p className="text-[11px] text-gray-500">{fmtDate(a.date)}</p>
                     <div className="mt-1">
                       <Badge tone={ATTENDANCE_TONES[a.status]}>{ATTENDANCE_STATUS_LABELS[a.status]}</Badge>
@@ -272,7 +272,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
             ) : (
               <ul className="space-y-3">
                 {reports.map((r) => (
-                  <li key={r.id} className="rounded-lg border border-gray-100 bg-gray-50 p-3">
+                  <li key={r.id} className="border border-gray-100 bg-gray-50 p-3">
                     <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
                       <span className="font-semibold text-gray-700">{fmtDate(r.report_date)}</span>
                       {r.lesson && <span>{r.lesson}</span>}
@@ -332,7 +332,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
             ) : (
               <ul className="space-y-3">
                 {overnights.map((o) => (
-                  <li key={o.id} className="rounded-lg border border-gray-100 bg-gray-50 p-3">
+                  <li key={o.id} className="border border-gray-100 bg-gray-50 p-3">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-sm font-semibold text-gray-800">
                         {fmtDate(o.start_date)} 〜 {fmtDate(o.end_date)}
@@ -357,7 +357,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
             ) : (
               <ul className="space-y-2">
                 {grades.map((g) => (
-                  <li key={g.id} className="flex items-center justify-between gap-2 rounded-lg border border-gray-100 bg-gray-50 px-3 py-2">
+                  <li key={g.id} className="flex items-center justify-between gap-2 border border-gray-100 bg-gray-50 px-3 py-2">
                     <span className="text-sm text-gray-700">
                       {g.term} / {g.subject}
                     </span>
@@ -393,7 +393,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
             ) : (
               <ul className="space-y-2">
                 {careerRecords.map((c) => (
-                  <li key={c.id} className="rounded-lg border border-gray-100 bg-gray-50 p-3">
+                  <li key={c.id} className="border border-gray-100 bg-gray-50 p-3">
                     <div className="flex items-center gap-2">
                       <Badge tone={OUTCOME_TONES[c.outcome_type]}>{CAREER_OUTCOME_LABELS[c.outcome_type]}</Badge>
                       <span className="text-sm font-semibold text-gray-800">{c.organization}</span>
@@ -411,7 +411,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
             ) : (
               <ul className="space-y-2">
                 {reimbursements.map((r) => (
-                  <li key={r.id} className="flex items-center justify-between gap-2 rounded-lg border border-gray-100 bg-gray-50 px-3 py-2">
+                  <li key={r.id} className="flex items-center justify-between gap-2 border border-gray-100 bg-gray-50 px-3 py-2">
                     <span className="text-sm text-gray-700">{r.title}</span>
                     <span className="flex items-center gap-2">
                       <span className="text-sm font-semibold text-gray-800">{fmtYen(r.amount)}</span>

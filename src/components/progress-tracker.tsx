@@ -31,7 +31,7 @@ function StepModal({
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-md rounded-xl border border-gray-200 bg-white p-6 shadow-xl"
+        className="relative w-full max-w-md border border-gray-200 bg-white p-6 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -51,7 +51,7 @@ function StepModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+            className="border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
           >
             閉じる
           </button>

@@ -31,7 +31,7 @@ export default function AdminStepsAccordion({ groups }: { groups: AdminStepGroup
         return (
           <div
             key={group.title}
-            className="overflow-hidden rounded-xl border border-gray-200 transition-colors"
+            className="overflow-hidden border border-gray-200 transition-colors"
           >
             <button
               type="button"

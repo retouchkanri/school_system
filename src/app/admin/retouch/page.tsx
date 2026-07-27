@@ -73,7 +73,7 @@ export default async function AdminRetouchPage() {
                 ) : (
                   <div className="space-y-3">
                     {horseSummaries.map((s) => (
-                      <div key={s.id} className="rounded-lg border border-gray-200 bg-gray-50/50 p-4">
+                      <div key={s.id} className="border border-gray-200 bg-gray-50/50 p-4">
                         <div className="flex flex-wrap items-center gap-2">
                           <p className="text-sm font-bold text-gray-800">
                             {s.year}年{s.month}月

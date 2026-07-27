@@ -30,7 +30,7 @@ export default function DecisionForm({
 
   if (candidates.length === 0) {
     return (
-      <p className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-400">
+      <p className="border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-400">
         合否登録が可能な受験者はいません
       </p>
     );

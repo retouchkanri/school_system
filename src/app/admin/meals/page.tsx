@@ -90,7 +90,7 @@ export default async function MealsPage({
       </p>
 
       {alertStudents.length > 0 && (
-        <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-5 shadow-sm">
+        <div className="mb-6 border border-red-200 bg-red-50 p-5 shadow-sm">
           <h3 className="text-sm font-bold text-red-700">⚠️ 欠食が続いている生徒 ({fmtDate(alertFrom)} 〜 {fmtDate(date)} の5日間で3回以上)</h3>
           <ul className="mt-3 flex flex-wrap gap-2">
             {alertStudents.map(({ student, count }) => (

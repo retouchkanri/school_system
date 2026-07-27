@@ -501,13 +501,23 @@ export const POST_VISIT_QUESTIONS: SurveyQuestion[] = [
 /** 2ページ目の先頭設問 (入学希望度) */
 export const POST_VISIT_PAGE2_START_ID = "enrollment_intent";
 
-/** 出願時の提出書類 */
+/** 出願時の提出書類。file: ファイルアップロード、text: 作文本文の入力で提出とみなす */
 export const APPLICATION_DOCUMENTS = [
-  { key: "application_form", label: "入学願書" },
-  { key: "photo", label: "顔写真" },
-  { key: "transcript", label: "成績証明書(調査書)" },
-  { key: "essay", label: "作文" },
+  { key: "application_form", label: "入学願書", kind: "file" as const },
+  { key: "photo", label: "顔写真", kind: "file" as const },
+  { key: "transcript", label: "成績証明書(調査書)", kind: "file" as const },
+  { key: "essay", label: "作文", kind: "text" as const },
 ];
+
+/** ファイルアップロード対象の書類 (作文を除く3種) */
+export const APPLICATION_FILE_DOCUMENTS = APPLICATION_DOCUMENTS.filter((d) => d.kind === "file");
+
+/** 入学手続きの本人確認書類 (それぞれ表裏2枚をアップロード)。boolField は自動判定される自己申告カラム名 */
+export const ENROLLMENT_ID_DOCUMENTS = [
+  { key: "photo", label: "顔写真", boolField: "photo_submitted" },
+  { key: "insurance", label: "保険証の写し", boolField: "insurance_card_submitted" },
+  { key: "my_number", label: "マイナンバー", boolField: "my_number_submitted" },
+] as const;
 
 /** 合否通知の同封書類 */
 export const DECISION_DOCUMENTS = [

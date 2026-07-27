@@ -56,7 +56,7 @@ function QuestionCard({
   onSelectionChange: (values: string[]) => void;
 }) {
   return (
-    <div className="rounded-md border border-gray-200 bg-white p-5 shadow-sm">
+    <div className="border border-gray-200 bg-white p-5 shadow-sm">
       <Label required={q.required}>{q.text}</Label>
       {q.note && <p className="mb-2 text-xs text-gray-400">{q.note}</p>}
 
@@ -140,7 +140,7 @@ function ProgressPanel({
 
   return (
     <aside className="w-full shrink-0 lg:w-56">
-      <div className="sticky top-24 rounded-md border border-gray-200 bg-white p-4 shadow-sm">
+      <div className="sticky top-24 border border-gray-200 bg-white p-4 shadow-sm">
         <p className="text-xs font-bold text-gray-500">回答の進捗</p>
         <p className="mt-1 text-2xl font-bold text-brand-700">{percent}%</p>
         <p className="text-xs text-gray-400">

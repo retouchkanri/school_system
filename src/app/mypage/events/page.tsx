@@ -107,18 +107,18 @@ export default async function EventsPage({
       />
 
       {sp.stripe === "success" && (
-        <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+        <div className="mb-4 border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
           ✓ カード決済が完了しました。入金の反映まで少々お待ちください(確認メールをお送りしています)。
         </div>
       )}
       {sp.stripe === "cancel" && (
-        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        <div className="mb-4 border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
           カード決済がキャンセルされました。お支払いは完了していません。あらためて決済いただくか、銀行振込をご利用ください。
         </div>
       )}
 
       {lead.ai_judgement ? (
-        <div className="mb-6 rounded-xl border border-brand-200 bg-brand-50 p-5">
+        <div className="mb-6 border border-brand-200 bg-brand-50 p-5">
           <div className="flex flex-wrap items-center gap-2">
             <Badge tone="brand">{AI_JUDGEMENT_LABELS[lead.ai_judgement]}</Badge>
             <p className="text-sm font-bold text-gray-800">{AI_JUDGEMENT_MESSAGES[lead.ai_judgement]}</p>
@@ -132,7 +132,7 @@ export default async function EventsPage({
           )}
         </div>
       ) : (
-        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+        <div className="mb-4 border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
           開発モード: 仮審査未完了でも見学予約・決済スキップが利用できます
         </div>
       )}
@@ -219,7 +219,7 @@ export default async function EventsPage({
       )}
 
       {hasPendingBank && (
-        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-800">
+        <div className="mt-4 border border-amber-200 bg-amber-50 p-5 text-sm text-amber-800">
           <p className="font-bold">お振込のご案内 (銀行振込を選択された方)</p>
           <p className="mt-1">下記口座へ参加費のお振込をお願いいたします。入金確認をもって参加確定となります。</p>
           <p className="mt-2 rounded bg-white px-3 py-2 font-semibold">{BANK_TRANSFER_INFO}</p>

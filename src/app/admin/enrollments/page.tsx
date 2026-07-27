@@ -138,7 +138,7 @@ export default async function AdminEnrollmentsPage() {
                   </ItemBox>
                 </div>
 
-                <details className="group mt-4 rounded-lg border border-gray-100">
+                <details className="group mt-4 border border-gray-100">
                   <summary className="cursor-pointer list-none rounded-lg bg-gray-50 px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100">
                     <span className="mr-1 inline-block transition group-open:rotate-90">▶</span>
                     詳細情報(緊急連絡先・保証人・健康情報)

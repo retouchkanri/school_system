@@ -16,11 +16,13 @@ import {
   PRE_SCREENING_QUESTIONS,
   POST_VISIT_QUESTIONS,
   APPLICATION_DOCUMENTS,
+  APPLICATION_FILE_DOCUMENTS,
   DECISION_DOCUMENTS,
   APTITUDE_TRAITS,
   SUITABILITY_LABELS,
   progressTitle,
 } from "@/lib/constants";
+import { getApplicationDocumentSignedUrl, isApplicationDocumentFile } from "@/lib/documents";
 import {
   Card,
   Badge,
@@ -29,6 +31,7 @@ import {
   BackLink,
   InfoRow,
   EmptyState,
+  btnSmall,
 } from "@/components/ui";
 import type {
   Lead,
@@ -155,6 +158,23 @@ export default async function AdminLeadDetailPage({ params }: { params: Promise<
 
   const postVisitSurvey = expSurveys[0] ?? null;
 
+  const applicationDocLinks = application
+    ? await Promise.all(
+        APPLICATION_DOCUMENTS.map(async (doc) => {
+          if (doc.kind === "text") {
+            return { doc, submitted: !!application.essay?.trim(), url: null as string | null };
+          }
+          const file = application.documents[doc.key];
+          const valid = isApplicationDocumentFile(file);
+          const url = valid ? await getApplicationDocumentSignedUrl(file.path) : null;
+          return { doc, submitted: valid, url };
+        })
+      )
+    : [];
+  const hasDownloadableDocs =
+    !!application &&
+    APPLICATION_FILE_DOCUMENTS.some((doc) => isApplicationDocumentFile(application.documents[doc.key]));
+
   return (
     <div>
       <BackLink href="/admin/leads" label="リード一覧へ戻る" />
@@ -242,7 +262,7 @@ export default async function AdminLeadDetailPage({ params }: { params: Promise<
 
           <Card title="入学仮審査アンケート・AI判定">
             {lead.ai_judgement ? (
-              <div className="mb-4 rounded-lg border border-brand-200 bg-brand-50 p-4">
+              <div className="mb-4 border border-brand-200 bg-brand-50 p-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge tone={judgementTone[lead.ai_judgement]}>{AI_JUDGEMENT_LABELS[lead.ai_judgement]}</Badge>
                   {lead.ai_type && <span className="text-sm font-bold text-brand-700">{lead.ai_type}</span>}
@@ -270,7 +290,7 @@ export default async function AdminLeadDetailPage({ params }: { params: Promise<
 
           <Card title="学校見学後アンケート・入学確率">
             {lead.ai_enrollment_probability != null && (
-              <div className="mb-4 rounded-lg border border-brand-200 bg-brand-50 p-4 text-center">
+              <div className="mb-4 border border-brand-200 bg-brand-50 p-4 text-center">
                 <p className="text-xs font-semibold text-brand-600">AI予測</p>
                 <p className="mt-1 text-3xl font-bold text-brand-700">入学確率 {lead.ai_enrollment_probability}%</p>
               </div>
@@ -313,7 +333,7 @@ export default async function AdminLeadDetailPage({ params }: { params: Promise<
             ) : (
               <div className="space-y-3">
                 {bookings.map((b) => (
-                  <div key={b.id} className="rounded-lg border border-gray-100 p-3">
+                  <div key={b.id} className="border border-gray-100 p-3">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <p className="text-sm font-semibold text-gray-800">
                         {b.open_campus_events?.title ?? "イベント"}
@@ -351,13 +371,28 @@ export default async function AdminLeadDetailPage({ params }: { params: Promise<
                         <span className="text-xs text-gray-400">提出: {fmtDate(application.submitted_at)}</span>
                       )}
                     </div>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {APPLICATION_DOCUMENTS.map((d) => (
-                        <Badge key={d.key} tone={application.documents[d.key] ? "green" : "gray"}>
-                          {application.documents[d.key] ? "✓ " : ""}
-                          {d.label}
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      {applicationDocLinks.map(({ doc, submitted, url }) => (
+                        <Badge key={doc.key} tone={submitted ? "green" : "gray"}>
+                          {submitted ? "✓ " : ""}
+                          {doc.label}
+                          {url && (
+                            <a
+                              href={url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="ml-1.5 font-normal underline underline-offset-2"
+                            >
+                              表示
+                            </a>
+                          )}
                         </Badge>
                       ))}
+                      {hasDownloadableDocs && (
+                        <a href={`/api/admin/applications/${application.id}/documents`} className={btnSmall}>
+                          書類を一括ダウンロード
+                        </a>
+                      )}
                     </div>
                     <p className="mt-2 text-xs text-gray-500">面接日: {fmtDate(application.interview_date)}</p>
                   </div>
@@ -456,7 +491,7 @@ export default async function AdminLeadDetailPage({ params }: { params: Promise<
             ) : (
               <div className="space-y-2">
                 {payments.map((p) => (
-                  <div key={p.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-gray-100 px-3 py-2">
+                  <div key={p.id} className="flex flex-wrap items-center justify-between gap-2 border border-gray-100 px-3 py-2">
                     <div>
                       <p className="text-sm font-medium text-gray-800">{PAYMENT_TYPE_LABELS[p.type]}</p>
                       <p className="text-xs text-gray-400">

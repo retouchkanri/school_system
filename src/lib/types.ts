@@ -142,10 +142,17 @@ export interface ExperienceSurvey {
   submitted_at: string;
 }
 
+export interface ApplicationDocumentFile {
+  path: string;
+  name: string;
+  size: number;
+  uploadedAt: string;
+}
+
 export interface Application {
   id: string;
   lead_id: string;
-  documents: Record<string, boolean>;
+  documents: Record<string, ApplicationDocumentFile>;
   essay: string | null;
   status: ApplicationStatus;
   interview_date: string | null;
@@ -169,6 +176,9 @@ export interface AdmissionDecision {
   result: AdmissionResult;
   notified_via: string[];
   documents_sent: Record<string, boolean>;
+  ai_probability: number | null;
+  ai_summary: string | null;
+  amended_at: string | null;
   notified_at: string | null;
   created_at: string;
 }
@@ -179,6 +189,7 @@ export interface EnrollmentProcedure {
   photo_submitted: boolean;
   insurance_card_submitted: boolean;
   my_number_submitted: boolean;
+  document_files: Record<string, ApplicationDocumentFile>;
   uniform_size: string | null;
   boots_size: string | null;
   helmet_size: string | null;

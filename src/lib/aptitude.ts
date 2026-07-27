@@ -1,4 +1,4 @@
-/** 性格・適性検査 全96問 (5段階評価: 1=当てはまらない 〜 5=当てはまる) */
+/** 性格・適性検査 全100問 (5段階評価: 1=当てはまらない 〜 5=当てはまる) */
 
 export type TraitKey =
   | "leader"
@@ -30,6 +30,7 @@ const TRAIT_ITEMS: Record<TraitKey, string[]> = {
     "人前で話すことに抵抗がない",
     "役割分担を考えて指示を出すのが得意だ",
     "責任のある仕事を任されるとやる気が出る",
+    "新しい環境でも自然とリーダー役を任されることが多い",
   ],
   steady: [
     "一度決めたことは最後までやり抜く",
@@ -72,6 +73,7 @@ const TRAIT_ITEMS: Record<TraitKey, string[]> = {
     "イライラしても人や物に当たらない",
     "忙しくても気持ちに余裕を持てる",
     "大事な場面で実力を発揮できる",
+    "予定外のトラブルが起きても慌てず対応できる",
   ],
   animal: [
     "動物と一緒にいると落ち着く",
@@ -114,6 +116,7 @@ const TRAIT_ITEMS: Record<TraitKey, string[]> = {
     "親がいなくても健康管理ができる",
     "共有スペースでは周りに配慮できる",
     "新しい生活環境への適応力がある方だ",
+    "限られた自由な時間を上手に使うことができる",
   ],
   service: [
     "人と話すことが好きだ",
@@ -128,6 +131,7 @@ const TRAIT_ITEMS: Record<TraitKey, string[]> = {
     "クレームや要望にも冷静に対応できると思う",
     "人の名前や顔を覚えるのが得意だ",
     "誰にでも公平に親切にできる",
+    "相手の立場に立って行動することができる",
   ],
 };
 
@@ -142,14 +146,17 @@ const TRAIT_ORDER: TraitKey[] = [
   "service",
 ];
 
-/** 特性が偏らないよう1問ずつローテーションで出題 (q1〜q96) */
+/** 特性が偏らないよう1問ずつローテーションで出題 (q1〜q100、一部特性は13問) */
 export const APTITUDE_QUESTIONS: AptitudeQuestion[] = (() => {
   const list: AptitudeQuestion[] = [];
-  for (let round = 0; round < 12; round++) {
+  const maxRounds = Math.max(...TRAIT_ORDER.map((trait) => TRAIT_ITEMS[trait].length));
+  for (let round = 0; round < maxRounds; round++) {
     for (const trait of TRAIT_ORDER) {
+      const text = TRAIT_ITEMS[trait][round];
+      if (!text) continue;
       list.push({
         id: `q${list.length + 1}`,
-        text: TRAIT_ITEMS[trait][round],
+        text,
         trait,
       });
     }

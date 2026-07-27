@@ -12,7 +12,7 @@ function Feedback({ state }: { state: ActionState }) {
       <div className="space-y-2">
         <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{state.message ?? "保存しました"}</p>
         {state.password && (
-          <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <div className="border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
             仮パスワード: <span className="font-mono text-base font-bold">{state.password}</span>
             <p className="mt-1 text-xs text-amber-600">本人へメール通知済みです。この画面を閉じると再表示できません。</p>
           </div>

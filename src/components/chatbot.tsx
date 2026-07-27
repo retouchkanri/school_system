@@ -71,7 +71,7 @@ export default function Chatbot() {
   return (
     <div className="fixed bottom-6 left-4 z-50 flex flex-col items-start gap-3">
       {open && (
-        <div className="flex h-[min(70vh,520px)] w-[min(92vw,360px)] flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl">
+        <div className="flex h-[min(70vh,520px)] w-[min(92vw,360px)] flex-col overflow-hidden border border-gray-200 bg-white shadow-2xl">
           <div className="flex items-center justify-between border-b border-gray-100 bg-brand-600 px-4 py-3 text-white">
             <div>
               <p className="text-sm font-bold">AIアシスタント</p>

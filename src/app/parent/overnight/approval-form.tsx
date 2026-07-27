@@ -17,7 +17,7 @@ export default function ApprovalForm({ requestId }: { requestId: string }) {
   }
 
   return (
-    <form action={formAction} className="space-y-3 rounded-lg border border-amber-200 bg-amber-50/50 p-4">
+    <form action={formAction} className="space-y-3 border border-amber-200 bg-amber-50/50 p-4">
       <input type="hidden" name="id" value={requestId} />
       <div>
         <label className="mb-1 block text-xs font-semibold text-gray-600">コメント(任意)</label>
