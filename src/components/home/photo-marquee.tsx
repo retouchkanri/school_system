@@ -12,7 +12,7 @@ export default function PhotoMarquee({ items, className = "" }: { items: Marquee
         {doubled.map((item, i) => (
           <figure
             key={`${item.src}-${i}`}
-            className="img-zoom relative w-56 shrink-0 overflow-hidden rounded-xl shadow-md sm:w-64"
+            className="img-zoom relative w-56 shrink-0 overflow-hidden shadow-md sm:w-64"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={item.src} alt={item.alt} className="h-40 w-full object-cover sm:h-44" loading="lazy" />

@@ -72,7 +72,7 @@ export default async function SupporterHomePage() {
                       <InfoRow label="ご支援開始" value={fmtDate(support.since)} />
                     </dl>
                     {horse.notes && (
-                      <p className="mt-3 whitespace-pre-wrap rounded-lg bg-gray-50 px-4 py-3 text-sm leading-relaxed text-gray-700">
+                      <p className="mt-3 whitespace-pre-wrap bg-gray-50 px-4 py-3 text-sm leading-relaxed text-gray-700">
                         {horse.notes}
                       </p>
                     )}

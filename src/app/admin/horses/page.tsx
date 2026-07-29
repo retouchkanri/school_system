@@ -72,7 +72,7 @@ export default async function AdminHorsesPage() {
                   {h.is_retouch && <Badge tone="purple">リタッチ馬</Badge>}
                 </div>
 
-                <dl className="mt-3 grid grid-cols-3 gap-2 rounded-lg bg-gray-50 p-3 text-center">
+                <dl className="mt-3 grid grid-cols-3 gap-2 bg-gray-50 p-3 text-center">
                   <div>
                     <dt className="text-[11px] text-gray-400">年齢</dt>
                     <dd className="text-sm font-semibold text-gray-800">{h.age != null ? `${h.age}歳` : "—"}</dd>

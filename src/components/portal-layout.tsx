@@ -1,5 +1,6 @@
 import { logoutAction } from "@/app/login/actions";
 import PortalNav, { type PortalNavItem } from "@/components/portal-shell";
+import PortalBackground from "@/components/portal-background";
 import SiteLogo from "@/components/site-logo";
 import UserMenu from "@/components/user-menu";
 import type { Profile } from "@/lib/types";
@@ -20,8 +21,9 @@ export default function PortalLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-white">
-      <header className="sticky top-0 z-20 border-b border-gray-200 bg-white/95 backdrop-blur">
+    <div className="min-h-screen">
+      <PortalBackground />
+      <header className="sticky top-0 z-20 border-b border-white/60 bg-white/90 backdrop-blur-md">
         <div className="flex w-full items-center justify-between px-[5vw] py-4">
           <div className="flex items-center gap-3">
             <SiteLogo href="/" />
@@ -41,9 +43,14 @@ export default function PortalLayout({
           />
         </div>
       </header>
-      <div className="mx-auto max-w-4xl px-4 py-4">
-        <PortalNav items={nav} home={home} />
-        <main className="mt-4 pb-16">{children}</main>
+      <div className="mx-auto max-w-4xl px-4 py-6 sm:py-8">
+        <div className="border border-white/70 bg-white/85 p-4 shadow-xl shadow-brand-900/5 backdrop-blur-sm sm:p-6">
+          <PortalNav items={nav} home={home} />
+          <main className="mt-4 pb-4">{children}</main>
+        </div>
+        <p className="mt-6 text-center text-[11px] text-gray-400">
+          背景写真: 東関東馬事高等学院・東関東馬事専門学院
+        </p>
       </div>
     </div>
   );

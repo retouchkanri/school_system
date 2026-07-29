@@ -82,7 +82,7 @@ export default async function AdminEventsPage() {
                 }
               >
                 {event.description && (
-                  <p className="mb-4 whitespace-pre-wrap rounded-lg bg-gray-50 px-3 py-2 text-sm text-gray-600">
+                  <p className="mb-4 whitespace-pre-wrap bg-gray-50 px-3 py-2 text-sm text-gray-600">
                     {event.description}
                   </p>
                 )}

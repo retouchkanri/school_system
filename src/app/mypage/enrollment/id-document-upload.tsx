@@ -10,20 +10,20 @@ import { uploadEnrollmentDocumentAction, type ActionState } from "./actions";
 function SampleCardIcon({ side }: { side: "front" | "back" }) {
   return (
     <svg viewBox="0 0 120 76" className="h-16 w-24 text-gray-300" fill="none" aria-hidden>
-      <rect x="2" y="2" width="116" height="72" rx="8" stroke="currentColor" strokeWidth="2.5" strokeDasharray="6 5" />
+      <rect x="2" y="2" width="116" height="72" rx="0" stroke="currentColor" strokeWidth="2.5" strokeDasharray="6 5" />
       {side === "front" ? (
         <>
-          <rect x="14" y="16" width="26" height="32" rx="3" fill="currentColor" opacity="0.5" />
-          <rect x="48" y="20" width="58" height="6" rx="3" fill="currentColor" opacity="0.5" />
-          <rect x="48" y="32" width="46" height="6" rx="3" fill="currentColor" opacity="0.5" />
-          <rect x="48" y="44" width="36" height="6" rx="3" fill="currentColor" opacity="0.5" />
+          <rect x="14" y="16" width="26" height="32" rx="0" fill="currentColor" opacity="0.5" />
+          <rect x="48" y="20" width="58" height="6" rx="0" fill="currentColor" opacity="0.5" />
+          <rect x="48" y="32" width="46" height="6" rx="0" fill="currentColor" opacity="0.5" />
+          <rect x="48" y="44" width="36" height="6" rx="0" fill="currentColor" opacity="0.5" />
         </>
       ) : (
         <>
-          <rect x="14" y="16" width="92" height="10" rx="2" fill="currentColor" opacity="0.5" />
-          <rect x="14" y="34" width="92" height="6" rx="3" fill="currentColor" opacity="0.4" />
-          <rect x="14" y="44" width="66" height="6" rx="3" fill="currentColor" opacity="0.4" />
-          <rect x="14" y="54" width="50" height="6" rx="3" fill="currentColor" opacity="0.4" />
+          <rect x="14" y="16" width="92" height="10" rx="0" fill="currentColor" opacity="0.5" />
+          <rect x="14" y="34" width="92" height="6" rx="0" fill="currentColor" opacity="0.4" />
+          <rect x="14" y="44" width="66" height="6" rx="0" fill="currentColor" opacity="0.4" />
+          <rect x="14" y="54" width="50" height="6" rx="0" fill="currentColor" opacity="0.4" />
         </>
       )}
     </svg>
@@ -72,11 +72,11 @@ function IdImageSlot({
         type="button"
         onClick={() => inputRef.current?.click()}
         disabled={pending}
-        className="group relative flex w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-3 py-4 text-center transition hover:border-brand-400 hover:bg-brand-50 disabled:opacity-60"
+        className="group relative flex w-full flex-col items-center justify-center gap-2 border-2 border-dashed border-gray-300 bg-gray-50 px-3 py-4 text-center transition hover:border-brand-400 hover:bg-brand-50 disabled:opacity-60"
       >
         {preview ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={preview} alt={`${sideLabel}のプレビュー`} className="h-20 w-32 rounded-md object-cover" />
+          <img src={preview} alt={`${sideLabel}のプレビュー`} className="h-20 w-32 object-cover" />
         ) : (
           <SampleCardIcon side={side} />
         )}
@@ -103,7 +103,7 @@ function IdImageSlot({
 export default function IdDocumentsSection({ documentUrls }: { documentUrls: Record<string, string | null> }) {
   return (
     <div className="space-y-5">
-      <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs leading-relaxed text-amber-800">
+      <div className="flex items-start gap-2 border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs leading-relaxed text-amber-800">
         <span className="mt-0.5">⚠️</span>
         <p>
           書類の四隅が切れないよう、全体が写るように撮影してください。文字がはっきり読み取れる、ピントの合った鮮明な画像をご用意ください。

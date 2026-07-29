@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { getSessionProfile, roleHome } from "@/lib/auth";
 import { adminDb } from "@/lib/supabase/admin";
 import SiteLogo from "@/components/site-logo";
+import FullPageBackground from "@/components/full-page-background";
+import { KOUTOU_IMAGES } from "@/lib/site-images";
 import { Card, PageHeader } from "@/components/ui";
 import AccountForm from "./account-form";
 
@@ -25,13 +27,14 @@ export default async function AccountPage() {
     .maybeSingle();
 
   return (
-    <div className="min-h-screen bg-white">
-      <header className="sticky top-0 z-20 border-b border-gray-200 bg-white">
+    <div className="min-h-screen">
+      <FullPageBackground src={KOUTOU_IMAGES.campus1.src} alt={KOUTOU_IMAGES.campus1.alt} tone="neutral" />
+      <header className="sticky top-0 z-20 border-b border-white/60 bg-white/90 backdrop-blur-md">
         <div className="flex w-full items-center justify-between px-[5vw] py-4">
           <SiteLogo href="/" />
           <Link
             href={roleHome(profile.role)}
-            className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50"
+            className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50"
           >
             ← ホームへ戻る
           </Link>

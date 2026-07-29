@@ -43,7 +43,7 @@ function Mark({ ok }: { ok: boolean }) {
 
 function ItemBox({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-lg bg-gray-50 px-3 py-2">
+    <div className="bg-gray-50 px-3 py-2">
       <p className="text-[11px] font-semibold text-gray-500">{label}</p>
       <div className="mt-1 text-sm text-gray-800">{children}</div>
     </div>

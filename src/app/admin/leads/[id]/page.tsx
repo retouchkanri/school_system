@@ -102,7 +102,7 @@ function AnswerList({
             ? "★".repeat(Math.max(0, Math.min(5, Number(raw)))) + "☆".repeat(5 - Math.max(0, Math.min(5, Number(raw))))
             : raw || "—";
         return (
-          <div key={q.id} className="rounded-lg bg-gray-50 px-3 py-2">
+          <div key={q.id} className="bg-gray-50 px-3 py-2">
             <dt className="text-[11px] font-semibold text-gray-500">{q.text}</dt>
             <dd className="mt-0.5 whitespace-pre-wrap text-sm text-gray-800">{value}</dd>
           </div>
@@ -418,7 +418,7 @@ export default async function AdminLeadDetailPage({ params }: { params: Promise<
                       </div>
                     )}
                     {aptitude.ai_report && (
-                      <p className="mt-3 whitespace-pre-wrap rounded-lg bg-gray-50 px-3 py-2 text-sm leading-relaxed text-gray-700">
+                      <p className="mt-3 whitespace-pre-wrap bg-gray-50 px-3 py-2 text-sm leading-relaxed text-gray-700">
                         {aptitude.ai_report}
                       </p>
                     )}

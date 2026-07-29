@@ -375,7 +375,7 @@ export default function HomePage() {
                     <span className="absolute left-1/2 top-8 z-10 hidden h-4 w-4 -translate-x-1/2 rounded-full border-4 border-white bg-brand-500 shadow sm:block" />
                     <Reveal variant={even ? "right" : "left"}>
                       <div className={`sm:flex sm:items-center sm:gap-10 ${even ? "" : "sm:flex-row-reverse"}`}>
-                        <div className="img-zoom relative hidden h-52 overflow-hidden rounded-2xl shadow-md sm:block sm:w-1/2">
+                        <div className="img-zoom relative hidden h-52 overflow-hidden shadow-md sm:block sm:w-1/2">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={item.img} alt={item.title} className="h-full w-full object-cover" loading="lazy" />
                           <div className="absolute inset-0 bg-gradient-to-t from-brand-900/30 to-transparent" />
@@ -489,25 +489,25 @@ export default function HomePage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <Reveal variant="left" delay={100}>
-                <div className="img-zoom overflow-hidden rounded-2xl shadow-md">
+                <div className="img-zoom overflow-hidden shadow-md">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={SENMON_IMAGES.dormRoom.src} alt={SENMON_IMAGES.dormRoom.alt} className="h-48 w-full object-cover sm:h-56" loading="lazy" />
                 </div>
               </Reveal>
               <Reveal variant="left" delay={250}>
-                <div className="img-zoom mt-8 overflow-hidden rounded-2xl shadow-md">
+                <div className="img-zoom mt-8 overflow-hidden shadow-md">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={SENMON_IMAGES.dormMeal.src} alt={SENMON_IMAGES.dormMeal.alt} className="h-48 w-full object-cover sm:h-56" loading="lazy" />
                 </div>
               </Reveal>
               <Reveal variant="left" delay={400}>
-                <div className="img-zoom overflow-hidden rounded-2xl shadow-md">
+                <div className="img-zoom overflow-hidden shadow-md">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={KOUTOU_DETAIL.shisetsuShokudo.src} alt={KOUTOU_DETAIL.shisetsuShokudo.alt} className="h-48 w-full object-cover sm:h-56" loading="lazy" />
                 </div>
               </Reveal>
               <Reveal variant="left" delay={550}>
-                <div className="img-zoom mt-8 overflow-hidden rounded-2xl shadow-md">
+                <div className="img-zoom mt-8 overflow-hidden shadow-md">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={KOUTOU_DETAIL.tokucho2.src} alt={KOUTOU_DETAIL.tokucho2.alt} className="h-48 w-full object-cover sm:h-56" loading="lazy" />
                 </div>
@@ -520,7 +520,7 @@ export default function HomePage() {
         <section className="bg-brand-50/50 px-[6vw] py-20">
           <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-2">
             <Reveal variant="right">
-              <div className="img-zoom relative overflow-hidden rounded-3xl shadow-lg">
+              <div className="img-zoom relative overflow-hidden shadow-lg">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={KOUTOU_IMAGES.horseClose.src} alt="リタッチ馬" className="h-72 w-full object-cover sm:h-96" loading="lazy" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />

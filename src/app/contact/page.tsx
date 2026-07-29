@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import SiteHeader from "@/components/site-header";
+import FullPageBackground from "@/components/full-page-background";
+import { SENMON_IMAGES } from "@/lib/site-images";
 import ContactForm from "./contact-form";
 
 export const metadata: Metadata = {
@@ -9,7 +11,8 @@ export const metadata: Metadata = {
 
 export default function ContactPage() {
   return (
-    <div className="min-h-screen bg-brand-50/40">
+    <div className="min-h-screen">
+      <FullPageBackground src={SENMON_IMAGES.kankyoReception.src} alt={SENMON_IMAGES.kankyoReception.alt} tone="neutral" />
       <SiteHeader />
       <div className="mx-auto max-w-xl px-4 py-10">
         <div className="mb-6 text-center">

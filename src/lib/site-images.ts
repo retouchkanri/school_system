@@ -24,7 +24,10 @@ export type SiteImage = {
     | "event"
     | "horse"
     | "banner"
-    | "icon";
+    | "icon"
+    | "classroom"
+    | "uniform"
+    | "reception";
   /** どちらの学院か */
   school: "koutou" | "senmon";
 };
@@ -92,6 +95,10 @@ export const KOUTOU_DETAIL = {
   shisetsuKosha: { src: `${DIR}/net-shisetsu-kosha.jpg`, alt: "校舎(全景)", source: `${NET}/2022/12/shisetsu_002_1.jpg`, category: "facility", school: "koutou" },
   shisetsuDorm: { src: `${DIR}/net-shisetsu-dorm.jpg`, alt: "学生寮(一人部屋)", source: `${NET}/2023/05/shisetsu_013_1.jpg`, category: "dorm", school: "koutou" },
   shisetsuShokudo: { src: `${DIR}/net-shisetsu-shokudo.jpg`, alt: "食堂スペース", source: `${NET}/2022/12/shisetsu_004_1.jpg`, category: "facility", school: "koutou" },
+  shisetsuClassroom1: { src: `${DIR}/net-shisetsu-classroom-1.jpg`, alt: "音楽室を改装した明るい高校教室", source: `${NET}/2022/12/shisetsu_005_1.jpg`, category: "classroom", school: "koutou" },
+  shisetsuClassroom2: { src: `${DIR}/net-shisetsu-classroom-2.jpg`, alt: "黒板のある専門教室", source: `${NET}/2022/12/shisetsu_006_1.jpg`, category: "classroom", school: "koutou" },
+  shisetsuHall: { src: `${DIR}/net-shisetsu-hall.jpg`, alt: "授業や学校説明会で使う多目的ホール", source: `${NET}/2023/05/shisetsu_012_2.jpg`, category: "classroom", school: "koutou" },
+  shisetsuLounge: { src: `${DIR}/net-shisetsu-lounge.jpg`, alt: "図書室を改装した生徒の休憩・多目的ルーム", source: `${NET}/2022/12/shisetsu_003_1.jpg`, category: "facility", school: "koutou" },
 } as const;
 
 /** 東関東馬事専門学院 (bajigaku.site) の画像 */
@@ -139,6 +146,11 @@ export const SENMON_IMAGES = {
   photo9: { src: `${DIR}/site-photo-9.jpg`, alt: "学院の日常 1", source: `${SITE_UP}/2024/12/IMG_8817-1024x768.jpeg`, category: "campus", school: "senmon" },
   photo10: { src: `${DIR}/site-photo-10.jpg`, alt: "学院の日常 2", source: `${SITE_UP}/2024/12/IMG_8829-1024x768.jpeg`, category: "campus", school: "senmon" },
   photo11: { src: `${DIR}/site-photo-11.jpg`, alt: "学院の日常 3", source: `${SITE_UP}/2024/12/IMG_8890-1024x768.jpeg`, category: "campus", school: "senmon" },
+  uniformBroadcast: { src: `${DIR}/site-uniform-broadcast.jpg`, alt: "制服姿の学生たちが授業中に競馬中継を観戦", source: `${SITE_THEME}/img/tokucho/img_002_6.jpg`, category: "uniform", school: "senmon" },
+  classroomExamPrep: { src: `${DIR}/site-classroom-exam-prep.jpg`, alt: "JRA厩務員筆記試験対策の教室学習", source: `${SITE_THEME}/img/curriculum/img_002_4.jpg`, category: "classroom", school: "senmon" },
+  kankyoOffice: { src: `${DIR}/site-kankyo-office.jpg`, alt: "教室や事務所のあるクラブハウス", source: `${SITE_THEME}/img/kankyo/img_002_5.jpg`, category: "reception", school: "senmon" },
+  kankyoReception: { src: `${DIR}/site-kankyo-reception.jpg`, alt: "荷物の受け取りにも対応する管理室窓口", source: `${SITE_THEME}/img/kankyo/img_004_5.jpg`, category: "reception", school: "senmon" },
+  kankyoDining: { src: `${DIR}/site-kankyo-dining.jpg`, alt: "学生寮の食堂スペース", source: `${SITE_THEME}/img/kankyo/img_004_3.jpg`, category: "dorm", school: "senmon" },
 } as const;
 
 /** 特徴アイコン (専門学院) */
