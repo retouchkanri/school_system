@@ -15,6 +15,11 @@ export const metadata: Metadata = {
     template: "%s | 東関東馬事学院",
   },
   description: "資料請求から入学、在校生管理までを一元化する馬事学院統合プラットフォーム",
+  icons: {
+    icon: [{ url: "/images/pubicon.png", type: "image/png" }],
+    apple: [{ url: "/images/pubicon.png", type: "image/png" }],
+    shortcut: "/images/pubicon.png",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

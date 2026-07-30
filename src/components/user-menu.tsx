@@ -47,6 +47,7 @@ export default function UserMenu({
         className="flex items-center gap-2 rounded-md px-1.5 py-1 transition hover:bg-gray-50"
         aria-haspopup="menu"
         aria-expanded={open}
+        title={name}
       >
         {avatarUrl ? (
           // eslint-disable-next-line @next/next/no-img-element

@@ -5,18 +5,45 @@ type SiteLogoProps = {
   height?: number;
   /** ロゴのリンク先。未指定時はトップページへ */
   href?: string;
+  /**
+   * brand: ヘッダー左のブランド帯向け (ロゴ画像を上下余白なしで配置)
+   * mark: エンブレム画像のみ
+   * full: 横長ロゴ画像 (既定)
+   */
+  variant?: "full" | "mark" | "brand";
 };
 
-export default function SiteLogo({ className = "", height = 40, href = "/" }: SiteLogoProps) {
+/** サイト共通ロゴ。brand バリアントはヘッダー左のブランド帯で使用 */
+export default function SiteLogo({
+  className = "",
+  height = 56,
+  href = "/",
+  variant = "full",
+}: SiteLogoProps) {
+  if (variant === "brand") {
+    return (
+      <Link
+        href={href}
+        className={`box-border flex h-[58px] items-stretch pl-[5vw] pb-1.5 transition sm:h-[72px] sm:pb-2 ${className}`}
+        aria-label="トップページへ"
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/images/logo.png"
+          alt="東関東馬事高等学院・東関東馬事専門学院 入学管理システム"
+          className="h-full w-auto max-w-[min(70vw,432px)] object-contain object-left"
+        />
+      </Link>
+    );
+  }
+
+  const src = variant === "mark" ? "/images/pubicon.png" : "/images/logo.png";
+  const alt = variant === "mark" ? "東関東馬事学院" : "馬事学院／東関東馬事専門学院";
+
   return (
     <Link href={href} className={`inline-flex items-center ${className}`} aria-label="トップページへ">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src="/images/logo.png"
-        alt="馬事学院／東関東馬事専門学院"
-        className="w-auto max-w-full object-contain"
-        style={{ height }}
-      />
+      <img src={src} alt={alt} className="w-auto max-w-full object-contain" style={{ height }} />
     </Link>
   );
 }

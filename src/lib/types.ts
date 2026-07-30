@@ -25,7 +25,7 @@ export type AiJudgement = "approved" | "caution" | "rejected";
 export type BookingStatus = "reserved" | "attended" | "cancelled" | "no_show";
 export type PaymentMethod = "credit_card" | "bank_transfer";
 export type PaymentStatus = "pending" | "paid" | "confirmed" | "refunded" | "cancelled";
-export type PaymentType = "open_campus" | "admission_fee" | "uniform" | "materials";
+export type PaymentType = "open_campus" | "admission_fee" | "uniform" | "materials" | "tuition";
 export type RespondentType = "student" | "parent";
 export type ApplicationStatus = "draft" | "submitted" | "under_review" | "interview_scheduled" | "decided";
 export type AdmissionResult = "accepted" | "rejected" | "waitlist";
@@ -34,10 +34,14 @@ export type AudienceType = "enrollee" | "student" | "parent" | "supporter" | "al
 export type AttendanceStatus = "present" | "absent" | "late" | "early_leave";
 export type MealType = "breakfast" | "lunch" | "dinner";
 export type ApprovalStatus = "pending" | "approved" | "rejected";
+export type AbsenceRequestStatus = "pending" | "acknowledged" | "rejected";
 export type StudentState = "enrolled" | "graduated" | "withdrawn";
 export type NotifyChannel = "email" | "line";
 export type CareerOutcomeType = "employment" | "further_education" | "other";
 export type ReimbursementStatus = "pending" | "notified" | "paid";
+export type InsuranceClaimStatus = "draft" | "submitted" | "reviewing" | "approved" | "rejected" | "paid";
+/** 馬の入退記録の種別 */
+export type HorseMovementKind = "arrival" | "departure" | "transfer" | "return";
 
 export interface Profile {
   id: string;
@@ -59,6 +63,66 @@ export interface Horse {
   is_retouch: boolean;
   photo_url: string | null;
   notes: string | null;
+  /** 性別: 牡 / 牝 / 騸 */
+  sex: string | null;
+  /** 毛色 */
+  color: string | null;
+  birth_date: string | null;
+  /** マイクロチップ番号 */
+  microchip: string | null;
+  /** 馬主・所有者 */
+  owner: string | null;
+  /** 来場日 */
+  arrived_on: string | null;
+  /** 退場日 */
+  departed_on: string | null;
+  /** 在厩中か */
+  active: boolean;
+  insurance_company: string | null;
+  insurance_expires_on: string | null;
+  created_at: string;
+}
+
+/** 馬の入退記録 (入厩・退厩・移動・返還) */
+export interface HorseMovement {
+  id: string;
+  horse_id: string;
+  kind: HorseMovementKind;
+  date: string;
+  /** 相手先の牧場・クラブ名 */
+  counterpart: string | null;
+  reason: string | null;
+  notes: string | null;
+  created_by: string | null;
+  created_at: string;
+}
+
+/** 馬の予防接種歴 */
+export interface HorseVaccination {
+  id: string;
+  horse_id: string;
+  vaccine_name: string;
+  date: string;
+  next_due_date: string | null;
+  veterinarian: string | null;
+  lot_number: string | null;
+  notes: string | null;
+  created_by: string | null;
+  created_at: string;
+}
+
+/** 馬の装蹄歴 */
+export interface HorseFarrierRecord {
+  id: string;
+  horse_id: string;
+  date: string;
+  /** 全装 / 部分装蹄 / 削蹄 / 裸足 等 */
+  kind: string | null;
+  /** 装蹄師 */
+  farrier: string | null;
+  next_due_date: string | null;
+  notes: string | null;
+  created_by: string | null;
   created_at: string;
 }
 
@@ -217,6 +281,11 @@ export interface Payment {
   status: PaymentStatus;
   paid_at: string | null;
   confirmed_by: string | null;
+  /** 納付期限 */
+  due_date: string | null;
+  /** 分納の回次ラベル (例: 前期 / 第1回) */
+  installment_label: string | null;
+  memo: string | null;
   created_at: string;
 }
 
@@ -284,6 +353,14 @@ export interface RidingReport {
   lesson: string | null;
   content: string;
   horse_condition: string | null;
+  /** 落馬の有無 */
+  fell_off: boolean;
+  /** 乗りやすさ 1〜5 (null = 未回答) */
+  rideability: number | null;
+  /** 馬の機嫌・気性 (落ち着いていた / やや興奮 / 興奮していた 等) */
+  horse_mood: string | null;
+  /** ヒヤリハット・特記事項 */
+  incident: string | null;
   reported_by: string | null;
   created_at: string;
 }
@@ -299,6 +376,24 @@ export interface OvernightLeaveRequest {
   parent_comment: string | null;
   approved_at: string | null;
   staff_acknowledged: boolean;
+  created_at: string;
+}
+
+/** 欠席・遅刻・早退の事前連絡 (生徒/保護者が提出 → 職員が受理・却下) */
+export interface AbsenceRequest {
+  id: string;
+  student_id: string;
+  date: string;
+  kind: AttendanceStatus;
+  reason: string;
+  detail: string | null;
+  submitted_by: string | null;
+  submitted_role: string | null;
+  status: AbsenceRequestStatus;
+  staff_comment: string | null;
+  handled_by: string | null;
+  handled_at: string | null;
+  reflected_to_attendance: boolean;
   created_at: string;
 }
 
@@ -444,5 +539,64 @@ export interface Reimbursement {
   notified_at: string | null;
   paid_at: string | null;
   created_by: string | null;
+  created_at: string;
+}
+
+/** 怪我記録 (職員が記録。本人・保護者は閲覧のみ) */
+export interface InjuryRecord {
+  id: string;
+  student_id: string;
+  date: string;
+  /** 発生場面: 騎乗中 / 厩舎作業中 / 授業中 / 寮生活 / その他 */
+  occurred_at: string | null;
+  /** 関連する馬 (任意) */
+  horse_id: string | null;
+  body_part: string | null;
+  description: string;
+  /** 軽傷 / 通院 / 入院 / その他 */
+  severity: string | null;
+  /** 応急処置・処置内容 */
+  treatment: string | null;
+  /** 受診先 */
+  hospital: string | null;
+  doctor_note: string | null;
+  recorded_by: string | null;
+  created_at: string;
+}
+
+/** 保険申請 (本人・保護者が提出 → 職員が処理) */
+export interface InsuranceClaim {
+  id: string;
+  injury_record_id: string | null;
+  student_id: string;
+  /** 'student' | 'parent' */
+  claimant_role: string | null;
+  submitted_by: string | null;
+  status: InsuranceClaimStatus;
+  insurance_company: string | null;
+  claim_amount: number | null;
+  incident_summary: string;
+  /** アップロードした書類のストレージパス配列 */
+  documents: string[];
+  staff_comment: string | null;
+  handled_by: string | null;
+  handled_at: string | null;
+  paid_at: string | null;
+  created_at: string;
+}
+
+/** 共有写真 (student_id が null なら全体公開) */
+export interface SharedPhoto {
+  id: string;
+  title: string;
+  description: string | null;
+  taken_on: string | null;
+  student_id: string | null;
+  /** 'student' | 'parent' | 'both' */
+  audience: string;
+  /** ストレージ (student-photos バケット) のパス配列 */
+  files: string[];
+  created_by: string | null;
+  notified_at: string | null;
   created_at: string;
 }

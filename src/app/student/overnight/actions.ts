@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth";
 import { getStudentForUser } from "@/lib/data";
 import { adminDb } from "@/lib/supabase/admin";
-import { notifyBoth } from "@/lib/notify";
+import { notifyBoth, notifyStaff } from "@/lib/notify";
 import { siteOrigin } from "@/lib/url";
 import type { Profile } from "@/lib/types";
 
@@ -41,13 +41,15 @@ export async function submitOvernightRequest(
   });
   if (error) return { error: "外泊届の提出に失敗しました" };
 
+  const origin = await siteOrigin();
+
   // 保護者へ承認依頼を通知
   let parentNotified = false;
   if (student.parent_user_id) {
     const { data } = await adminDb().from("profiles").select("*").eq("id", student.parent_user_id).maybeSingle();
     const parent = (data as Profile | null) ?? null;
     if (parent) {
-      const approvalUrl = `${await siteOrigin()}/parent/overnight`;
+      const approvalUrl = `${origin}/parent/overnight`;
       const sent = await notifyBoth(
         parent.email,
         parent.line_id,
@@ -57,6 +59,26 @@ export async function submitOvernightRequest(
       );
       parentNotified = sent > 0;
     }
+  }
+
+  // 職員へも提出を通知 (承認待ちの滞留に気づけるようにするため)。
+  // 通知の失敗で提出自体を失敗扱いにしないよう try/catch で囲む。
+  try {
+    const { data: adminsData } = await adminDb().from("profiles").select("email").eq("role", "admin");
+    const adminEmails = ((adminsData ?? []) as { email: string | null }[])
+      .map((a) => a.email)
+      .filter(Boolean) as string[];
+    const parentLine = parentNotified
+      ? "保護者への承認依頼: 送信済み"
+      : "保護者への承認依頼: 未送信\n※保護者アカウント未連携のため承認依頼は送信されていません。職員によるフォローをお願いします。";
+    await notifyStaff(
+      `【東関東馬事学院】外泊届が提出されました (${student.name})`,
+      `生徒: ${student.name}(${student.student_number})\n期間: ${startDate} 〜 ${endDate}\n行き先: ${destination}\n理由: ${reason || "—"}\n${parentLine}\n\n▼外泊届の管理ページ\n${origin}/admin/overnight`,
+      "overnight_submitted",
+      adminEmails
+    );
+  } catch (e) {
+    console.error("[overnight] 職員向け提出通知に失敗:", e);
   }
 
   revalidatePath("/student/overnight");

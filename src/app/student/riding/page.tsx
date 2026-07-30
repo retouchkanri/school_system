@@ -1,10 +1,11 @@
 import { requireRole } from "@/lib/auth";
 import { getStudentForUser } from "@/lib/data";
 import { adminDb } from "@/lib/supabase/admin";
-import { fmtDate, toDateInput } from "@/lib/format";
-import { Card, PageHeader, EmptyState, Table, Td, SectionTitle } from "@/components/ui";
+import { toDateInput } from "@/lib/format";
+import { Card, PageHeader, EmptyState, Table, SectionTitle } from "@/components/ui";
 import type { Horse, RidingReport } from "@/lib/types";
 import RidingForm, { type HorseOption } from "./riding-form";
+import ReportRow from "./report-row";
 
 type RidingReportWithHorse = RidingReport & { horses: { name: string } | null };
 
@@ -54,21 +55,33 @@ export default async function StudentRidingPage() {
           <EmptyState message="騎乗報告はまだありません" />
         </Card>
       ) : (
-        <Table headers={["日付", "馬", "時限・授業名", "騎乗内容", "馬の状態"]}>
-          {reports.map((r) => (
-            <tr key={r.id} className="hover:bg-gray-50">
-              <Td className="whitespace-nowrap text-gray-700">{fmtDate(r.report_date)}</Td>
-              <Td className="whitespace-nowrap font-medium text-gray-800">{r.horses?.name ?? "—"}</Td>
-              <Td className="whitespace-nowrap text-gray-600">{r.lesson ?? "—"}</Td>
-              <Td className="max-w-[18rem]">
-                <p className="whitespace-pre-wrap text-gray-700">{r.content}</p>
-              </Td>
-              <Td className="max-w-[14rem]">
-                <p className="whitespace-pre-wrap text-gray-600">{r.horse_condition ?? "—"}</p>
-              </Td>
-            </tr>
-          ))}
-        </Table>
+        <>
+          <Table headers={["日付", "馬", "時限・授業名", "落馬", "乗りやすさ", "騎乗内容", "馬の状態", "操作"]}>
+            {reports.map((r) => (
+              <ReportRow
+                key={r.id}
+                horses={horseOptions}
+                report={{
+                  id: r.id,
+                  report_date: r.report_date,
+                  horse_id: r.horse_id,
+                  horse_name: r.horses?.name ?? null,
+                  lesson: r.lesson,
+                  content: r.content,
+                  horse_condition: r.horse_condition,
+                  fell_off: r.fell_off ?? false,
+                  rideability: r.rideability,
+                  horse_mood: r.horse_mood,
+                  incident: r.incident,
+                }}
+              />
+            ))}
+          </Table>
+          <p className="mt-3 text-xs text-gray-400">
+            ※ 編集・削除した内容はリタッチ馬の月次AI要約には自動反映されません。反映が必要な場合は、学校職員が「リタッチ馬
+            月次報告」ページで要約を再生成する必要があるため、担当職員へお知らせください。
+          </p>
+        </>
       )}
     </div>
   );

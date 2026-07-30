@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { Field, inputCls, btnPrimary } from "@/components/ui";
 import { createRidingReport, type ActionState } from "./actions";
+import EvalFields from "./eval-fields";
 
 export interface StudentOption {
   id: string;
@@ -81,6 +82,8 @@ export default function ReportForm({
           />
         </Field>
       </div>
+
+      <EvalFields />
 
       {state.error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{state.error}</p>}
       {state.ok && <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">✓ 騎乗報告を登録しました</p>}

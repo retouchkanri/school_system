@@ -24,7 +24,7 @@ import {
   Utensils,
 } from "lucide-react";
 import SiteHeader from "@/components/site-header";
-import HomeHero from "@/components/home/home-hero";
+import HomeHero, { type Slide } from "@/components/home/home-hero";
 import Reveal from "@/components/home/reveal";
 import Counter from "@/components/home/counter";
 import PhotoMarquee from "@/components/home/photo-marquee";
@@ -33,12 +33,42 @@ import { KOUTOU_IMAGES, KOUTOU_DETAIL, KOUTOU_FUTURE, SENMON_IMAGES, OFFICIAL_SI
 
 /* ============ セクションデータ ============ */
 
-const HERO_SLIDES = [
-  { src: KOUTOU_IMAGES.campus1.src, alt: KOUTOU_IMAGES.campus1.alt },
-  { src: KOUTOU_IMAGES.riding1.src, alt: KOUTOU_IMAGES.riding1.alt },
-  { src: KOUTOU_IMAGES.campus3.src, alt: KOUTOU_IMAGES.campus3.alt },
-  { src: KOUTOU_IMAGES.horseClose.src, alt: KOUTOU_IMAGES.horseClose.alt },
-  { src: KOUTOU_IMAGES.campus2.src, alt: KOUTOU_IMAGES.campus2.alt },
+const HERO_SLIDES: Slide[] = [
+  {
+    src: KOUTOU_IMAGES.campus1.src,
+    alt: KOUTOU_IMAGES.campus1.alt,
+    label: "馬と生きる、未来をつくる。",
+    catch: "馬と生きる、\n未来をつくる。",
+    desc: "東関東馬事高等学院・東関東馬事専門学院。資料請求から入学、そして毎日の学院生活まで――ふたつの学院を、ひとつのプラットフォームで。",
+  },
+  {
+    src: KOUTOU_IMAGES.riding1.src,
+    alt: KOUTOU_IMAGES.riding1.alt,
+    label: "ほぼ毎日、馬に乗れる学校生活。",
+    catch: "ほぼ毎日、\n馬に乗れる学校生活。",
+    desc: "初心者からでも大丈夫。基礎から一つひとつ、確かな騎乗技術を身につけていきます。",
+  },
+  {
+    src: KOUTOU_IMAGES.campus3.src,
+    alt: KOUTOU_IMAGES.campus3.alt,
+    label: "馬とともに、365日を過ごす。",
+    catch: "馬とともに、\n365日を過ごす。",
+    desc: "全寮制だからこそ生まれる、馬と仲間との絆。学院生活のすべてがここにあります。",
+  },
+  {
+    src: KOUTOU_IMAGES.horseClose.src,
+    alt: KOUTOU_IMAGES.horseClose.alt,
+    label: "触れて、知る。馬というパートナー。",
+    catch: "触れて、知る。\n馬という、パートナー。",
+    desc: "馬の目線に立ち、心を通わせる。プロフェッショナルへの第一歩は、馬との対話から。",
+  },
+  {
+    src: KOUTOU_IMAGES.campus2.src,
+    alt: KOUTOU_IMAGES.campus2.alt,
+    label: "自然の中で、本物を学ぶ。",
+    catch: "自然の中で、\n本物を学ぶ。",
+    desc: "千葉県山武市の恵まれた環境で、座学と実践をバランスよく。ふたつの学院が、未来への扉を開きます。",
+  },
 ];
 
 const SCHOOLS = [
@@ -67,10 +97,10 @@ const SCHOOLS = [
 ];
 
 const SCHOOL_STATS = [
-  { value: 120, suffix: "頭+", label: "学生が管理する馬たち" },
-  { value: 4, suffix: "施設", label: "関東・関西の教育拠点" },
-  { value: 10, suffix: "年連続", label: "JRA厩務員課程 合格実績" },
-  { value: 100, suffix: "%", label: "牧場・乗馬クラブ就職率(令和7年度)" },
+  { value: 118, suffix: "頭", label: "本校で管理する馬匹の数" },
+  { value: 8, suffix: "施設", label: "本校の職場実習連携施設" },
+  { value: 72, suffix: "名", label: "ＪＲＡ厩務員の合格者数", note: "※平成２８年度以降" },
+  { value: 73, suffix: "％", label: "未経験・初心者の入学率", note: "※令和3年以降実績" },
 ];
 
 const PILLARS = [
@@ -321,6 +351,9 @@ export default function HomePage() {
                   <span className="ml-1 text-xl text-accent-600 sm:text-2xl">{stat.suffix}</span>
                 </p>
                 <p className="mt-2 text-xs leading-relaxed text-gray-500 sm:text-sm">{stat.label}</p>
+                {"note" in stat && stat.note && (
+                  <p className="mt-0.5 text-[10px] leading-relaxed text-gray-400 sm:text-xs">{stat.note}</p>
+                )}
               </Reveal>
             ))}
           </div>
@@ -477,11 +510,17 @@ export default function HomePage() {
                 ))}
               </div>
               <Reveal delay={200}>
-                <div className="mt-8 flex flex-wrap gap-4">
-                  <Link href="/student" className="inline-flex items-center gap-1.5 text-sm font-bold text-brand-600 hover:underline">
+                <div className="mt-8 flex flex-wrap gap-3">
+                  <Link
+                    href="/student"
+                    className="inline-flex items-center gap-1.5 bg-brand-600 px-6 py-3 text-sm font-bold text-white shadow-sm transition-colors duration-300 hover:bg-accent-500"
+                  >
                     在校生ポータルへ <ArrowRight className="h-4 w-4" />
                   </Link>
-                  <Link href="/parent" className="inline-flex items-center gap-1.5 text-sm font-bold text-brand-600 hover:underline">
+                  <Link
+                    href="/parent"
+                    className="inline-flex items-center gap-1.5 bg-brand-600 px-6 py-3 text-sm font-bold text-white shadow-sm transition-colors duration-300 hover:bg-accent-500"
+                  >
                     保護者ポータルへ <ArrowRight className="h-4 w-4" />
                   </Link>
                 </div>
@@ -552,7 +591,7 @@ export default function HomePage() {
                 </ul>
                 <Link
                   href="/supporter"
-                  className="mt-7 inline-flex items-center gap-1.5 rounded-lg bg-accent-500 px-6 py-3 text-sm font-bold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-accent-600"
+                  className="mt-7 inline-flex min-h-[48px] min-w-[200px] items-center justify-center gap-1.5 bg-brand-600 px-6 text-sm font-semibold text-white transition duration-300 ease-out hover:bg-accent-500"
                 >
                   一口支援者ポータルへ <ArrowRight className="h-4 w-4" />
                 </Link>
@@ -663,13 +702,13 @@ export default function HomePage() {
             <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
               <Link
                 href="/request"
-                className="shine relative overflow-hidden rounded-lg bg-accent-500 px-10 py-4 text-base font-bold text-white shadow-xl transition hover:-translate-y-0.5 hover:bg-accent-600"
+                className="inline-flex min-h-[56px] min-w-[220px] items-center justify-center bg-brand-600 px-10 text-base font-semibold text-white transition duration-300 ease-out hover:bg-accent-500"
               >
                 無料で資料請求する
               </Link>
               <a
                 href="tel:05068753336"
-                className="inline-flex items-center gap-2 rounded-lg border border-white/50 bg-white/10 px-8 py-4 text-sm font-bold text-white backdrop-blur transition hover:bg-white/20"
+                className="inline-flex min-h-[56px] min-w-[220px] items-center justify-center gap-2 border border-white bg-transparent px-8 text-sm font-semibold text-white transition duration-300 ease-out hover:bg-white hover:text-brand-800"
               >
                 <Phone className="h-4 w-4" /> 050-6875-3336
               </a>

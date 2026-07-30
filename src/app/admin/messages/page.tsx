@@ -4,21 +4,17 @@ import { PageHeader, Card, Table, Td, Badge, EmptyState, SectionTitle } from "@/
 import { fmtDateTime } from "@/lib/format";
 import type { BulkMessage } from "@/lib/types";
 import MessageForm from "./message-form";
-
-const BULK_AUDIENCE_LABELS: Record<string, string> = {
-  students: "在校生のみ",
-  parents: "保護者のみ",
-  both: "在校生+保護者",
-};
+import { buildClassOptions, bulkAudienceLabel, bulkAudienceTone, loadBulkDirectory } from "./audience";
 
 export default async function AdminMessagesPage() {
   await requireRole("admin");
 
-  const { data } = await adminDb()
-    .from("bulk_messages")
-    .select("*")
-    .order("sent_at", { ascending: false });
+  const [{ data }, dir] = await Promise.all([
+    adminDb().from("bulk_messages").select("*").order("sent_at", { ascending: false }),
+    loadBulkDirectory(),
+  ]);
   const messages = (data ?? []) as BulkMessage[];
+  const classOptions = buildClassOptions(dir);
 
   return (
     <div>
@@ -30,7 +26,7 @@ export default async function AdminMessagesPage() {
       <div className="grid gap-6 lg:grid-cols-5">
         <div className="lg:col-span-2">
           <Card title="✉️ 新規一斉送信">
-            <MessageForm />
+            <MessageForm classOptions={classOptions} />
           </Card>
         </div>
 
@@ -44,9 +40,7 @@ export default async function AdminMessagesPage() {
                 <tr key={m.id} className="hover:bg-gray-50">
                   <Td className="whitespace-nowrap text-xs text-gray-500">{fmtDateTime(m.sent_at)}</Td>
                   <Td>
-                    <Badge tone={m.audience === "students" ? "green" : m.audience === "parents" ? "amber" : "brand"}>
-                      {BULK_AUDIENCE_LABELS[m.audience] ?? m.audience}
-                    </Badge>
+                    <Badge tone={bulkAudienceTone(m.audience)}>{bulkAudienceLabel(m.audience)}</Badge>
                   </Td>
                   <Td>
                     <p className="text-sm font-semibold text-gray-800">{m.title}</p>

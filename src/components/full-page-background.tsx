@@ -2,6 +2,9 @@
  * ページ全体を覆うフルページ背景写真。
  * position:fixed でビューポートいっぱいに敷き、白いグラデーション幕(scrim)を重ねて
  * 前面のカード・文字が常に読みやすい状態を保つ。z-index は最背面(-10)。
+ *
+ * <img> ではなく CSS background-image を使うことで、広告ブロッカー等が
+ * 属性を注入して発生する hydration mismatch を避ける。
  */
 export default function FullPageBackground({
   src,
@@ -14,9 +17,16 @@ export default function FullPageBackground({
   tone?: "brand" | "neutral";
 }) {
   return (
-    <div className="fixed inset-0 -z-10 overflow-hidden" aria-hidden={alt ? undefined : true} role={alt ? "img" : undefined} aria-label={alt || undefined}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={src} alt="" className="h-full w-full object-cover" />
+    <div
+      className="fixed inset-0 -z-10 overflow-hidden"
+      aria-hidden={alt ? undefined : true}
+      role={alt ? "img" : undefined}
+      aria-label={alt || undefined}
+    >
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url(${src})` }}
+      />
       <div
         className={
           tone === "brand"

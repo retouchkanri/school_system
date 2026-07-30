@@ -5,6 +5,7 @@ import { fmtDateTime } from "@/lib/format";
 import { AUDIENCE_LABELS } from "@/lib/constants";
 import type { Announcement } from "@/lib/types";
 import AnnouncementForm from "./announcement-form";
+import { buildAnnouncementStats, loadAnnouncementDirectory } from "./audience";
 
 const AUDIENCE_TONES: Record<Announcement["audience"], BadgeTone> = {
   enrollee: "blue",
@@ -17,11 +18,12 @@ const AUDIENCE_TONES: Record<Announcement["audience"], BadgeTone> = {
 export default async function AdminAnnouncementsPage() {
   await requireRole("admin");
 
-  const { data } = await adminDb()
-    .from("announcements")
-    .select("*")
-    .order("published_at", { ascending: false });
+  const [{ data }, dir] = await Promise.all([
+    adminDb().from("announcements").select("*").order("published_at", { ascending: false }),
+    loadAnnouncementDirectory(),
+  ]);
   const announcements = (data ?? []) as Announcement[];
+  const stats = buildAnnouncementStats(dir);
 
   return (
     <div>
@@ -33,7 +35,7 @@ export default async function AdminAnnouncementsPage() {
       <div className="grid gap-6 lg:grid-cols-5">
         <div className="lg:col-span-2">
           <Card title="📣 新規お知らせ作成">
-            <AnnouncementForm />
+            <AnnouncementForm stats={stats} />
           </Card>
         </div>
 

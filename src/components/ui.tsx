@@ -152,13 +152,21 @@ export function Field({
 }
 
 export const btnPrimary =
-  "inline-flex items-center justify-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex items-center justify-center gap-2 bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white transition duration-300 ease-out hover:bg-accent-500 disabled:cursor-not-allowed disabled:opacity-50";
 export const btnSecondary =
-  "inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50 disabled:opacity-50";
+  "inline-flex items-center justify-center gap-2 border border-gray-800 bg-white px-5 py-2.5 text-sm font-semibold text-gray-800 transition duration-300 ease-out hover:bg-gray-800 hover:text-white disabled:opacity-50";
 export const btnDanger =
-  "inline-flex items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700 disabled:opacity-50";
+  "inline-flex items-center justify-center gap-2 bg-red-600 px-5 py-2.5 text-sm font-semibold text-white transition duration-300 ease-out hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50";
 export const btnSmall =
-  "inline-flex items-center justify-center gap-1 rounded-md border border-gray-300 bg-white px-2.5 py-1 text-xs font-semibold text-gray-700 transition hover:bg-gray-50 disabled:opacity-50";
+  "inline-flex items-center justify-center gap-1 border border-gray-800 bg-white px-2.5 py-1 text-xs font-semibold text-gray-800 transition duration-300 ease-out hover:bg-gray-800 hover:text-white disabled:opacity-50";
+
+/** トップ・公開ページ向けの大きめCTA (創進学園風の角ばったソリッドボタン) */
+export const btnCta =
+  "inline-flex min-h-[56px] min-w-[220px] items-center justify-center gap-2 bg-brand-600 px-8 text-base font-semibold text-white transition duration-300 ease-out hover:bg-accent-500";
+export const btnCtaAccent =
+  "inline-flex min-h-[56px] min-w-[220px] items-center justify-center gap-2 bg-accent-500 px-8 text-base font-semibold text-white transition duration-300 ease-out hover:bg-brand-600";
+export const btnCtaOutline =
+  "inline-flex min-h-[56px] min-w-[220px] items-center justify-center gap-2 border border-white bg-transparent px-8 text-base font-semibold text-white transition duration-300 ease-out hover:bg-white hover:text-brand-800";
 
 /* ============ テーブル ============ */
 

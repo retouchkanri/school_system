@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { submitRidingReport, type RidingActionState } from "./actions";
 import { Field, inputCls, btnPrimary } from "@/components/ui";
+import EvalFields from "./eval-fields";
 
 export interface HorseOption {
   id: string;
@@ -68,6 +69,8 @@ export default function RidingForm({
           placeholder="例: 落ち着いていた。左後肢に少し気になる様子あり。"
         />
       </Field>
+
+      <EvalFields />
 
       <button type="submit" disabled={pending} className={btnPrimary}>
         {pending ? "送信中…" : "報告を送信する"}

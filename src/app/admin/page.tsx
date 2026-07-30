@@ -20,7 +20,9 @@ export default async function AdminDashboardPage() {
   ] = await Promise.all([
     db.from("leads").select("*").order("created_at", { ascending: false }),
     db.from("applications").select("*"),
-    db.from("payments").select("*"),
+    // 学費 (type='tuition') は /admin/tuition 専用のため、この画面の「入金確認待ち」件数からは除外する
+    // (リンク先の /admin/payments も同じ条件で除外しており、件数と一覧を一致させる)
+    db.from("payments").select("*").neq("type", "tuition"),
     db.from("overnight_leave_requests").select("*"),
     findFollowUpTargets(),
     getFollowUpSettings(),

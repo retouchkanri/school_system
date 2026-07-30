@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireRole } from "@/lib/auth";
 import { adminDb } from "@/lib/supabase/admin";
 import { fmtDateTime, fmtYen } from "@/lib/format";
@@ -36,9 +37,11 @@ export default async function AdminPaymentsPage() {
   await requireRole("admin");
   const db = adminDb();
 
+  // 学費 (type='tuition') は専用の /admin/tuition で管理するため、この画面の一覧・集計からは除外する
   const { data: paymentsData } = await db
     .from("payments")
     .select("*, leads(name), students(name)")
+    .neq("type", "tuition")
     .order("created_at", { ascending: false });
   const payments = (paymentsData ?? []) as PaymentRow[];
 
@@ -63,7 +66,12 @@ export default async function AdminPaymentsPage() {
     <div>
       <PageHeader
         title="入金管理"
-        description="オープンキャンパス参加費・入学金などの決済状況を確認します"
+        description="オープンキャンパス参加費・入学金などの決済状況を確認します (学費は「学費・納付管理」)"
+        action={
+          <Link href="/admin/tuition" className={btnSmall}>
+            学費・納付管理へ →
+          </Link>
+        }
       />
 
       <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-3">

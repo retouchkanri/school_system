@@ -25,6 +25,7 @@ const NAV: { section: string; items: { href: string; label: string }[] }[] = [
     items: [
       { href: "/admin/students", label: "生徒一覧" },
       { href: "/admin/attendance", label: "出欠管理" },
+      { href: "/admin/absences", label: "欠席・遅刻連絡" },
       { href: "/admin/meals", label: "食事管理" },
       { href: "/admin/riding-reports", label: "騎乗報告(日報)" },
       { href: "/admin/trainings", label: "研修管理" },
@@ -32,11 +33,14 @@ const NAV: { section: string; items: { href: string; label: string }[] }[] = [
       { href: "/admin/surveys", label: "定期アンケート" },
       { href: "/admin/grades", label: "成績管理" },
       { href: "/admin/competency", label: "社会人基礎力評価" },
+      { href: "/admin/injuries", label: "怪我・保険申請" },
+      { href: "/admin/photos", label: "写真共有" },
     ],
   },
   {
     section: "進路・経費",
     items: [
+      { href: "/admin/tuition", label: "学費・納付管理" },
       { href: "/admin/career", label: "進路管理" },
       { href: "/admin/reimbursements", label: "諸経費精算" },
     ],

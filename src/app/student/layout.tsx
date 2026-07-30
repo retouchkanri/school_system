@@ -4,6 +4,7 @@ import PortalLayout from "@/components/portal-layout";
 const NAV = [
   { href: "/student", label: "ホーム" },
   { href: "/student/attendance", label: "出欠" },
+  { href: "/student/absence", label: "欠席連絡" },
   { href: "/student/riding", label: "騎乗報告" },
   { href: "/student/trainings", label: "研修" },
   { href: "/student/overnight", label: "外泊届" },
@@ -11,6 +12,9 @@ const NAV = [
   { href: "/student/grades", label: "成績表" },
   { href: "/student/competency", label: "社会人基礎力" },
   { href: "/student/career", label: "進路" },
+  { href: "/student/photos", label: "写真" },
+  { href: "/student/insurance", label: "怪我・保険" },
+  { href: "/student/tuition", label: "学費" },
   { href: "/student/reimbursements", label: "諸経費返金" },
   { href: "/student/surveys", label: "アンケート" },
   { href: "/student/announcements", label: "お知らせ" },

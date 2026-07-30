@@ -29,15 +29,17 @@ export default async function AccountPage() {
   return (
     <div className="min-h-screen">
       <FullPageBackground src={KOUTOU_IMAGES.campus1.src} alt={KOUTOU_IMAGES.campus1.alt} tone="neutral" />
-      <header className="sticky top-0 z-20 border-b border-white/60 bg-white/90 backdrop-blur-md">
-        <div className="flex w-full items-center justify-between px-[5vw] py-4">
-          <SiteLogo href="/" />
-          <Link
-            href={roleHome(profile.role)}
-            className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50"
-          >
-            ← ホームへ戻る
-          </Link>
+      <header className="sticky top-0 z-20 border-b border-gray-200 bg-white shadow-sm">
+        <div className="flex w-full items-stretch">
+          <SiteLogo variant="brand" href="/" className="shrink-0" />
+          <div className="flex flex-1 items-center justify-end px-[5vw]">
+            <Link
+              href={roleHome(profile.role)}
+              className="border border-gray-800 bg-white px-3 py-1.5 text-xs font-semibold text-gray-800 transition hover:bg-gray-800 hover:text-white"
+            >
+              ← ホームへ戻る
+            </Link>
+          </div>
         </div>
       </header>
 

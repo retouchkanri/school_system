@@ -879,3 +879,231 @@ create unique index if not exists payments_lead_type_uniq
 -- 本人アカウントは1生徒にのみ連携可能 (保護者は複数の子を持てるため制限しない)
 create unique index if not exists students_user_id_uniq
   on students(user_id) where user_id is not null;
+
+-- ---------- 欠席・遅刻・早退の事前連絡 (生徒/保護者が提出 → 職員が受理・却下) ----------
+do $$ begin
+  create type absence_request_status as enum ('pending','acknowledged','rejected');
+exception when duplicate_object then null;
+end $$;
+
+create table if not exists absence_requests (
+  id uuid primary key default gen_random_uuid(),
+  student_id uuid not null references students(id) on delete cascade,
+  date date not null,                                       -- 欠席・遅刻する日
+  kind attendance_status not null,                          -- absent / late / early_leave (present は使わない)
+  reason text not null,                                     -- 理由 (必須)
+  detail text,                                              -- 補足 (任意)
+  submitted_by uuid references profiles(id),                -- 提出者 (生徒本人 or 保護者)
+  submitted_role text,                                      -- 'student' | 'parent' (表示用)
+  status absence_request_status not null default 'pending',
+  staff_comment text,                                       -- 職員コメント
+  handled_by uuid references profiles(id),
+  handled_at timestamptz,
+  reflected_to_attendance boolean not null default false,   -- 出欠記録へ反映済みか
+  created_at timestamptz not null default now()
+);
+create index if not exists absence_requests_student_date_idx on absence_requests(student_id, date);
+
+alter table absence_requests enable row level security;
+drop policy if exists "abs_rw" on absence_requests;
+create policy "abs_rw" on absence_requests for all
+  using (student_id in (select my_student_ids()) or is_admin())
+  with check (student_id in (select my_student_ids()) or is_admin());
+
+-- ============================================================
+-- 追加機能 (馬台帳 / 騎乗評価 / 怪我・保険 / 写真共有 / 学費)
+-- ここから下は既存DBへの追記用。再実行しても安全。
+-- ============================================================
+
+-- ---------- A. 馬台帳 (140頭規模の在厩管理) ----------
+alter table horses add column if not exists sex text;                 -- 牡 / 牝 / 騸
+alter table horses add column if not exists color text;               -- 毛色
+alter table horses add column if not exists birth_date date;          -- 生年月日
+alter table horses add column if not exists microchip text;           -- マイクロチップ番号
+alter table horses add column if not exists owner text;               -- 馬主・所有者
+alter table horses add column if not exists arrived_on date;          -- 来場日
+alter table horses add column if not exists departed_on date;         -- 退場日
+alter table horses add column if not exists active boolean not null default true; -- 在厩中か
+alter table horses add column if not exists insurance_company text;   -- 保険会社
+alter table horses add column if not exists insurance_expires_on date;-- 保険満了日
+
+-- 入退記録 (入厩・退厩・移動・返還)
+create table if not exists horse_movements (
+  id uuid primary key default gen_random_uuid(),
+  horse_id uuid not null references horses(id) on delete cascade,
+  kind text not null,          -- 'arrival' | 'departure' | 'transfer' | 'return'
+  date date not null,
+  counterpart text,            -- 相手先の牧場・クラブ名
+  reason text,
+  notes text,
+  created_by uuid references profiles(id),
+  created_at timestamptz not null default now()
+);
+create index if not exists horse_movements_horse_date_idx on horse_movements(horse_id, date desc);
+
+-- 予防接種歴
+create table if not exists horse_vaccinations (
+  id uuid primary key default gen_random_uuid(),
+  horse_id uuid not null references horses(id) on delete cascade,
+  vaccine_name text not null,
+  date date not null,
+  next_due_date date,
+  veterinarian text,
+  lot_number text,
+  notes text,
+  created_by uuid references profiles(id),
+  created_at timestamptz not null default now()
+);
+create index if not exists horse_vaccinations_horse_date_idx on horse_vaccinations(horse_id, date desc);
+
+-- 装蹄歴
+create table if not exists horse_farrier_records (
+  id uuid primary key default gen_random_uuid(),
+  horse_id uuid not null references horses(id) on delete cascade,
+  date date not null,
+  kind text,                   -- 全装 / 部分装蹄 / 削蹄 / 裸足 等
+  farrier text,                -- 装蹄師
+  next_due_date date,
+  notes text,
+  created_by uuid references profiles(id),
+  created_at timestamptz not null default now()
+);
+create index if not exists horse_farrier_records_horse_date_idx on horse_farrier_records(horse_id, date desc);
+
+alter table horse_movements enable row level security;
+alter table horse_vaccinations enable row level security;
+alter table horse_farrier_records enable row level security;
+
+drop policy if exists "hmv_read" on horse_movements;
+create policy "hmv_read" on horse_movements for select using (auth.uid() is not null);
+drop policy if exists "hmv_admin" on horse_movements;
+create policy "hmv_admin" on horse_movements for all using (is_admin());
+drop policy if exists "hvc_read" on horse_vaccinations;
+create policy "hvc_read" on horse_vaccinations for select using (auth.uid() is not null);
+drop policy if exists "hvc_admin" on horse_vaccinations;
+create policy "hvc_admin" on horse_vaccinations for all using (is_admin());
+drop policy if exists "hfr_read" on horse_farrier_records;
+create policy "hfr_read" on horse_farrier_records for select using (auth.uid() is not null);
+drop policy if exists "hfr_admin" on horse_farrier_records;
+create policy "hfr_admin" on horse_farrier_records for all using (is_admin());
+
+-- ---------- B. 騎乗報告への評価項目 (馬ごとの評価集計用) ----------
+alter table riding_reports add column if not exists fell_off boolean not null default false; -- 落馬の有無
+alter table riding_reports add column if not exists rideability smallint;   -- 乗りやすさ 1〜5 (null = 未回答)
+alter table riding_reports add column if not exists horse_mood text;        -- 馬の機嫌・気性
+alter table riding_reports add column if not exists incident text;          -- ヒヤリハット・特記事項
+
+-- ---------- C. 怪我記録と保険申請 ----------
+do $$ begin
+  create type insurance_claim_status as enum ('draft','submitted','reviewing','approved','rejected','paid');
+exception when duplicate_object then null;
+end $$;
+
+create table if not exists injury_records (
+  id uuid primary key default gen_random_uuid(),
+  student_id uuid not null references students(id) on delete cascade,
+  date date not null,
+  occurred_at text,            -- 発生場面: 騎乗中 / 厩舎作業中 / 授業中 / 寮生活 / その他
+  horse_id uuid references horses(id) on delete set null, -- 関連する馬 (任意)
+  body_part text,
+  description text not null,
+  severity text,               -- 軽傷 / 通院 / 入院 / その他
+  treatment text,              -- 応急処置・処置内容
+  hospital text,               -- 受診先
+  doctor_note text,
+  recorded_by uuid references profiles(id),
+  created_at timestamptz not null default now()
+);
+create index if not exists injury_records_student_date_idx on injury_records(student_id, date desc);
+
+create table if not exists insurance_claims (
+  id uuid primary key default gen_random_uuid(),
+  injury_record_id uuid references injury_records(id) on delete set null,
+  student_id uuid not null references students(id) on delete cascade,
+  claimant_role text,          -- 'student' | 'parent'
+  submitted_by uuid references profiles(id),
+  status insurance_claim_status not null default 'submitted',
+  insurance_company text,
+  claim_amount int,
+  incident_summary text not null,
+  documents jsonb not null default '[]'::jsonb, -- アップロードした書類のパス配列
+  staff_comment text,
+  handled_by uuid references profiles(id),
+  handled_at timestamptz,
+  paid_at timestamptz,
+  created_at timestamptz not null default now()
+);
+create index if not exists insurance_claims_student_idx on insurance_claims(student_id, created_at desc);
+
+alter table injury_records enable row level security;
+alter table insurance_claims enable row level security;
+
+drop policy if exists "inj_read" on injury_records;
+create policy "inj_read" on injury_records for select
+  using (student_id in (select my_student_ids()) or is_admin());
+drop policy if exists "inj_admin" on injury_records;
+create policy "inj_admin" on injury_records for all using (is_admin());
+
+-- 保険申請は本人・保護者からの提出(insert)も許可する
+drop policy if exists "icl_read" on insurance_claims;
+create policy "icl_read" on insurance_claims for select
+  using (student_id in (select my_student_ids()) or is_admin());
+drop policy if exists "icl_insert" on insurance_claims;
+create policy "icl_insert" on insurance_claims for insert
+  with check (student_id in (select my_student_ids()) or is_admin());
+drop policy if exists "icl_admin" on insurance_claims;
+create policy "icl_admin" on insurance_claims for all using (is_admin()) with check (is_admin());
+
+-- ---------- D. 写真共有 (学校 → 在校生・保護者) ----------
+create table if not exists shared_photos (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  description text,
+  taken_on date,
+  student_id uuid references students(id) on delete cascade, -- 個人宛。null なら全体公開
+  audience text not null default 'both',                     -- 'student' | 'parent' | 'both'
+  files jsonb not null default '[]'::jsonb,                  -- ストレージのパス配列
+  created_by uuid references profiles(id),
+  notified_at timestamptz,
+  created_at timestamptz not null default now()
+);
+create index if not exists shared_photos_student_idx on shared_photos(student_id, created_at desc);
+
+alter table shared_photos enable row level security;
+drop policy if exists "sph_read" on shared_photos;
+create policy "sph_read" on shared_photos for select
+  using (
+    (auth.uid() is not null and student_id is null)
+    or student_id in (select my_student_ids())
+    or is_admin()
+  );
+drop policy if exists "sph_admin" on shared_photos;
+create policy "sph_admin" on shared_photos for all using (is_admin()) with check (is_admin());
+
+-- ---------- ストレージ: 共有写真 ----------
+-- 非公開バケット。閲覧はサーバー側(サービスロール)で署名付きURLを発行する。
+insert into storage.buckets (id, name, public)
+values ('student-photos', 'student-photos', false)
+on conflict (id) do nothing;
+
+drop policy if exists "stuphotos_admin_read" on storage.objects;
+create policy "stuphotos_admin_read" on storage.objects for select
+  using (bucket_id = 'student-photos' and is_admin());
+drop policy if exists "stuphotos_admin_write" on storage.objects;
+create policy "stuphotos_admin_write" on storage.objects for insert
+  with check (bucket_id = 'student-photos' and is_admin());
+drop policy if exists "stuphotos_admin_update" on storage.objects;
+create policy "stuphotos_admin_update" on storage.objects for update
+  using (bucket_id = 'student-photos' and is_admin());
+drop policy if exists "stuphotos_admin_delete" on storage.objects;
+create policy "stuphotos_admin_delete" on storage.objects for delete
+  using (bucket_id = 'student-photos' and is_admin());
+
+-- ---------- E. 学費・納付管理 ----------
+alter type payment_type add value if not exists 'tuition'; -- 学費
+
+alter table payments add column if not exists due_date date;          -- 納付期限
+alter table payments add column if not exists installment_label text; -- 例: 前期 / 第1回
+alter table payments add column if not exists memo text;
+
+create index if not exists payments_student_due_idx on payments(student_id, due_date);

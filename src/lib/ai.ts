@@ -1,6 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { PRE_SCREENING_QUESTIONS, POST_VISIT_QUESTIONS } from "@/lib/constants";
-import { APTITUDE_QUESTIONS, TraitKey } from "@/lib/aptitude";
+import { PRE_SCREENING_QUESTIONS, POST_VISIT_QUESTIONS, RIDEABILITY_LABELS } from "@/lib/constants";
+import { APTITUDE_QUESTIONS, type TraitKey } from "@/lib/aptitude";
 import { isDevPhase } from "@/lib/dev";
 import type { AiJudgement } from "@/lib/types";
 
@@ -405,41 +405,260 @@ export interface ReportForSummary {
   report_date: string;
   content: string;
   horse_condition: string | null;
+  /**
+   * 生徒名。参加人数の集計と職員画面での元データ確認にのみ使う。
+   * 支援者は学院外部の方なので、AIプロンプトにもレポート本文にも氏名は渡さない。
+   */
   student_name?: string;
+  /** 乗りやすさ 1〜5 (null / 未指定 = 未回答) ※後方互換のため任意 */
+  rideability?: number | null;
+  /** 馬の機嫌・気性 (落ち着いていた / やや興奮 / 興奮していた 等) ※後方互換のため任意 */
+  horse_mood?: string | null;
+  /** ヒヤリハット・特記事項 (内部の安全管理記録) ※後方互換のため任意 */
+  incident?: string | null;
+  /** 落馬の有無 (内部の安全管理記録) ※後方互換のため任意 */
+  fell_off?: boolean;
 }
 
+/** その月の騎乗報告から集計した「レポートの材料」。職員が生成前に内容を確認する画面でも使う。 */
+export interface HorseMonthMaterials {
+  /** 騎乗報告の件数 */
+  reportCount: number;
+  /** 関わった生徒の人数 (student_name のユニーク数) */
+  studentCount: number;
+  /** 乗りやすさの平均 (小数第1位)。回答が1件も無ければ null */
+  rideabilityAvg: number | null;
+  /** 乗りやすさの回答件数 */
+  rideabilityCount: number;
+  /** 乗りやすさの内訳 (スコア降順) */
+  rideabilityBreakdown: { score: number; count: number }[];
+  /** 馬の様子の内訳 (件数降順) */
+  moodBreakdown: { mood: string; count: number }[];
+  /** 馬の状態メモ (新しい順に最大3件) */
+  conditions: string[];
+  /** 生徒の生のコメント (重複除去のうえ最大6件・各120字まで) */
+  voices: string[];
+  /** ヒヤリハットの記録件数 (内部管理用) */
+  incidentCount: number;
+  /** 落馬の記録件数 (内部管理用) */
+  fellOffCount: number;
+}
+
+/** 騎乗報告の配列から月次レポートの材料を集計する (AIパス・ルールベースパス・職員画面で共用) */
+export function computeHorseMonthMaterials(reports: ReportForSummary[]): HorseMonthMaterials {
+  const students = new Set<string>();
+  const scores: number[] = [];
+  const scoreCount: Record<number, number> = {};
+  const moodCount: Record<string, number> = {};
+  const conditions: string[] = [];
+  const voices: string[] = [];
+  let incidentCount = 0;
+  let fellOffCount = 0;
+
+  for (const r of reports) {
+    const name = (r.student_name ?? "").trim();
+    if (name) students.add(name);
+
+    const score = typeof r.rideability === "number" ? r.rideability : null;
+    if (score !== null && Number.isFinite(score) && score >= 1 && score <= 5) {
+      const s = Math.round(score);
+      scores.push(s);
+      scoreCount[s] = (scoreCount[s] ?? 0) + 1;
+    }
+
+    const mood = (r.horse_mood ?? "").trim();
+    if (mood) moodCount[mood] = (moodCount[mood] ?? 0) + 1;
+
+    const condition = (r.horse_condition ?? "").trim();
+    if (condition) conditions.push(condition);
+
+    const content = (r.content ?? "").trim();
+    if (content) voices.push(content.length > 120 ? `${content.slice(0, 120)}…` : content);
+
+    if ((r.incident ?? "").trim()) incidentCount++;
+    if (r.fell_off) fellOffCount++;
+  }
+
+  return {
+    reportCount: reports.length,
+    studentCount: students.size,
+    rideabilityAvg: scores.length
+      ? Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 10) / 10
+      : null,
+    rideabilityCount: scores.length,
+    rideabilityBreakdown: Object.entries(scoreCount)
+      .map(([score, count]) => ({ score: Number(score), count }))
+      .sort((a, b) => b.score - a.score),
+    moodBreakdown: Object.entries(moodCount)
+      .map(([mood, count]) => ({ mood, count }))
+      .sort((a, b) => b.count - a.count),
+    conditions: conditions.slice(-3).reverse(),
+    voices: Array.from(new Set(voices)).slice(0, 6),
+    incidentCount,
+    fellOffCount,
+  };
+}
+
+/**
+ * 一口支援者向け月次レポートのAIプロンプトを組み立てる。
+ *
+ * 【落馬・ヒヤリハットの扱いについて (重要な配慮)】
+ * 一口支援者は学院の外部の方であり、このレポートは「支援している馬のひと月」を
+ * 楽しみに読むものである。一方 fell_off / incident は学院内部の安全管理のための記録で、
+ * そのまま外部へ出すと支援者に不必要な不安を与え、その馬に「危険な馬」という
+ * 誤った印象を与えかねない (支援の打ち切りにもつながりうる)。
+ * そのため件数・原文は「内部記録」として明示的に区別して渡し、
+ * 本文へは前向きな描写としてのみ反映するようAIに指示する。
+ * ただし「終始おだやかでした」のような事実に反する断定で塗りつぶすことは
+ * 支援者への不誠実にあたるため、事実を歪めない・健康上の問題を隠さないことも併せて指示する。
+ *
+ * 【生徒名について】
+ * 支援者は外部の方のため、生徒の氏名は個人情報として一切プロンプトに含めない
+ * (材料として渡すのは人数とコメント本文のみ)。加えて匿名で書くよう明示する。
+ */
+function buildHorseMonthPrompt(
+  horseName: string,
+  year: number,
+  month: number,
+  m: HorseMonthMaterials,
+  incidentNotes: string[]
+): string {
+  const sections: string[] = [];
+
+  const stats: string[] = [
+    `・騎乗/活動の記録: ${m.reportCount}件`,
+    `・関わった生徒: ${m.studentCount}名 (氏名は伏せています)`,
+  ];
+  if (m.rideabilityAvg !== null) {
+    const breakdown = m.rideabilityBreakdown
+      .map((b) => {
+        const label = RIDEABILITY_LABELS[b.score] || String(b.score);
+        return `${label}(${b.score}点) ${b.count}件`;
+      })
+      .join(" / ");
+    stats.push(
+      `・生徒がつけた「乗りやすさ」: 5点満点中 平均${m.rideabilityAvg.toFixed(1)}点 (回答${m.rideabilityCount}件、内訳: ${breakdown})`
+    );
+  } else {
+    stats.push("・生徒がつけた「乗りやすさ」: 今月は評価の記入がありませんでした");
+  }
+  if (m.moodBreakdown.length > 0) {
+    stats.push(`・その日の馬の様子: ${m.moodBreakdown.map((b) => `${b.mood} ${b.count}件`).join(" / ")}`);
+  }
+  if (m.conditions.length > 0) {
+    stats.push(`・馬の状態メモ(新しい順): ${m.conditions.map((c) => `「${c}」`).join(" ")}`);
+  }
+  sections.push(`■ 今月の記録(集計)\n${stats.join("\n")}`);
+
+  if (m.voices.length > 0) {
+    sections.push(
+      `■ 生徒たちの声(騎乗報告の原文。氏名は伏せています)\n` +
+        m.voices.map((v, i) => `${i + 1}. 「${v}」`).join("\n")
+    );
+  }
+
+  // 内部記録は「支援者向け文面にそのまま書かない材料」として明確に区別して渡す
+  if (m.fellOffCount > 0 || m.incidentCount > 0) {
+    const internal: string[] = [];
+    if (m.fellOffCount > 0) internal.push(`・気を張る場面の記録: ${m.fellOffCount}件`);
+    if (m.incidentCount > 0) internal.push(`・ヒヤリハットの記録: ${m.incidentCount}件`);
+    if (incidentNotes.length > 0) {
+      internal.push(...incidentNotes.map((n) => `・(記録内容) ${n}`));
+    }
+    sections.push(
+      `■ 内部記録(学院内部の安全管理記録。数値も語句も支援者向け文面にそのまま書かないこと)\n${internal.join("\n")}`
+    );
+  }
+
+  const rules = [
+    "1. 生徒の氏名は一切書かず、「生徒たち」「ある生徒」のように匿名で書いてください。",
+    "2. 「生徒たちの声」を活かし、その馬らしい具体的なエピソードを1〜2つ織り込んでください。原文の丸写しではなく、支援者に伝わる言葉へ温かく再構成してください。",
+    "3. 「内部記録」に落馬やヒヤリハットの記載があっても、支援者を不安にさせる表現(落馬・事故・危険・ケガ 等の語)は使わないでください。馬の個性や成長、生徒たちの学びとして前向きに描写してください。",
+    "4. ただし事実を歪めることは絶対にしないでください。健康上の問題や気を張る場面があったのに「終始おだやかでした」と断定するような書き方は禁止です。「気の張る日もありましたが、スタッフが付き添い落ち着いて過ごせました」のように誠実に表現してください。",
+    "5. 数字の羅列ではなく、支援者がその馬のひと月を思い浮かべられる読み物にしてください。",
+    "6. 最後はご支援への感謝の言葉で締めくくってください。",
+  ];
+
+  return (
+    `あなたは馬の学校(東関東馬事高等学院)のリタッチ馬(引退馬支援)月次レポート作成AIです。\n` +
+    `一口支援者の皆さまへお届けする、${horseName}号の${year}年${month}月のご報告文を日本語で250〜350字で書いてください。\n\n` +
+    `${sections.join("\n\n")}\n\n` +
+    `■ 執筆ルール\n${rules.join("\n")}\n\n` +
+    `本文のみを出力してください(見出し・箇条書き・前置き・後書きは不要です)。`
+  );
+}
+
+/**
+ * AIキーが無い / API呼び出しが失敗したときのルールベース月次レポート。
+ * AIパスと同じ材料(乗りやすさ平均・生徒数・馬の様子・生徒の声)を織り込み、
+ * AIが使えなくても支援者へそのまま出せる水準の文章を返す。
+ * 落馬・ヒヤリハットの扱いはAIパスと同じ方針 (件数や「落馬」の語は出さず、
+ * 事実を歪めない範囲で「気を張る場面もあった」というニュアンスに留める)。
+ */
+function ruleBasedHorseMonthSummary(
+  horseName: string,
+  year: number,
+  month: number,
+  m: HorseMonthMaterials
+): string {
+  if (m.reportCount === 0) {
+    return `${year}年${month}月の${horseName}号は、騎乗記録はありませんでしたが、スタッフによる日々のケアのもと穏やかに過ごしています。引き続き温かく見守りいただけますと幸いです。`;
+  }
+
+  const lines: string[] = [
+    `${year}年${month}月の${horseName}号のご報告です。`,
+    m.studentCount > 0
+      ? `今月は${m.reportCount}回の騎乗・活動記録があり、${m.studentCount}名の生徒たちが日々の手入れと騎乗を担当しました。`
+      : `今月は${m.reportCount}回の騎乗・活動記録がありました。`,
+  ];
+
+  if (m.rideabilityAvg !== null) {
+    const nearest = Math.min(5, Math.max(1, Math.round(m.rideabilityAvg)));
+    lines.push(
+      `生徒たちがつけた「乗りやすさ」は5点満点中 平均${m.rideabilityAvg.toFixed(1)}点(${m.rideabilityCount}件の回答)で、「${RIDEABILITY_LABELS[nearest]}」という声が中心でした。`
+    );
+  }
+  if (m.moodBreakdown.length > 0) {
+    const top = m.moodBreakdown[0];
+    lines.push(`日々の様子は「${top.mood}」との報告が最も多く(${top.count}件)、${horseName}号らしい表情を見せてくれました。`);
+  }
+  if (m.voices.length > 0) {
+    lines.push(`生徒からは「${m.voices[0]}」といった声が届いています。`);
+  }
+  if (m.conditions.length > 0) {
+    lines.push(`馬の状態については「${m.conditions[0]}」と報告されています。`);
+  }
+  if (m.fellOffCount > 0 || m.incidentCount > 0) {
+    lines.push(
+      "気を張る場面もありましたが、その都度スタッフが付き添い、馬にも生徒にも無理のないペースで稽古を進めています。"
+    );
+  }
+  lines.push("支援者の皆さまの温かいご支援に、生徒・スタッフ一同心より感謝申し上げます。");
+  return lines.join(" ");
+}
+
+/**
+ * リタッチ馬の月次レポートを生成する。
+ * AIが使える場合は生徒たちの生の声を材料に温かく再構成し、
+ * 使えない/失敗した場合は同じ材料からルールベースで組み立てる (二段フォールバック)。
+ */
 export async function summarizeHorseMonth(
   horseName: string,
   year: number,
   month: number,
   reports: ReportForSummary[]
 ): Promise<string> {
+  const materials = computeHorseMonthMaterials(reports);
+
   if (hasAI() && reports.length > 0) {
-    const body = reports
-      .map((r) => `${r.report_date} ${r.student_name ?? ""}: ${r.content}${r.horse_condition ? ` / 馬の状態: ${r.horse_condition}` : ""}`)
-      .join("\n");
-    const text = await askAI(
-      `あなたは馬の学校のリタッチ馬(引退馬支援)月次レポート作成AIです。${horseName}号の${year}年${month}月の騎乗報告をもとに、` +
-        `一口支援者の皆さまへ向けた温かみのある月次報告文を日本語で200〜300字で書いてください。健康状態・活動内容・生徒との関わりを含めてください。\n\n${body}`
-    );
+    const incidentNotes = reports
+      .map((r) => (r.incident ?? "").trim())
+      .filter(Boolean)
+      .slice(0, 3)
+      .map((n) => (n.length > 100 ? `${n.slice(0, 100)}…` : n));
+    const text = await askAI(buildHorseMonthPrompt(horseName, year, month, materials, incidentNotes));
     if (text) return text.trim();
   }
 
-  if (reports.length === 0) {
-    return `${year}年${month}月の${horseName}号は、騎乗記録はありませんでしたが、スタッフによる日々のケアのもと穏やかに過ごしています。引き続き温かく見守りいただけますと幸いです。`;
-  }
-  const conditions = reports.map((r) => r.horse_condition).filter(Boolean) as string[];
-  const students = Array.from(new Set(reports.map((r) => r.student_name).filter(Boolean)));
-  const lines = [
-    `${year}年${month}月の${horseName}号のご報告です。`,
-    `今月は${reports.length}回の騎乗・活動記録がありました。`,
-  ];
-  if (students.length > 0) {
-    lines.push(`${students.slice(0, 3).join("さん、")}さんをはじめとする生徒たちが日々の手入れと騎乗を担当し、信頼関係を深めています。`);
-  }
-  if (conditions.length > 0) {
-    lines.push(`馬の状態について:「${conditions[conditions.length - 1]}」と報告されています。`);
-  }
-  lines.push("支援者の皆さまの温かいご支援に、生徒・スタッフ一同心より感謝申し上げます。");
-  return lines.join(" ");
+  return ruleBasedHorseMonthSummary(horseName, year, month, materials);
 }

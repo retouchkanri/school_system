@@ -1,12 +1,13 @@
 import { requireRole } from "@/lib/auth";
 import Link from "next/link";
 import { adminDb } from "@/lib/supabase/admin";
-import { fmtDate, toDateInput } from "@/lib/format";
-import { PageHeader, Card, Table, Td, Badge, EmptyState, btnSecondary } from "@/components/ui";
+import { toDateInput } from "@/lib/format";
+import { PageHeader, Card, Table, EmptyState, btnSecondary } from "@/components/ui";
 import type { Student, Horse, RidingReport } from "@/lib/types";
 import ReportForm, { type StudentOption, type HorseOption } from "./report-form";
+import ReportRow from "./report-row";
 
-type ReportRow = RidingReport & {
+type ReportRecord = RidingReport & {
   student: Pick<Student, "id" | "name"> | null;
   horse: Pick<Horse, "id" | "name" | "is_retouch"> | null;
 };
@@ -35,7 +36,7 @@ export default async function RidingReportsPage({
     db.from("horses").select("*").order("name", { ascending: true }),
   ]);
 
-  const reports = (reportsData ?? []) as ReportRow[];
+  const reports = (reportsData ?? []) as ReportRecord[];
   const students = (studentsData ?? []) as Student[];
   const horses = (horsesData ?? []) as Horse[];
 
@@ -79,51 +80,40 @@ export default async function RidingReportsPage({
       {reports.length === 0 ? (
         <EmptyState message="騎乗報告はまだありません" />
       ) : (
-        <Table headers={["日付", "生徒", "馬", "時限・授業名", "騎乗内容", "馬の状態"]}>
-          {reports.map((r) => (
-            <tr key={r.id} className="hover:bg-gray-50">
-              <Td className="whitespace-nowrap text-gray-600">{fmtDate(r.report_date)}</Td>
-              <Td className="whitespace-nowrap">
-                {r.student ? (
-                  <Link href={`/admin/students/${r.student.id}`} className="font-semibold text-brand-700 hover:underline">
-                    {r.student.name}
-                  </Link>
-                ) : (
-                  "—"
-                )}
-              </Td>
-              <Td className="whitespace-nowrap">
-                {r.horse ? (
-                  <span className="text-gray-800">
-                    {r.horse.name}
-                    {r.horse.is_retouch && (
-                      <span className="ml-1">
-                        <Badge tone="purple">リタッチ</Badge>
-                      </span>
-                    )}
-                  </span>
-                ) : (
-                  "—"
-                )}
-              </Td>
-              <Td className="whitespace-nowrap text-gray-600">{r.lesson ?? "—"}</Td>
-              <Td className="max-w-72">
-                <p className="line-clamp-2 whitespace-pre-wrap text-gray-800" title={r.content}>
-                  {r.content}
-                </p>
-              </Td>
-              <Td className="max-w-56">
-                {r.horse_condition ? (
-                  <p className="line-clamp-2 whitespace-pre-wrap text-gray-600" title={r.horse_condition}>
-                    {r.horse_condition}
-                  </p>
-                ) : (
-                  <span className="text-gray-400">—</span>
-                )}
-              </Td>
-            </tr>
-          ))}
-        </Table>
+        <>
+          <Table headers={["日付", "生徒", "馬", "時限・授業名", "落馬", "乗りやすさ", "騎乗内容", "馬の状態", "操作"]}>
+            {reports.map((r) => (
+              <ReportRow
+                key={r.id}
+                students={studentOptions}
+                horses={horseOptions}
+                report={{
+                  id: r.id,
+                  report_date: r.report_date,
+                  student_id: r.student_id,
+                  student_name: r.student?.name ?? null,
+                  horse_id: r.horse_id,
+                  horse_name: r.horse?.name ?? null,
+                  horse_is_retouch: r.horse?.is_retouch ?? false,
+                  lesson: r.lesson,
+                  content: r.content,
+                  horse_condition: r.horse_condition,
+                  fell_off: r.fell_off ?? false,
+                  rideability: r.rideability,
+                  horse_mood: r.horse_mood,
+                  incident: r.incident,
+                }}
+              />
+            ))}
+          </Table>
+          <p className="mt-3 text-xs text-gray-400">
+            ※ 報告を編集・削除しても月次AI要約は自動で作り直されません。反映するには
+            <Link href="/admin/retouch" className="mx-1 font-semibold text-brand-600 hover:underline">
+              リタッチ馬 月次報告
+            </Link>
+            ページで要約を再生成してください。
+          </p>
+        </>
       )}
     </div>
   );

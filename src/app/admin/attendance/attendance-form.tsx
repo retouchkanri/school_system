@@ -52,6 +52,12 @@ export default function AttendanceForm({
       />
       {pending && <span className="text-xs text-gray-400">保存中…</span>}
       {!pending && state.ok && <span className="text-xs font-semibold text-emerald-600">✓ 保存済</span>}
+      {!pending && state.ok && state.parentNotified && (
+        <span className="text-xs font-semibold text-brand-600">保護者へ通知しました</span>
+      )}
+      {!pending && state.ok && state.parentUnlinked && (
+        <span className="text-xs font-semibold text-amber-600">保護者未連携のため通知は送信されていません</span>
+      )}
       {!pending && state.error && <span className="text-xs font-semibold text-red-600">{state.error}</span>}
     </form>
   );

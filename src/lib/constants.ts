@@ -10,11 +10,14 @@ import type {
   AdmissionResult,
   ProcedureStatus,
   ApprovalStatus,
+  AbsenceRequestStatus,
   AudienceType,
   MealType,
   VideoStatus,
   CareerOutcomeType,
   ReimbursementStatus,
+  InsuranceClaimStatus,
+  HorseMovementKind,
 } from "@/lib/types";
 
 /** 入学までの進捗ステップ (管理画面ダッシュボードの18項目) */
@@ -188,6 +191,7 @@ export const PAYMENT_TYPE_LABELS: Record<PaymentType, string> = {
   admission_fee: "入学金",
   uniform: "制服代",
   materials: "教材費",
+  tuition: "学費",
 };
 
 export const APPLICATION_STATUS_LABELS: Record<ApplicationStatus, string> = {
@@ -213,6 +217,12 @@ export const PROCEDURE_STATUS_LABELS: Record<ProcedureStatus, string> = {
 export const APPROVAL_STATUS_LABELS: Record<ApprovalStatus, string> = {
   pending: "承認待ち",
   approved: "承認済",
+  rejected: "却下",
+};
+
+export const ABSENCE_REQUEST_STATUS_LABELS: Record<AbsenceRequestStatus, string> = {
+  pending: "未確認",
+  acknowledged: "受理済",
   rejected: "却下",
 };
 
@@ -609,6 +619,48 @@ export const REIMBURSEMENT_STATUS_LABELS: Record<ReimbursementStatus, string> = 
   notified: "通知済(返金予定)",
   paid: "返金完了",
 };
+
+/** 保険申請のステータス */
+export const INSURANCE_CLAIM_STATUS_LABELS: Record<InsuranceClaimStatus, string> = {
+  draft: "下書き",
+  submitted: "申請済",
+  reviewing: "確認中",
+  approved: "承認",
+  rejected: "却下",
+  paid: "支払済",
+};
+
+/** 馬の入退記録の種別 */
+export const HORSE_MOVEMENT_KIND_LABELS: Record<HorseMovementKind, string> = {
+  arrival: "入厩",
+  departure: "退厩",
+  transfer: "移動",
+  return: "返還",
+};
+
+/** 怪我の発生場面 */
+export const INJURY_OCCURRED_OPTIONS = ["騎乗中", "厩舎作業中", "授業中", "寮生活", "その他"];
+
+/** 怪我の程度 */
+export const INJURY_SEVERITY_OPTIONS = ["軽傷", "通院", "入院", "その他"];
+
+/** 装蹄の種別 */
+export const FARRIER_KIND_OPTIONS = ["全装", "部分装蹄", "削蹄", "裸足"];
+
+/** 騎乗報告: 馬の乗りやすさ (1〜5) */
+export const RIDEABILITY_LABELS: Record<number, string> = {
+  1: "とても難しい",
+  2: "やや難しい",
+  3: "ふつう",
+  4: "乗りやすい",
+  5: "とても乗りやすい",
+};
+
+/** 騎乗報告: 馬の機嫌・気性 */
+export const HORSE_MOOD_OPTIONS = ["落ち着いていた", "やや興奮", "興奮していた"];
+
+/** 馬の性別 */
+export const HORSE_SEX_OPTIONS = ["牡", "牝", "騸"];
 
 /** 在校生定期アンケートのデフォルト設問 */
 export const DEFAULT_STUDENT_SURVEY_QUESTIONS = [

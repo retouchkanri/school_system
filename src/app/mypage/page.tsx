@@ -198,7 +198,7 @@ export default async function MypageHome() {
         className="mb-6 h-36 w-full rounded-xl object-cover sm:h-48"
       />
       <PageHeader
-        title={`こんにちは、${lead.name}さん`}
+        title={`こんにちは、${profile.full_name}さん`}
         description="入学までの進捗と次のステップをご案内します"
       />
 

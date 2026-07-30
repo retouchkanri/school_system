@@ -2,12 +2,13 @@ import { requireRole } from "@/lib/auth";
 import Link from "next/link";
 import { adminDb } from "@/lib/supabase/admin";
 import { toDateInput } from "@/lib/format";
-import { ATTENDANCE_STATUS_LABELS } from "@/lib/constants";
+import { ATTENDANCE_STATUS_LABELS, ABSENCE_REQUEST_STATUS_LABELS } from "@/lib/constants";
 import {
   PageHeader, StatCard, Table, Td, Badge, EmptyState, btnSecondary, btnSmall, type BadgeTone,
 } from "@/components/ui";
-import type { Student, AttendanceRecord, AttendanceStatus } from "@/lib/types";
+import type { Student, AttendanceRecord, AttendanceStatus, AbsenceRequest } from "@/lib/types";
 import AttendanceForm from "./attendance-form";
+import BulkPresentButton from "./bulk-present-button";
 
 const ATTENDANCE_TONES: Record<AttendanceStatus, BadgeTone> = {
   present: "green",
@@ -35,14 +36,23 @@ export default async function AttendancePage({
   const weekday = WEEKDAYS[new Date(`${date}T00:00:00`).getDay()];
 
   const db = adminDb();
-  const [{ data: studentsData }, { data: recordsData }] = await Promise.all([
+  const [{ data: studentsData }, { data: recordsData }, { data: absencesData }] = await Promise.all([
     db.from("students").select("*").eq("status", "enrolled").order("student_number", { ascending: true }),
     db.from("attendance_records").select("*").eq("date", date),
+    // 事前連絡 (欠席・遅刻・早退の届出)。テーブル未作成の環境ではエラーになるが data=null で安全に無視される
+    db.from("absence_requests").select("*").eq("date", date),
   ]);
 
   const students = (studentsData ?? []) as Student[];
   const records = (recordsData ?? []) as AttendanceRecord[];
+  const absences = (absencesData ?? []) as AbsenceRequest[];
   const recordMap = new Map<string, AttendanceRecord>(records.map((r) => [r.student_id, r]));
+  // 同一生徒・同一日に複数件ある場合は却下されていないものを優先
+  const absenceMap = new Map<string, AbsenceRequest>();
+  for (const a of absences) {
+    const prev = absenceMap.get(a.student_id);
+    if (!prev || (prev.status === "rejected" && a.status !== "rejected")) absenceMap.set(a.student_id, a);
+  }
 
   const count = (s: AttendanceStatus) => records.filter((r) => r.status === s).length;
   const unrecorded = students.filter((s) => !recordMap.has(s.id)).length;
@@ -53,7 +63,7 @@ export default async function AttendancePage({
         title="日次出欠登録"
         description="生徒ごとに出席・欠席・遅刻・早退を登録します"
         action={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Link href={`/admin/attendance?date=${addDays(date, -1)}`} className={btnSmall}>
               ← 前日
             </Link>
@@ -71,14 +81,20 @@ export default async function AttendancePage({
             <Link href={`/admin/attendance?date=${addDays(date, 1)}`} className={btnSmall}>
               翌日 →
             </Link>
+            <Link href={`/admin/attendance/monthly?month=${date.slice(0, 7)}`} className={btnSmall}>
+              月間出欠表 →
+            </Link>
           </div>
         }
       />
 
-      <p className="mb-4 text-sm font-semibold text-gray-700">
-        📅 {date.replace(/-/g, "/")} ({weekday}) の出欠
-        {unrecorded > 0 && <span className="ml-2 text-xs font-medium text-gray-400">未登録 {unrecorded}名</span>}
-      </p>
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <p className="text-sm font-semibold text-gray-700">
+          📅 {date.replace(/-/g, "/")} ({weekday}) の出欠
+          {unrecorded > 0 && <span className="ml-2 text-xs font-medium text-gray-400">未登録 {unrecorded}名</span>}
+        </p>
+        <BulkPresentButton date={date} unrecorded={unrecorded} />
+      </div>
 
       <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard label="出席" value={count("present")} tone="success" sub={`全${students.length}名中`} />
@@ -93,6 +109,7 @@ export default async function AttendancePage({
         <Table headers={["氏名", "クラス", "状態", "出欠登録・備考"]}>
           {students.map((s) => {
             const rec = recordMap.get(s.id) ?? null;
+            const absence = absenceMap.get(s.id) ?? null;
             return (
               <tr key={s.id} className="hover:bg-gray-50">
                 <Td>
@@ -103,11 +120,22 @@ export default async function AttendancePage({
                 </Td>
                 <Td className="text-gray-600">{s.class_name ?? "—"}</Td>
                 <Td>
-                  {rec ? (
-                    <Badge tone={ATTENDANCE_TONES[rec.status]}>{ATTENDANCE_STATUS_LABELS[rec.status]}</Badge>
-                  ) : (
-                    <Badge tone="gray">未登録</Badge>
-                  )}
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {rec ? (
+                      <Badge tone={ATTENDANCE_TONES[rec.status]}>{ATTENDANCE_STATUS_LABELS[rec.status]}</Badge>
+                    ) : (
+                      <Badge tone="gray">未登録</Badge>
+                    )}
+                    {absence && (
+                      <Link
+                        href="/admin/absences"
+                        title={`事前連絡: ${ATTENDANCE_STATUS_LABELS[absence.kind]} / ${ABSENCE_REQUEST_STATUS_LABELS[absence.status]} / 理由: ${absence.reason}`}
+                        className="hover:underline"
+                      >
+                        <Badge tone="amber">連絡あり ({ATTENDANCE_STATUS_LABELS[absence.kind]})</Badge>
+                      </Link>
+                    )}
+                  </div>
                 </Td>
                 <Td>
                   <AttendanceForm

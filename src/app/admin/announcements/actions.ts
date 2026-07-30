@@ -4,20 +4,21 @@ import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth";
 import { adminDb } from "@/lib/supabase/admin";
 import { notifyMany } from "@/lib/notify";
+import { AUDIENCE_LABELS } from "@/lib/constants";
 import type { AudienceType } from "@/lib/types";
+import { ANNOUNCEMENT_AUDIENCES, loadAnnouncementDirectory, resolveAnnouncementAudience } from "./audience";
 
 export interface ActionState {
   ok?: boolean;
   error?: string;
+  /** 1チャネル以上へ配信処理を実行できた宛先数 */
   count?: number;
+  /** 配信対象の人数 (重複排除後) */
+  targetCount?: number;
+  emailCount?: number;
+  lineCount?: number;
+  audienceLabel?: string;
 }
-
-interface Recipient {
-  email: string | null;
-  line_id: string | null;
-}
-
-const AUDIENCES: AudienceType[] = ["enrollee", "student", "parent", "supporter", "all"];
 
 /** お知らせを作成し、対象者へメール/LINEを配信する */
 export async function sendAnnouncementAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
@@ -29,7 +30,7 @@ export async function sendAnnouncementAction(_prev: ActionState, formData: FormD
   const sendEmail = formData.get("send_email") === "on";
   const sendLine = formData.get("send_line") === "on";
 
-  if (!AUDIENCES.includes(audience)) return { error: "配信対象を選択してください" };
+  if (!ANNOUNCEMENT_AUDIENCES.includes(audience)) return { error: "配信対象を選択してください" };
   if (!title || !body) return { error: "タイトルと本文は必須です" };
   if (!sendEmail && !sendLine) return { error: "メール・LINEのいずれかの配信方法を選択してください" };
 
@@ -44,23 +45,11 @@ export async function sendAnnouncementAction(_prev: ActionState, formData: FormD
   });
   if (error) return { error: "お知らせの作成に失敗しました" };
 
-  // 対象者の宛先を収集
-  let recipients: Recipient[] = [];
-  if (audience === "enrollee") {
-    // 入学決定者 = 合格通知済みのリード
-    const { data } = await db
-      .from("admission_decisions")
-      .select("leads(email, line_id)")
-      .eq("result", "accepted");
-    recipients = ((data ?? []) as unknown as { leads: Recipient | null }[])
-      .map((r) => r.leads)
-      .filter((l): l is Recipient => l !== null);
-  } else {
-    let query = db.from("profiles").select("email, line_id");
-    if (audience !== "all") query = query.eq("role", audience);
-    const { data } = await query;
-    recipients = (data ?? []) as Recipient[];
-  }
+  // 対象者の宛先を収集 (重複排除済み)
+  const dir = await loadAnnouncementDirectory();
+  const { stat, recipients } = resolveAnnouncementAudience(dir, audience);
+  const emailCount = sendEmail ? recipients.filter((r) => r.email).length : 0;
+  const lineCount = sendLine ? recipients.filter((r) => r.line_id).length : 0;
 
   const count = await notifyMany(recipients, title, body, "announcement", {
     email: sendEmail,
@@ -69,5 +58,12 @@ export async function sendAnnouncementAction(_prev: ActionState, formData: FormD
 
   revalidatePath("/admin/announcements");
   revalidatePath("/admin/notifications");
-  return { ok: true, count };
+  return {
+    ok: true,
+    count,
+    targetCount: stat.total,
+    emailCount,
+    lineCount,
+    audienceLabel: AUDIENCE_LABELS[audience],
+  };
 }
