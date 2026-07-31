@@ -5,7 +5,7 @@ import { isDevPhase } from "@/lib/dev";
 import { adminDb } from "@/lib/supabase/admin";
 import { fmtDate } from "@/lib/format";
 import { KOUTOU_IMAGES, KOUTOU_DETAIL, SENMON_IMAGES } from "@/lib/site-images";
-import { Card, PageHeader, Badge, EmptyState, InfoRow, btnPrimary } from "@/components/ui";
+import { Section, PageHeader, Badge, EmptyState, InfoRow, btnPrimary } from "@/components/ui";
 import type { AdmissionDecision, Announcement, EnrollmentProcedure, Horse, Student } from "@/lib/types";
 
 function InfoSection({
@@ -43,7 +43,7 @@ export default async function EnrolleePage() {
     return (
       <div>
         <PageHeader title="入学者専用ページ" />
-        <Card>
+        <Section>
           <div className="py-6 text-center">
             <p className="mt-3 text-sm font-bold text-gray-800">資料請求がまだ紐づいていません</p>
             <p className="mt-2 text-sm text-gray-500">まずは資料請求フォームからお申し込みください。</p>
@@ -51,7 +51,7 @@ export default async function EnrolleePage() {
               資料請求フォームへ
             </Link>
           </div>
-        </Card>
+        </Section>
       </div>
     );
   }
@@ -73,7 +73,7 @@ export default async function EnrolleePage() {
     return (
       <div>
         <PageHeader title="入学者専用ページ" />
-        <Card>
+        <Section>
           <div className="py-6 text-center">
             <p className="text-3xl">🌸</p>
             <p className="mt-3 text-sm font-bold text-gray-800">
@@ -88,7 +88,7 @@ export default async function EnrolleePage() {
               {!isAccepted ? "合否確認ページへ →" : "入学手続きへ進む →"}
             </Link>
           </div>
-        </Card>
+        </Section>
       </div>
     );
   }
@@ -218,7 +218,7 @@ export default async function EnrolleePage() {
       ) : (
         <div className="space-y-4">
           {announcements.map((a) => (
-            <Card key={a.id}>
+            <Section key={a.id}>
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h3 className="text-sm font-bold text-gray-900">{a.title}</h3>
                 <div className="flex items-center gap-2">
@@ -229,7 +229,7 @@ export default async function EnrolleePage() {
                 </div>
               </div>
               <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-gray-700">{a.body}</p>
-            </Card>
+            </Section>
           ))}
         </div>
       )}

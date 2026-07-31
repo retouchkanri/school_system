@@ -12,7 +12,7 @@ import {
   EXPERIENCE_APPLICATION_URLS,
 } from "@/lib/constants";
 import { fmtDate, fmtYen, toDateInput } from "@/lib/format";
-import { Card, PageHeader, Badge, EmptyState, Table, Td, SectionTitle, btnPrimary, btnSecondary, btnSmall, type BadgeTone } from "@/components/ui";
+import { Section, PageHeader, Badge, EmptyState, SimpleTable, Td, SectionTitle, btnPrimary, btnSecondary, btnSmall, type BadgeTone } from "@/components/ui";
 import type { BookingStatus, OpenCampusBooking, OpenCampusEvent, PaymentStatus } from "@/lib/types";
 import BookingForm from "./booking-form";
 import { cancelBookingAction, requestIndividualConsultationAction } from "./actions";
@@ -48,7 +48,7 @@ export default async function EventsPage({
     return (
       <div>
         <PageHeader title="見学・オープンキャンパス予約" />
-        <Card>
+        <Section>
           <div className="py-6 text-center">
             <p className="mt-3 text-sm font-bold text-gray-800">資料請求がまだ紐づいていません</p>
             <p className="mt-2 text-sm text-gray-500">まずは資料請求フォームからお申し込みください。</p>
@@ -56,7 +56,7 @@ export default async function EventsPage({
               資料請求フォームへ
             </Link>
           </div>
-        </Card>
+        </Section>
       </div>
     );
   }
@@ -66,7 +66,7 @@ export default async function EventsPage({
     return (
       <div>
         <PageHeader title="見学・オープンキャンパス予約" />
-        <Card>
+        <Section>
           <div className="py-6 text-center">
             <p className="mt-3 text-sm font-bold text-gray-800">まずは入学仮審査アンケートにご回答ください</p>
             <p className="mt-2 text-sm text-gray-500">
@@ -76,7 +76,7 @@ export default async function EventsPage({
               仮審査アンケートへ →
             </Link>
           </div>
-        </Card>
+        </Section>
       </div>
     );
   }
@@ -138,14 +138,14 @@ export default async function EventsPage({
       )}
 
       {courseUrl && (
-        <Card title="体験入学のお申し込みについて" className="mb-6">
+        <Section title="体験入学のお申し込みについて" className="mb-6">
           <p className="text-sm text-gray-600">
             体験入学(お試し入学)は下記の専用フォームからもお申し込みいただけます。
           </p>
           <a href={courseUrl} target="_blank" rel="noopener noreferrer" className={`${btnSecondary} mt-3`}>
             体験入学申込フォームを開く →
           </a>
-        </Card>
+        </Section>
       )}
 
       <SectionTitle>開催予定のイベント</SectionTitle>
@@ -157,7 +157,7 @@ export default async function EventsPage({
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
           {events.map((ev) => (
-            <Card key={ev.id}>
+            <Section key={ev.id}>
               <div className="flex items-start justify-between gap-2">
                 <h3 className="text-sm font-bold text-gray-900">{ev.title}</h3>
                 {activeBookingEventIds.has(ev.id) && <Badge tone="blue">仮予約済</Badge>}
@@ -182,7 +182,7 @@ export default async function EventsPage({
                 <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-gray-600">{ev.description}</p>
               )}
               {!activeBookingEventIds.has(ev.id) && <BookingForm eventId={ev.id} skipPayment={skipPaymentInDev()} />}
-            </Card>
+            </Section>
           ))}
         </div>
       )}
@@ -191,7 +191,7 @@ export default async function EventsPage({
       {bookings.length === 0 ? (
         <EmptyState message="まだ予約はありません" />
       ) : (
-        <Table headers={["イベント", "日程", "決済方法", "決済状況", "参加状況", ""]}>
+        <SimpleTable headers={["イベント", "日程", "決済方法", "決済状況", "参加状況", ""]}>
           {bookings.map((b) => (
             <tr key={b.id} className="hover:bg-gray-50">
               <Td className="font-medium text-gray-900">{b.open_campus_events?.title ?? "—"}</Td>
@@ -215,7 +215,7 @@ export default async function EventsPage({
               </Td>
             </tr>
           ))}
-        </Table>
+        </SimpleTable>
       )}
 
       {hasPendingBank && (

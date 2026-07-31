@@ -7,7 +7,7 @@ import {
   completedStepCount,
   progressTitle,
 } from "@/lib/constants";
-import { Card, PageHeader, ProgressTracker, btnPrimary } from "@/components/ui";
+import { Section, PageHeader, ProgressTracker, btnPrimary } from "@/components/ui";
 import type { LeadStatus } from "@/lib/types";
 
 /** 各ステップの作業ページへのリンク */
@@ -40,7 +40,7 @@ export default async function MyStatusPage() {
     return (
       <div>
         <PageHeader title="現在の状態" description="入学までの進捗を確認できます" />
-        <Card>
+        <Section>
           <div className="py-6 text-center">
             <p className="text-sm font-bold text-gray-800">資料請求がまだ紐づいていません</p>
             <p className="mt-2 text-sm text-gray-500">
@@ -50,7 +50,7 @@ export default async function MyStatusPage() {
               資料請求フォームへ
             </Link>
           </div>
-        </Card>
+        </Section>
       </div>
     );
   }
@@ -72,15 +72,15 @@ export default async function MyStatusPage() {
         description={`${done} / ${total} 完了 — 現在の進捗と残りのタスクを確認できます`}
       />
 
-      <Card title={progressTitle(lead.status)} className="mb-6">
+      <Section title={progressTitle(lead.status)} className="mb-6">
         <p className="mb-3 text-sm text-gray-600">
           各ステップをクリックすると、詳細説明が表示されます。
         </p>
         <ProgressTracker status={lead.status} />
-      </Card>
+      </Section>
 
       {currentStep && lead.status !== "enrolled" && (
-        <Card title="現在のステップ" className="mb-6">
+        <Section title="現在のステップ" className="mb-6">
           <p className="text-base font-bold text-gray-900">{currentStep.label}</p>
           <p className="mt-2 text-sm leading-relaxed text-gray-600">{currentStep.description}</p>
           {STEP_HREFS[currentStep.key] && (
@@ -88,10 +88,10 @@ export default async function MyStatusPage() {
               このステップへ進む →
             </Link>
           )}
-        </Card>
+        </Section>
       )}
 
-      <Card title={`残りのタスク（${remaining.length}件）`}>
+      <Section title={`残りのタスク（${remaining.length}件）`}>
         {remaining.length === 0 ? (
           <p className="text-sm text-gray-600">すべてのステップが完了しています。ご入学おめでとうございます。</p>
         ) : (
@@ -128,7 +128,7 @@ export default async function MyStatusPage() {
             })}
           </ul>
         )}
-      </Card>
+      </Section>
     </div>
   );
 }

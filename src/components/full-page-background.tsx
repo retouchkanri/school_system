@@ -13,8 +13,13 @@ export default function FullPageBackground({
 }: {
   src: string;
   alt?: string;
-  /** brand: ブランドグリーンがかった幕 / neutral: ニュートラルな白の幕 */
-  tone?: "brand" | "neutral";
+  /**
+   * brand: ブランドグリーンがかった幕
+   * neutral: ニュートラルな白の幕
+   * soft: やや薄めの白幕で写真のシャープさを保ちつつ入力欄の視認性を確保
+   * clear: 白幕なし（写真をそのまま表示）
+   */
+  tone?: "brand" | "neutral" | "soft" | "clear";
 }) {
   return (
     <div
@@ -27,14 +32,26 @@ export default function FullPageBackground({
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${src})` }}
       />
-      <div
-        className={
-          tone === "brand"
-            ? "absolute inset-0 bg-gradient-to-b from-white/92 via-white/85 to-brand-50/90"
-            : "absolute inset-0 bg-gradient-to-b from-white/94 via-white/88 to-white/92"
-        }
-      />
-      <div className="absolute inset-0 bg-gradient-to-r from-white/40 via-transparent to-white/40" />
+      {tone !== "clear" && (
+        <>
+          <div
+            className={
+              tone === "brand"
+                ? "absolute inset-0 bg-gradient-to-b from-white/92 via-white/85 to-brand-50/90"
+                : tone === "soft"
+                  ? "absolute inset-0 bg-gradient-to-b from-white/70 via-white/55 to-white/72"
+                  : "absolute inset-0 bg-gradient-to-b from-white/94 via-white/88 to-white/92"
+            }
+          />
+          <div
+            className={
+              tone === "soft"
+                ? "absolute inset-0 bg-gradient-to-r from-white/30 via-transparent to-white/30"
+                : "absolute inset-0 bg-gradient-to-r from-white/40 via-transparent to-white/40"
+            }
+          />
+        </>
+      )}
     </div>
   );
 }

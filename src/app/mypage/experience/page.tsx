@@ -3,7 +3,7 @@ import { requireRole } from "@/lib/auth";
 import { getLeadForUser } from "@/lib/data";
 import { adminDb } from "@/lib/supabase/admin";
 import { isDevPhase } from "@/lib/dev";
-import { Card, PageHeader, btnPrimary } from "@/components/ui";
+import { Section, PageHeader, btnPrimary } from "@/components/ui";
 import type { ExperienceSurvey } from "@/lib/types";
 import ExperienceForm from "./experience-form";
 
@@ -15,7 +15,7 @@ export default async function ExperiencePage() {
     return (
       <div>
         <PageHeader title="体験終了アンケート" />
-        <Card>
+        <Section>
           <div className="py-6 text-center">
             <p className="mt-3 text-sm font-bold text-gray-800">資料請求がまだ紐づいていません</p>
             <p className="mt-2 text-sm text-gray-500">まずは資料請求フォームからお申し込みください。</p>
@@ -23,7 +23,7 @@ export default async function ExperiencePage() {
               資料請求フォームへ
             </Link>
           </div>
-        </Card>
+        </Section>
       </div>
     );
   }
@@ -43,7 +43,7 @@ export default async function ExperiencePage() {
     return (
       <div>
         <PageHeader title="学校見学後アンケート" />
-        <Card>
+        <Section>
           <div className="py-6 text-center">
             <p className="mt-3 text-sm font-bold text-gray-800">体験参加後にご回答いただけます</p>
             <p className="mt-2 text-sm leading-relaxed text-gray-500">
@@ -54,7 +54,7 @@ export default async function ExperiencePage() {
               見学・オープンキャンパス予約へ →
             </Link>
           </div>
-        </Card>
+        </Section>
       </div>
     );
   }

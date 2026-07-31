@@ -2,7 +2,7 @@ import { requireRole } from "@/lib/auth";
 import { getStudentsForParent } from "@/lib/data";
 import { adminDb } from "@/lib/supabase/admin";
 import { fmtDate } from "@/lib/format";
-import { Card, PageHeader, EmptyState, Badge, Table, Td, SectionTitle } from "@/components/ui";
+import { Section, PageHeader, EmptyState, Badge, SimpleTable, Td, SectionTitle } from "@/components/ui";
 import type { GradeRecord } from "@/lib/types";
 
 export default async function ParentGradesPage() {
@@ -13,9 +13,9 @@ export default async function ParentGradesPage() {
     return (
       <div>
         <PageHeader title="お子様の成績表" />
-        <Card>
+        <Section>
           <EmptyState message="お子様の生徒情報が登録されていません。学校までお問い合わせください。" />
-        </Card>
+        </Section>
       </div>
     );
   }
@@ -43,11 +43,11 @@ export default async function ParentGradesPage() {
               {student.name}({student.student_number})
             </SectionTitle>
             {own.length === 0 ? (
-              <Card>
+              <Section>
                 <EmptyState message="成績記録はまだありません" />
-              </Card>
+              </Section>
             ) : (
-              <Table headers={["記録日", "学期", "科目", "点数", "評価", "コメント"]}>
+              <SimpleTable headers={["記録日", "学期", "科目", "点数", "評価", "コメント"]}>
                 {own.map((r) => (
                   <tr key={r.id} className="hover:bg-gray-50">
                     <Td className="whitespace-nowrap text-gray-600">{fmtDate(r.created_at)}</Td>
@@ -60,7 +60,7 @@ export default async function ParentGradesPage() {
                     </Td>
                   </tr>
                 ))}
-              </Table>
+              </SimpleTable>
             )}
           </div>
         );

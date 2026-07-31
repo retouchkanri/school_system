@@ -2,7 +2,7 @@ import { requireRole } from "@/lib/auth";
 import { getStudentForUser } from "@/lib/data";
 import { adminDb } from "@/lib/supabase/admin";
 import { fmtDate } from "@/lib/format";
-import { Card, PageHeader, EmptyState, Badge, Table, Td } from "@/components/ui";
+import { Section, PageHeader, EmptyState, Badge, SimpleTable, Td } from "@/components/ui";
 import type { TrainingRecord } from "@/lib/types";
 
 export default async function StudentTrainingsPage() {
@@ -13,9 +13,9 @@ export default async function StudentTrainingsPage() {
     return (
       <div>
         <PageHeader title="研修履歴" />
-        <Card>
+        <Section>
           <EmptyState message="生徒情報が登録されていません。学校までお問い合わせください。" />
-        </Card>
+        </Section>
       </div>
     );
   }
@@ -33,11 +33,11 @@ export default async function StudentTrainingsPage() {
       <PageHeader title="研修履歴" description="校外研修・資格取得・実習などの記録です" />
 
       {records.length === 0 ? (
-        <Card>
+        <Section>
           <EmptyState message="研修記録はまだありません" />
-        </Card>
+        </Section>
       ) : (
-        <Table headers={["日付", "研修名", "区分", "結果", "講師", "備考"]}>
+        <SimpleTable headers={["日付", "研修名", "区分", "結果", "講師", "備考"]}>
           {records.map((r) => (
             <tr key={r.id} className="hover:bg-gray-50">
               <Td className="whitespace-nowrap text-gray-700">{fmtDate(r.date)}</Td>
@@ -50,7 +50,7 @@ export default async function StudentTrainingsPage() {
               </Td>
             </tr>
           ))}
-        </Table>
+        </SimpleTable>
       )}
     </div>
   );

@@ -4,11 +4,11 @@ import { adminDb } from "@/lib/supabase/admin";
 import { fmtDate, fmtYen } from "@/lib/format";
 import { INSURANCE_CLAIM_STATUS_LABELS } from "@/lib/constants";
 import {
-  Card,
+  Section,
   PageHeader,
   EmptyState,
   Badge,
-  Table,
+  SimpleTable,
   Td,
   SectionTitle,
 } from "@/components/ui";
@@ -30,9 +30,9 @@ export default async function StudentInsurancePage() {
     return (
       <div>
         <PageHeader title="怪我・保険" />
-        <Card>
+        <Section>
           <EmptyState message="生徒情報が登録されていません。学校までお問い合わせください。" />
-        </Card>
+        </Section>
       </div>
     );
   }
@@ -70,11 +70,11 @@ export default async function StudentInsurancePage() {
 
       <SectionTitle>怪我の記録</SectionTitle>
       {injuries.length === 0 ? (
-        <Card>
+        <Section>
           <EmptyState message="記録されている怪我はありません" />
-        </Card>
+        </Section>
       ) : (
-        <Table headers={["発生日", "場面", "関連馬", "部位", "程度", "症状", "処置", "受診先"]}>
+        <SimpleTable headers={["発生日", "場面", "関連馬", "部位", "程度", "症状", "処置", "受診先"]}>
           {injuries.map((i) => (
             <tr key={i.id} className="hover:bg-gray-50">
               <Td className="whitespace-nowrap text-gray-700">{fmtDate(i.date)}</Td>
@@ -97,21 +97,21 @@ export default async function StudentInsurancePage() {
               <Td className="whitespace-nowrap text-gray-600">{i.hospital ?? "—"}</Td>
             </tr>
           ))}
-        </Table>
+        </SimpleTable>
       )}
 
       <SectionTitle>保険を申請する</SectionTitle>
-      <Card>
+      <Section>
         <ClaimForm injuries={injuryOptions} />
-      </Card>
+      </Section>
 
       <SectionTitle>申請の状況</SectionTitle>
       {claims.length === 0 ? (
-        <Card>
+        <Section>
           <EmptyState message="送信した保険申請はまだありません" />
-        </Card>
+        </Section>
       ) : (
-        <Table headers={["申請日", "対象の怪我", "保険会社", "請求額", "事故の概要", "状態", "学校からのコメント", "操作"]}>
+        <SimpleTable headers={["申請日", "対象の怪我", "保険会社", "請求額", "事故の概要", "状態", "学校からのコメント", "操作"]}>
           {claims.map((c) => (
             <tr key={c.id} className="hover:bg-gray-50">
               <Td className="whitespace-nowrap text-gray-700">{fmtDate(c.created_at)}</Td>
@@ -151,7 +151,7 @@ export default async function StudentInsurancePage() {
               </Td>
             </tr>
           ))}
-        </Table>
+        </SimpleTable>
       )}
     </div>
   );

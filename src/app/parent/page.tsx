@@ -5,9 +5,9 @@ import { adminDb } from "@/lib/supabase/admin";
 import { fmtDate, fmtDateTime, toDateInput, daysAgo } from "@/lib/format";
 import { AUDIENCE_LABELS } from "@/lib/constants";
 import {
-  Card,
+  Section,
   PageHeader,
-  StatCard,
+  Stat,
   EmptyState,
   Badge,
   InfoRow,
@@ -29,9 +29,9 @@ export default async function ParentHomePage() {
     return (
       <div>
         <PageHeader title="ホーム" description="保護者ポータル" />
-        <Card title="お子様情報">
+        <Section title="お子様情報">
           <EmptyState message="お子様の生徒情報が登録されていません。学校までお問い合わせください。" />
-        </Card>
+        </Section>
       </div>
     );
   }
@@ -90,7 +90,7 @@ export default async function ParentHomePage() {
         {students.map((s) => {
           const horse = s.assigned_horse_id ? horseMap.get(s.assigned_horse_id) : undefined;
           return (
-            <Card key={s.id} title={`お子様情報: ${s.name}`}>
+            <Section key={s.id} title={`お子様情報: ${s.name}`}>
               <dl>
                 <InfoRow label="学籍番号" value={s.student_number} />
                 <InfoRow label="クラス" value={s.class_name ?? "—"} />
@@ -101,21 +101,21 @@ export default async function ParentHomePage() {
                 />
                 <InfoRow label="入学日" value={fmtDate(s.enrollment_date)} />
               </dl>
-            </Card>
+            </Section>
           );
         })}
       </div>
 
       <SectionTitle>今週の出欠サマリ</SectionTitle>
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard label="出席" value={counts.present} tone="success" sub={`${fmtDate(weekStart)} 〜`} />
-        <StatCard label="欠席" value={counts.absent} tone="danger" sub={`${fmtDate(weekStart)} 〜`} />
-        <StatCard label="遅刻" value={counts.late} tone="warning" sub={`${fmtDate(weekStart)} 〜`} />
-        <StatCard label="早退" value={counts.early_leave} sub={`${fmtDate(weekStart)} 〜`} />
+        <Stat label="出席" value={counts.present} tone="success" sub={`${fmtDate(weekStart)} 〜`} />
+        <Stat label="欠席" value={counts.absent} tone="danger" sub={`${fmtDate(weekStart)} 〜`} />
+        <Stat label="遅刻" value={counts.late} tone="warning" sub={`${fmtDate(weekStart)} 〜`} />
+        <Stat label="早退" value={counts.early_leave} sub={`${fmtDate(weekStart)} 〜`} />
       </div>
 
       <SectionTitle>最新のお知らせ</SectionTitle>
-      <Card>
+      <Section>
         {announcements.length === 0 ? (
           <EmptyState message="お知らせはまだありません" />
         ) : (
@@ -137,7 +137,7 @@ export default async function ParentHomePage() {
             すべて見る →
           </Link>
         </div>
-      </Card>
+      </Section>
     </div>
   );
 }

@@ -2,7 +2,7 @@ import { requireRole } from "@/lib/auth";
 import { getStudentForUser } from "@/lib/data";
 import { adminDb } from "@/lib/supabase/admin";
 import { toDateInput } from "@/lib/format";
-import { Card, PageHeader, EmptyState, Table, SectionTitle } from "@/components/ui";
+import { Section, PageHeader, EmptyState, SimpleTable, SectionTitle } from "@/components/ui";
 import type { Horse, RidingReport } from "@/lib/types";
 import RidingForm, { type HorseOption } from "./riding-form";
 import ReportRow from "./report-row";
@@ -17,9 +17,9 @@ export default async function StudentRidingPage() {
     return (
       <div>
         <PageHeader title="騎乗報告" />
-        <Card>
+        <Section>
           <EmptyState message="生徒情報が登録されていません。学校までお問い合わせください。" />
-        </Card>
+        </Section>
       </div>
     );
   }
@@ -45,18 +45,18 @@ export default async function StudentRidingPage() {
     <div>
       <PageHeader title="騎乗報告" description="授業での騎乗内容と馬の状態を報告してください(🔁 はリタッチ馬)" />
 
-      <Card title="騎乗報告を提出する">
+      <Section title="騎乗報告を提出する">
         <RidingForm horses={horseOptions} defaultHorseId={student.assigned_horse_id} defaultDate={toDateInput()} />
-      </Card>
+      </Section>
 
       <SectionTitle>自分の報告履歴(最新20件)</SectionTitle>
       {reports.length === 0 ? (
-        <Card>
+        <Section>
           <EmptyState message="騎乗報告はまだありません" />
-        </Card>
+        </Section>
       ) : (
         <>
-          <Table headers={["日付", "馬", "時限・授業名", "落馬", "乗りやすさ", "騎乗内容", "馬の状態", "操作"]}>
+          <SimpleTable headers={["日付", "馬", "時限・授業名", "落馬", "乗りやすさ", "騎乗内容", "馬の状態", "操作"]}>
             {reports.map((r) => (
               <ReportRow
                 key={r.id}
@@ -76,7 +76,7 @@ export default async function StudentRidingPage() {
                 }}
               />
             ))}
-          </Table>
+          </SimpleTable>
           <p className="mt-3 text-xs text-gray-400">
             ※ 編集・削除した内容はリタッチ馬の月次AI要約には自動反映されません。反映が必要な場合は、学校職員が「リタッチ馬
             月次報告」ページで要約を再生成する必要があるため、担当職員へお知らせください。

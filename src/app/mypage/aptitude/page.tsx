@@ -4,7 +4,7 @@ import { getLeadForUser } from "@/lib/data";
 import { adminDb } from "@/lib/supabase/admin";
 import { APTITUDE_TRAITS, SUITABILITY_LABELS } from "@/lib/constants";
 import { fmtDateTime } from "@/lib/format";
-import { Card, PageHeader, Badge, btnPrimary } from "@/components/ui";
+import { Section, PageHeader, Badge, btnPrimary } from "@/components/ui";
 import type { AptitudeTest } from "@/lib/types";
 import AptitudeForm from "./aptitude-form";
 
@@ -16,7 +16,7 @@ export default async function AptitudePage() {
     return (
       <div>
         <PageHeader title="性格・適性検査" />
-        <Card>
+        <Section>
           <div className="py-6 text-center">
             <p className="mt-3 text-sm font-bold text-gray-800">資料請求がまだ紐づいていません</p>
             <p className="mt-2 text-sm text-gray-500">まずは資料請求フォームからお申し込みください。</p>
@@ -24,7 +24,7 @@ export default async function AptitudePage() {
               資料請求フォームへ
             </Link>
           </div>
-        </Card>
+        </Section>
       </div>
     );
   }
@@ -46,7 +46,7 @@ export default async function AptitudePage() {
           action={<Badge tone="green">受検済</Badge>}
         />
 
-        <Card title="特性スコア (0〜100)" className="mb-6">
+        <Section title="特性スコア (0〜100)" className="mb-6">
           <div className="space-y-4">
             {Object.entries(APTITUDE_TRAITS).map(([key, label]) => {
               const score = test.scores?.[key] ?? 0;
@@ -66,9 +66,9 @@ export default async function AptitudePage() {
               );
             })}
           </div>
-        </Card>
+        </Section>
 
-        <Card title="職業適性 (高い順)" className="mb-6">
+        <Section title="職業適性 (高い順)" className="mb-6">
           <div className="space-y-4">
             {suitabilityRanked.map((s, i) => (
               <div key={s.key}>
@@ -88,7 +88,7 @@ export default async function AptitudePage() {
               </div>
             ))}
           </div>
-        </Card>
+        </Section>
 
         {test.ai_report && (
           <div className="mb-6 border border-purple-200 bg-purple-50/50 p-6 shadow-sm">

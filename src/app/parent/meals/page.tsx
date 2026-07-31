@@ -3,7 +3,7 @@ import { getStudentsForParent } from "@/lib/data";
 import { adminDb } from "@/lib/supabase/admin";
 import { fmtDate, toDateInput, daysAgo } from "@/lib/format";
 import { MEAL_LABELS } from "@/lib/constants";
-import { Card, PageHeader, EmptyState, Table, Td, SectionTitle } from "@/components/ui";
+import { Section, PageHeader, EmptyState, SimpleTable, Td, SectionTitle } from "@/components/ui";
 import type { MealRecord, MealType } from "@/lib/types";
 
 const MEAL_ORDER: MealType[] = ["breakfast", "lunch", "dinner"];
@@ -30,9 +30,9 @@ export default async function ParentMealsPage() {
     return (
       <div>
         <PageHeader title="お子様の食事記録" />
-        <Card>
+        <Section>
           <EmptyState message="お子様の生徒情報が登録されていません。学校までお問い合わせください。" />
-        </Card>
+        </Section>
       </div>
     );
   }
@@ -71,7 +71,7 @@ export default async function ParentMealsPage() {
             <SectionTitle>
               {student.name}({student.student_number})
             </SectionTitle>
-            <Table headers={["日付", ...MEAL_ORDER.map((m) => MEAL_LABELS[m])]}>
+            <SimpleTable headers={["日付", ...MEAL_ORDER.map((m) => MEAL_LABELS[m])]}>
               {days.map((d) => (
                 <tr key={d.iso} className="hover:bg-gray-50">
                   <Td className="whitespace-nowrap text-gray-700">
@@ -84,7 +84,7 @@ export default async function ParentMealsPage() {
                   ))}
                 </tr>
               ))}
-            </Table>
+            </SimpleTable>
           </div>
         );
       })}

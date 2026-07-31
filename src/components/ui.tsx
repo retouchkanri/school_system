@@ -30,6 +30,35 @@ export function Card({
   );
 }
 
+/**
+ * カードの枠(border/shadow/白背景)を持たない見出し+本文のまとまり。
+ * ユーザー向けポータル(マイページ・在校生・保護者・支援者)で Card の代わりに使う。
+ * 管理画面は Card のまま (ここは変更しない)。
+ */
+export function Section({
+  title,
+  action,
+  children,
+  className = "",
+}: {
+  title?: string;
+  action?: React.ReactNode;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={className}>
+      {(title || action) && (
+        <div className="mb-3 flex items-center justify-between gap-3">
+          {title && <h3 className="text-sm font-bold text-gray-800">{title}</h3>}
+          {action}
+        </div>
+      )}
+      {children}
+    </div>
+  );
+}
+
 export function PageHeader({
   title,
   description,
@@ -69,6 +98,33 @@ export function StatCard({
   };
   return (
     <div className="border border-gray-200 bg-white p-4 shadow-sm">
+      <p className="text-xs font-medium text-gray-500">{label}</p>
+      <p className={`mt-1 text-2xl font-bold ${tones[tone]}`}>{value}</p>
+      {sub && <p className="mt-1 text-xs text-gray-400">{sub}</p>}
+    </div>
+  );
+}
+
+/** 枠のない数値表示 (StatCard のカードなし版)。ユーザー向けポータルで使う */
+export function Stat({
+  label,
+  value,
+  sub,
+  tone = "default",
+}: {
+  label: string;
+  value: React.ReactNode;
+  sub?: string;
+  tone?: "default" | "success" | "warning" | "danger";
+}) {
+  const tones = {
+    default: "text-gray-900",
+    success: "text-brand-600",
+    warning: "text-amber-600",
+    danger: "text-red-600",
+  };
+  return (
+    <div>
       <p className="text-xs font-medium text-gray-500">{label}</p>
       <p className={`mt-1 text-2xl font-bold ${tones[tone]}`}>{value}</p>
       {sub && <p className="mt-1 text-xs text-gray-400">{sub}</p>}
@@ -178,6 +234,26 @@ export function Table({ headers, children }: { headers: string[]; children: Reac
           <tr className="border-b border-gray-200 bg-gray-50">
             {headers.map((h, i) => (
               <th key={i} className="whitespace-nowrap px-4 py-3 text-xs font-bold text-gray-500">
+                {h}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-100">{children}</tbody>
+      </table>
+    </div>
+  );
+}
+
+/** 枠のないテーブル (行の区切り線のみ)。ユーザー向けポータルで Table の代わりに使う */
+export function SimpleTable({ headers, children }: { headers: string[]; children: React.ReactNode }) {
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full min-w-max text-left text-sm">
+        <thead>
+          <tr className="border-b border-gray-200">
+            {headers.map((h, i) => (
+              <th key={i} className="whitespace-nowrap px-3 py-2.5 text-xs font-bold text-gray-500">
                 {h}
               </th>
             ))}

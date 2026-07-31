@@ -4,7 +4,7 @@ import { adminDb } from "@/lib/supabase/admin";
 import { fmtDate, fmtDateTime } from "@/lib/format";
 import { APPROVAL_STATUS_LABELS } from "@/lib/constants";
 import {
-  Card,
+  Section,
   PageHeader,
   EmptyState,
   Badge,
@@ -28,9 +28,9 @@ export default async function ParentOvernightPage() {
     return (
       <div>
         <PageHeader title="外泊届の承認" />
-        <Card>
+        <Section>
           <EmptyState message="お子様の生徒情報が登録されていません。学校までお問い合わせください。" />
-        </Card>
+        </Section>
       </div>
     );
   }
@@ -60,15 +60,15 @@ export default async function ParentOvernightPage() {
       />
 
       {requests.length === 0 ? (
-        <Card>
+        <Section>
           <EmptyState message="提出された外泊届はまだありません" />
-        </Card>
+        </Section>
       ) : (
         <div className="space-y-6">
           {requests.map((r) => {
             const child = studentMap.get(r.student_id);
             return (
-              <Card
+              <Section
                 key={r.id}
                 title={`${child?.name ?? "—"} さんの外泊届(${fmtDate(r.start_date)} 〜 ${fmtDate(r.end_date)})`}
                 action={
@@ -103,7 +103,7 @@ export default async function ParentOvernightPage() {
                   )}
                 </dl>
                 {r.parent_approval === "pending" && <ApprovalForm requestId={r.id} />}
-              </Card>
+              </Section>
             );
           })}
         </div>

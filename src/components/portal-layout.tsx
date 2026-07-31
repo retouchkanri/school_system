@@ -1,6 +1,7 @@
 import { logoutAction } from "@/app/login/actions";
 import PortalNav, { type PortalNavItem } from "@/components/portal-shell";
 import PortalBackground from "@/components/portal-background";
+import PortalProgress from "@/components/portal-progress";
 import SiteLogo from "@/components/site-logo";
 import UserMenu from "@/components/user-menu";
 import type { Profile } from "@/lib/types";
@@ -11,6 +12,7 @@ export default function PortalLayout({
   nav,
   home,
   statusHref,
+  progress,
   children,
 }: {
   profile: Profile;
@@ -18,6 +20,8 @@ export default function PortalLayout({
   nav: PortalNavItem[];
   home: string;
   statusHref?: string;
+  /** 入学までの進捗 (入学希望者マイページのみ。指定するとナビ上部にバーを表示) */
+  progress?: { current: number; total: number; label: string };
   children: React.ReactNode;
 }) {
   return (
@@ -44,11 +48,10 @@ export default function PortalLayout({
         </div>
       </header>
       <div className="mx-auto max-w-4xl px-4 py-6 sm:py-8">
-        <div className="border border-white/70 bg-white/85 p-4 shadow-xl shadow-brand-900/5 backdrop-blur-sm sm:p-6">
-          <PortalNav items={nav} home={home} />
-          <main className="mt-4 pb-4">{children}</main>
-        </div>
-        <p className="mt-6 text-center text-[11px] text-gray-400">
+        {progress && <PortalProgress {...progress} />}
+        <PortalNav items={nav} home={home} center={!!progress} />
+        <main className="mt-5 pb-4">{children}</main>
+        <p className="mt-10 text-center text-[11px] text-gray-400">
           背景写真: 東関東馬事高等学院・東関東馬事専門学院
         </p>
       </div>

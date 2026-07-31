@@ -1,7 +1,7 @@
 import { requireRole } from "@/lib/auth";
 import { adminDb } from "@/lib/supabase/admin";
 import { fmtDate } from "@/lib/format";
-import { Card, PageHeader, EmptyState, Badge, InfoRow, SectionTitle } from "@/components/ui";
+import { Section, PageHeader, EmptyState, Badge, InfoRow, SectionTitle } from "@/components/ui";
 import type { Horse, HorseMonthlySummary, Supporter } from "@/lib/types";
 
 type SupporterWithHorse = Supporter & { horses: Horse | null };
@@ -17,14 +17,14 @@ export default async function SupporterHomePage() {
     return (
       <div>
         <PageHeader title="月次報告" description="一口支援者ポータル" />
-        <Card>
+        <Section>
           <div className="py-8 text-center">
             <p className="text-sm font-semibold text-gray-700">支援馬が登録されていません</p>
             <p className="mt-2 text-sm text-gray-500">
               ご支援の登録状況については、学院までお問い合わせください。
             </p>
           </div>
-        </Card>
+        </Section>
       </div>
     );
   }
@@ -52,7 +52,7 @@ export default async function SupporterHomePage() {
           const horseSummaries = summaries.filter((s) => s.horse_id === support.horse_id);
           return (
             <div key={support.id}>
-              <Card title="ご支援いただいている馬">
+              <Section title="ご支援いただいている馬">
                 <div className="flex flex-col gap-6 sm:flex-row">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -78,23 +78,23 @@ export default async function SupporterHomePage() {
                     )}
                   </div>
                 </div>
-              </Card>
+              </Section>
 
               <SectionTitle>{horse.name} の月次報告</SectionTitle>
               {horseSummaries.length === 0 ? (
-                <Card>
+                <Section>
                   <EmptyState message="共有された月次報告はまだありません。報告が届くまで今しばらくお待ちください。" />
-                </Card>
+                </Section>
               ) : (
                 <div className="space-y-4">
                   {horseSummaries.map((s) => (
-                    <Card
+                    <Section
                       key={s.id}
                       title={`${s.year}年${s.month}月のご報告`}
                       action={<Badge tone="blue">騎乗報告 {s.report_count} 件</Badge>}
                     >
                       <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-700">{s.summary}</p>
-                    </Card>
+                    </Section>
                   ))}
                 </div>
               )}

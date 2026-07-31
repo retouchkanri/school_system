@@ -4,12 +4,12 @@ import { adminDb } from "@/lib/supabase/admin";
 import { fmtDate, toDateInput, daysAgo } from "@/lib/format";
 import { ATTENDANCE_STATUS_LABELS } from "@/lib/constants";
 import {
-  Card,
+  Section,
   PageHeader,
-  StatCard,
+  Stat,
   EmptyState,
   Badge,
-  Table,
+  SimpleTable,
   Td,
   SectionTitle,
   type BadgeTone,
@@ -39,9 +39,9 @@ export default async function ParentAttendancePage() {
     return (
       <div>
         <PageHeader title="お子様の出欠" />
-        <Card>
+        <Section>
           <EmptyState message="お子様の生徒情報が登録されていません。学校までお問い合わせください。" />
-        </Card>
+        </Section>
       </div>
     );
   }
@@ -79,19 +79,19 @@ export default async function ParentAttendancePage() {
             </SectionTitle>
 
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-              <StatCard label="出席" value={counts.present} tone="success" sub="今月" />
-              <StatCard label="欠席" value={counts.absent} tone="danger" sub="今月" />
-              <StatCard label="遅刻" value={counts.late} tone="warning" sub="今月" />
-              <StatCard label="早退" value={counts.early_leave} sub="今月" />
+              <Stat label="出席" value={counts.present} tone="success" sub="今月" />
+              <Stat label="欠席" value={counts.absent} tone="danger" sub="今月" />
+              <Stat label="遅刻" value={counts.late} tone="warning" sub="今月" />
+              <Stat label="早退" value={counts.early_leave} sub="今月" />
             </div>
 
             <div className="mt-4">
               {own.length === 0 ? (
-                <Card>
+                <Section>
                   <EmptyState message="直近30日の出欠記録はありません" />
-                </Card>
+                </Section>
               ) : (
-                <Table headers={["日付", "状態", "備考"]}>
+                <SimpleTable headers={["日付", "状態", "備考"]}>
                   {own.map((r) => (
                     <tr key={r.id} className="hover:bg-gray-50">
                       <Td className="whitespace-nowrap text-gray-700">{fmtDateWithWeekday(r.date)}</Td>
@@ -101,7 +101,7 @@ export default async function ParentAttendancePage() {
                       <Td className="text-gray-600">{r.note ?? "—"}</Td>
                     </tr>
                   ))}
-                </Table>
+                </SimpleTable>
               )}
             </div>
           </div>

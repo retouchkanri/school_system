@@ -5,7 +5,7 @@ import { adminDb } from "@/lib/supabase/admin";
 import SiteLogo from "@/components/site-logo";
 import FullPageBackground from "@/components/full-page-background";
 import { KOUTOU_IMAGES } from "@/lib/site-images";
-import { Card, PageHeader } from "@/components/ui";
+import { Section, PageHeader } from "@/components/ui";
 import AccountForm from "./account-form";
 
 const ROLE_LABELS: Record<string, string> = {
@@ -48,9 +48,9 @@ export default async function AccountPage() {
           title="個人情報の変更"
           description={`${ROLE_LABELS[profile.role] ?? ""}アカウントの登録情報を編集できます`}
         />
-        <Card>
+        <Section>
           <AccountForm profile={profile} birthDate={lead?.birth_date ?? null} />
-        </Card>
+        </Section>
       </main>
     </div>
   );

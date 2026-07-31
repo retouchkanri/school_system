@@ -4,7 +4,7 @@ import { getLeadForUser } from "@/lib/data";
 import { adminDb } from "@/lib/supabase/admin";
 import { VIDEO_STATUS_LABELS } from "@/lib/constants";
 import { fmtDateTime } from "@/lib/format";
-import { Card, PageHeader, Badge, InfoRow, btnPrimary, type BadgeTone } from "@/components/ui";
+import { Section, PageHeader, Badge, InfoRow, btnPrimary, type BadgeTone } from "@/components/ui";
 import type { VideoProgress, VideoStatus } from "@/lib/types";
 import VideoPlayer from "./video-player";
 
@@ -24,7 +24,7 @@ export default async function VideoPage() {
     return (
       <div>
         <PageHeader title="学院紹介動画" />
-        <Card>
+        <Section>
           <div className="py-6 text-center">
             <p className="mt-3 text-sm font-bold text-gray-800">資料請求がまだ紐づいていません</p>
             <p className="mt-2 text-sm text-gray-500">まずは資料請求フォームからお申し込みください。</p>
@@ -32,7 +32,7 @@ export default async function VideoPage() {
               資料請求フォームへ
             </Link>
           </div>
-        </Card>
+        </Section>
       </div>
     );
   }
@@ -56,14 +56,14 @@ export default async function VideoPage() {
 
       <VideoPlayer initialCompleted={status === "completed"} />
 
-      <Card title="視聴状況" className="mt-6">
+      <Section title="視聴状況" className="mt-6">
         <dl>
           <InfoRow label="動画タイトル" value={VIDEO_TITLE} />
           <InfoRow label="視聴状況" value={<Badge tone={STATUS_TONE[status]}>{VIDEO_STATUS_LABELS[status]}</Badge>} />
           <InfoRow label="進捗" value={`${progress?.progress_percent ?? 0}%`} />
           <InfoRow label="最終更新" value={progress ? fmtDateTime(progress.updated_at) : "—"} />
         </dl>
-      </Card>
+      </Section>
     </div>
   );
 }

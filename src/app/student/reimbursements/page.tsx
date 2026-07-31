@@ -2,7 +2,7 @@ import { requireRole } from "@/lib/auth";
 import { getStudentForUser } from "@/lib/data";
 import { adminDb } from "@/lib/supabase/admin";
 import { fmtDate, fmtYen } from "@/lib/format";
-import { Card, PageHeader, EmptyState, Badge, Table, Td, type BadgeTone } from "@/components/ui";
+import { Section, PageHeader, EmptyState, Badge, SimpleTable, Td, type BadgeTone } from "@/components/ui";
 import { REIMBURSEMENT_STATUS_LABELS } from "@/lib/constants";
 import type { Reimbursement, ReimbursementStatus } from "@/lib/types";
 
@@ -20,9 +20,9 @@ export default async function StudentReimbursementsPage() {
     return (
       <div>
         <PageHeader title="諸経費の返金" />
-        <Card>
+        <Section>
           <EmptyState message="生徒情報が登録されていません。学校までお問い合わせください。" />
-        </Card>
+        </Section>
       </div>
     );
   }
@@ -40,11 +40,11 @@ export default async function StudentReimbursementsPage() {
       <PageHeader title="諸経費の返金" description="研修等でかかった諸経費の返金状況です" />
 
       {records.length === 0 ? (
-        <Card>
+        <Section>
           <EmptyState message="諸経費の記録はまだありません" />
-        </Card>
+        </Section>
       ) : (
-        <Table headers={["登録日", "内容", "金額", "状況"]}>
+        <SimpleTable headers={["登録日", "内容", "金額", "状況"]}>
           {records.map((r) => (
             <tr key={r.id} className="hover:bg-gray-50">
               <Td className="whitespace-nowrap text-gray-600">{fmtDate(r.created_at)}</Td>
@@ -58,7 +58,7 @@ export default async function StudentReimbursementsPage() {
               </Td>
             </tr>
           ))}
-        </Table>
+        </SimpleTable>
       )}
     </div>
   );

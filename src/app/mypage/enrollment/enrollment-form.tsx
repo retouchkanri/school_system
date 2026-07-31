@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect } from "react";
 import { UNIFORM_SIZES, BOOTS_SIZES, HELMET_SIZES } from "@/lib/constants";
-import { Card, Field, Label, inputCls, btnPrimary } from "@/components/ui";
+import { Section, Field, Label, inputCls, btnPrimary } from "@/components/ui";
 import { showErrorToast, showSuccessToast } from "@/lib/toast";
 import { saveEnrollmentAction, type ActionState } from "./actions";
 import IdDocumentsSection from "./id-document-upload";
@@ -61,14 +61,14 @@ export default function EnrollmentForm({
 
   return (
     <form action={formAction} className="space-y-6">
-      <Card title="1. 提出物の確認">
+      <Section title="1. 提出物の確認">
         <p className="mb-3 text-xs text-gray-500">
           以下の書類の画像をアップロードしてください。表面・裏面それぞれをタップして選択できます。
         </p>
         <IdDocumentsSection documentUrls={documentUrls} />
-      </Card>
+      </Section>
 
-      <Card title="2. 制服・装具のサイズ">
+      <Section title="2. 制服・装具のサイズ">
         <div className="grid gap-4 sm:grid-cols-3">
           <Field label="制服サイズ">
             <select name="uniform_size" defaultValue={procedure?.uniform_size ?? ""} className={inputCls}>
@@ -110,9 +110,9 @@ export default function EnrollmentForm({
           />
           自動車免許を持っている
         </label>
-      </Card>
+      </Section>
 
-      <Card title="3. 緊急連絡先 (2件までご記入いただけます)">
+      <Section title="3. 緊急連絡先 (2件までご記入いただけます)">
         {[1, 2].map((i) => {
           const c = ec(i - 1);
           return (
@@ -143,9 +143,9 @@ export default function EnrollmentForm({
             </div>
           );
         })}
-      </Card>
+      </Section>
 
-      <Card title="4. 保証人">
+      <Section title="4. 保証人">
         <div className="grid gap-3 sm:grid-cols-3">
           <Field label="氏名" required>
             <input name="g_name" defaultValue={g.name ?? ""} required className={inputCls} placeholder="氏名" />
@@ -162,9 +162,9 @@ export default function EnrollmentForm({
             <input name="g_address" defaultValue={g.address ?? ""} className={inputCls} placeholder="住所" />
           </Field>
         </div>
-      </Card>
+      </Section>
 
-      <Card title="5. 健康情報">
+      <Section title="5. 健康情報">
         <div className="space-y-3">
           <Field label="アレルギー">
             <input
@@ -191,9 +191,9 @@ export default function EnrollmentForm({
             />
           </Field>
         </div>
-      </Card>
+      </Section>
 
-      <Card title="6. 入学規約への同意・電子署名">
+      <Section title="6. 入学規約への同意・電子署名">
         <div className="max-h-56 overflow-y-auto whitespace-pre-wrap border border-gray-200 bg-gray-50 p-4 text-xs leading-relaxed text-gray-600">
           {AGREEMENT_TEXT}
         </div>
@@ -219,7 +219,7 @@ export default function EnrollmentForm({
             ※ 同意チェックと電子署名の両方が完了すると、手続きステータスが「完了」になります。途中保存も可能です。
           </p>
         </div>
-      </Card>
+      </Section>
 
       <button type="submit" disabled={pending} className={`${btnPrimary} w-full py-3`}>
         {pending ? "送信中…" : "手続き内容を保存する"}

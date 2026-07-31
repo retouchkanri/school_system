@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
-import { Card, Badge, inputCls, btnSmall } from "@/components/ui";
+import { Section, Badge, inputCls, btnSmall } from "@/components/ui";
 import { showErrorToast, showSuccessToast } from "@/lib/toast";
 import {
   updateApplicationDocumentAction,
@@ -93,7 +93,7 @@ export default function ApplicationDocumentsPanel({
 
   return (
     <>
-      <Card title="提出書類" className="mb-6">
+      <Section title="提出書類" className="mb-6">
         <div className="grid gap-2 sm:grid-cols-2">
           {docs.map((doc) => {
             const isEssay = doc.kind === "text";
@@ -146,15 +146,15 @@ export default function ApplicationDocumentsPanel({
             ? "※ 各書類はクリックすると再提出・差し替えができます。未提出の書類がある場合はお早めにご提出ください。"
             : "※ 選考結果が確定しているため、提出書類の編集はできません。"}
         </p>
-      </Card>
+      </Section>
 
-      <Card title="作文" className="mb-6">
+      <Section title="作文" className="mb-6">
         {editable && editingEssay ? (
           <EssayEditForm essay={essay} onDone={() => setEditingEssay(false)} />
         ) : (
           <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-800">{essay ?? "—"}</p>
         )}
-      </Card>
+      </Section>
     </>
   );
 }

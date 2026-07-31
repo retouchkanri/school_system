@@ -1,6 +1,6 @@
 import { requireRole } from "@/lib/auth";
 import { getStudentForUser } from "@/lib/data";
-import { Card, PageHeader, EmptyState, SectionTitle } from "@/components/ui";
+import { Section, PageHeader, EmptyState, SectionTitle } from "@/components/ui";
 import { todayJst } from "@/app/admin/tuition/data";
 import BankTransferInfo from "@/app/admin/tuition/bank-info";
 import {
@@ -18,9 +18,9 @@ export default async function StudentTuitionPage() {
     return (
       <div>
         <PageHeader title="学費" />
-        <Card>
+        <Section>
           <EmptyState message="生徒情報が登録されていません。学院までお問い合わせください。" />
-        </Card>
+        </Section>
       </div>
     );
   }

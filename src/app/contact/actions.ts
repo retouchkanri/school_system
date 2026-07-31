@@ -8,23 +8,36 @@ export interface ContactState {
   error?: string;
 }
 
+const RELATIONSHIP_VALUES = new Set(["在校生", "保護者", "その他"]);
+
 export async function submitContactAction(_prev: ContactState, formData: FormData): Promise<ContactState> {
   const name = String(formData.get("name") ?? "").trim();
+  const relationship = String(formData.get("relationship") ?? "").trim();
+  const birthDate = String(formData.get("birth_date") ?? "").trim();
+  const phone = String(formData.get("phone") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
-  const message = String(formData.get("message") ?? "").trim();
+  const remarks = String(formData.get("remarks") ?? "").trim();
 
-  if (!name) return { error: "お名前を入力してください" };
+  if (!name) return { error: "氏名を入力してください" };
+  if (!relationship || !RELATIONSHIP_VALUES.has(relationship)) {
+    return { error: "ご本人との続柄を選択してください" };
+  }
+  if (!birthDate) return { error: "生年月日を入力してください" };
   if (!email) return { error: "メールアドレスを入力してください" };
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: "メールアドレスの形式が正しくありません" };
-  if (!message) return { error: "お問い合わせ内容を入力してください" };
-  if (message.length > 5000) return { error: "お問い合わせ内容は5000文字以内で入力してください" };
+  if (phone && !/^[\d\-＋+\s()]{8,20}$/.test(phone)) return { error: "電話番号の形式が正しくありません" };
+  if (!remarks) return { error: "備考欄にご質問・ご相談内容を入力してください" };
+  if (remarks.length > 5000) return { error: "備考欄は5000文字以内で入力してください" };
 
-  const title = `【お問い合わせ】${name}様より`;
-  const body = `お名前: ${name}
+  const title = `【お問い合わせ】${name}様（${relationship}）より`;
+  const body = `氏名: ${name}
+ご本人との続柄: ${relationship}
+生年月日: ${birthDate}
 メールアドレス: ${email}
+電話番号: ${phone || "未記入"}
 
 ----- お問い合わせ内容 -----
-${message}
+${remarks}
 `;
 
   // 職員へ通知 + 送信者へ受付メール。
@@ -46,8 +59,11 @@ ${message}
 お問い合わせありがとうございます。
 以下の内容で受付いたしました。担当者よりご連絡いたしますので、今しばらくお待ちください。
 
+ご本人との続柄: ${relationship}
+電話番号: ${phone || "未記入"}
+
 ----- お問い合わせ内容 -----
-${message}
+${remarks}
 
 ※このメールは自動送信です。
 `,

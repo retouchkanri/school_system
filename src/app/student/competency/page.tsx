@@ -2,7 +2,7 @@ import { requireRole } from "@/lib/auth";
 import { getStudentForUser } from "@/lib/data";
 import { adminDb } from "@/lib/supabase/admin";
 import { fmtDate } from "@/lib/format";
-import { Card, PageHeader, EmptyState, SectionTitle } from "@/components/ui";
+import { Section, PageHeader, EmptyState, SectionTitle } from "@/components/ui";
 import { COMPETENCY_CATEGORIES } from "@/lib/constants";
 import type { CompetencyAssessment } from "@/lib/types";
 
@@ -14,9 +14,9 @@ export default async function StudentCompetencyPage() {
     return (
       <div>
         <PageHeader title="社会人基礎力チェック" />
-        <Card>
+        <Section>
           <EmptyState message="生徒情報が登録されていません。学校までお問い合わせください。" />
-        </Card>
+        </Section>
       </div>
     );
   }
@@ -37,12 +37,12 @@ export default async function StudentCompetencyPage() {
       />
 
       {assessments.length === 0 ? (
-        <Card>
+        <Section>
           <EmptyState message="評価記録はまだありません" />
-        </Card>
+        </Section>
       ) : (
         assessments.map((a) => (
-          <Card key={a.id} title={a.term} className="mb-6">
+          <Section key={a.id} title={a.term} className="mb-6">
             <p className="mb-3 text-xs text-gray-400">評価日: {fmtDate(a.created_at)}</p>
             <div className="space-y-4">
               {COMPETENCY_CATEGORIES.map((group) => (
@@ -74,7 +74,7 @@ export default async function StudentCompetencyPage() {
                 <p className="whitespace-pre-wrap text-sm text-gray-700">{a.overall_comment}</p>
               </div>
             )}
-          </Card>
+          </Section>
         ))
       )}
     </div>

@@ -2,7 +2,7 @@ import { requireRole } from "@/lib/auth";
 import { getStudentForUser } from "@/lib/data";
 import { adminDb } from "@/lib/supabase/admin";
 import { fmtDateTime } from "@/lib/format";
-import { Card, PageHeader, EmptyState, Badge } from "@/components/ui";
+import { Section, PageHeader, EmptyState, Badge } from "@/components/ui";
 import type { StudentSurvey, StudentSurveyResponse } from "@/lib/types";
 import SurveyAnswerForm from "./survey-answer-form";
 
@@ -14,9 +14,9 @@ export default async function StudentSurveysPage() {
     return (
       <div>
         <PageHeader title="定期アンケート" />
-        <Card>
+        <Section>
           <EmptyState message="生徒情報が登録されていません。学校までお問い合わせください。" />
-        </Card>
+        </Section>
       </div>
     );
   }
@@ -50,15 +50,15 @@ export default async function StudentSurveysPage() {
       <PageHeader title="定期アンケート" description="学校生活についてのアンケートにご回答ください" />
 
       {surveys.length === 0 ? (
-        <Card>
+        <Section>
           <EmptyState message="現在回答できるアンケートはありません" />
-        </Card>
+        </Section>
       ) : (
         <div className="space-y-6">
           {surveys.map((survey) => {
             const response = responseBySurvey.get(survey.id);
             return (
-              <Card
+              <Section
                 key={survey.id}
                 title={survey.title}
                 action={
@@ -83,7 +83,7 @@ export default async function StudentSurveysPage() {
                 ) : (
                   <SurveyAnswerForm surveyId={survey.id} questions={survey.questions ?? []} />
                 )}
-              </Card>
+              </Section>
             );
           })}
         </div>

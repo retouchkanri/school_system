@@ -3,7 +3,7 @@ import { requireRole } from "@/lib/auth";
 import { getLeadForUser } from "@/lib/data";
 import { adminDb } from "@/lib/supabase/admin";
 import { PROGRESS_STEPS, statusIndex, AI_JUDGEMENT_LABELS, AI_JUDGEMENT_MESSAGES } from "@/lib/constants";
-import { Card, PageHeader, Badge, btnPrimary, btnSecondary, type BadgeTone } from "@/components/ui";
+import { Section, PageHeader, Badge, btnPrimary, btnSecondary, type BadgeTone } from "@/components/ui";
 import type { AiJudgement, LeadStatus } from "@/lib/types";
 
 const JUDGEMENT_TONE: Record<AiJudgement, BadgeTone> = {
@@ -159,7 +159,7 @@ export default async function MypageHome() {
     return (
       <div>
         <PageHeader title="マイページ" description="入学までの進捗を確認できます" />
-        <Card>
+        <Section>
           <div className="py-6 text-center">
             <p className="mt-3 text-sm font-bold text-gray-800">資料請求がまだ紐づいていません</p>
             <p className="mt-2 text-sm text-gray-500">
@@ -169,7 +169,7 @@ export default async function MypageHome() {
               資料請求フォームへ
             </Link>
           </div>
-        </Card>
+        </Section>
       </div>
     );
   }
@@ -202,7 +202,7 @@ export default async function MypageHome() {
         description="入学までの進捗と次のステップをご案内します"
       />
 
-      <Card title="ご利用いただける3つのメニュー" className="mb-6">
+      <Section title="ご利用いただける3つのメニュー" className="mb-6">
         <div className="grid gap-4 md:grid-cols-3">
           {WELCOME_MENU.map((item) => (
             <div key={item.key} className="flex flex-col border border-gray-200 p-4">
@@ -217,7 +217,7 @@ export default async function MypageHome() {
             </div>
           ))}
         </div>
-      </Card>
+      </Section>
 
       <div className="mb-6 border border-brand-200 bg-brand-50/50 p-6 shadow-sm">
         <p className="text-xs font-bold text-brand-600">

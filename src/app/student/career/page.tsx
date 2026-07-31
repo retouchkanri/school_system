@@ -2,7 +2,7 @@ import { requireRole } from "@/lib/auth";
 import { getStudentForUser } from "@/lib/data";
 import { adminDb } from "@/lib/supabase/admin";
 import { fmtDate } from "@/lib/format";
-import { Card, PageHeader, EmptyState, Badge, InfoRow, type BadgeTone } from "@/components/ui";
+import { Section, PageHeader, EmptyState, Badge, InfoRow, type BadgeTone } from "@/components/ui";
 import { CAREER_OUTCOME_LABELS } from "@/lib/constants";
 import type { CareerRecord, CareerOutcomeType } from "@/lib/types";
 
@@ -20,9 +20,9 @@ export default async function StudentCareerPage() {
     return (
       <div>
         <PageHeader title="進路" />
-        <Card>
+        <Section>
           <EmptyState message="生徒情報が登録されていません。学校までお問い合わせください。" />
-        </Card>
+        </Section>
       </div>
     );
   }
@@ -40,13 +40,13 @@ export default async function StudentCareerPage() {
       <PageHeader title="進路" description="就職・進学など、あなたの進路の記録です" />
 
       {records.length === 0 ? (
-        <Card>
+        <Section>
           <EmptyState message="進路はまだ決定していません" />
-        </Card>
+        </Section>
       ) : (
         <div className="space-y-4">
           {records.map((r) => (
-            <Card
+            <Section
               key={r.id}
               title={r.organization}
               action={<Badge tone={OUTCOME_TONES[r.outcome_type]}>{CAREER_OUTCOME_LABELS[r.outcome_type]}</Badge>}
@@ -56,7 +56,7 @@ export default async function StudentCareerPage() {
                 <InfoRow label="決定日" value={fmtDate(r.decided_date)} />
                 {r.notes && <InfoRow label="備考" value={<span className="whitespace-pre-wrap">{r.notes}</span>} />}
               </dl>
-            </Card>
+            </Section>
           ))}
         </div>
       )}

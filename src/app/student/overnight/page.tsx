@@ -4,11 +4,11 @@ import { adminDb } from "@/lib/supabase/admin";
 import { fmtDate, toDateInput } from "@/lib/format";
 import { APPROVAL_STATUS_LABELS } from "@/lib/constants";
 import {
-  Card,
+  Section,
   PageHeader,
   EmptyState,
   Badge,
-  Table,
+  SimpleTable,
   Td,
   SectionTitle,
   type BadgeTone,
@@ -30,9 +30,9 @@ export default async function StudentOvernightPage() {
     return (
       <div>
         <PageHeader title="外泊届" />
-        <Card>
+        <Section>
           <EmptyState message="生徒情報が登録されていません。学校までお問い合わせください。" />
-        </Card>
+        </Section>
       </div>
     );
   }
@@ -49,17 +49,17 @@ export default async function StudentOvernightPage() {
     <div>
       <PageHeader title="外泊届" description="外泊の予定を届け出て、保護者の承認を受けてください" />
 
-      <Card title="外泊届を提出する">
+      <Section title="外泊届を提出する">
         <OvernightForm defaultDate={toDateInput()} />
-      </Card>
+      </Section>
 
       <SectionTitle>提出した届出の一覧</SectionTitle>
       {requests.length === 0 ? (
-        <Card>
+        <Section>
           <EmptyState message="提出した外泊届はまだありません" />
-        </Card>
+        </Section>
       ) : (
-        <Table headers={["期間", "行き先", "理由", "承認状況", "保護者コメント", "職員確認", "提出日"]}>
+        <SimpleTable headers={["期間", "行き先", "理由", "承認状況", "保護者コメント", "職員確認", "提出日"]}>
           {requests.map((r) => (
             <tr key={r.id} className="hover:bg-gray-50">
               <Td className="whitespace-nowrap text-gray-700">
@@ -81,7 +81,7 @@ export default async function StudentOvernightPage() {
               <Td className="whitespace-nowrap text-gray-500">{fmtDate(r.created_at)}</Td>
             </tr>
           ))}
-        </Table>
+        </SimpleTable>
       )}
     </div>
   );

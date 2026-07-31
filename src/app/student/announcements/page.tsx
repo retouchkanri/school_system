@@ -2,7 +2,7 @@ import { requireRole } from "@/lib/auth";
 import { adminDb } from "@/lib/supabase/admin";
 import { fmtDateTime } from "@/lib/format";
 import { AUDIENCE_LABELS } from "@/lib/constants";
-import { Card, PageHeader, EmptyState, Badge } from "@/components/ui";
+import { Section, PageHeader, EmptyState, Badge } from "@/components/ui";
 import type { Announcement } from "@/lib/types";
 
 export default async function StudentAnnouncementsPage() {
@@ -21,13 +21,13 @@ export default async function StudentAnnouncementsPage() {
       <PageHeader title="お知らせ" description="学校からのお知らせ一覧です" />
 
       {announcements.length === 0 ? (
-        <Card>
+        <Section>
           <EmptyState message="お知らせはまだありません" />
-        </Card>
+        </Section>
       ) : (
         <div className="space-y-4">
           {announcements.map((a) => (
-            <Card key={a.id}>
+            <Section key={a.id}>
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <h3 className="text-sm font-bold text-gray-900">{a.title}</h3>
@@ -36,7 +36,7 @@ export default async function StudentAnnouncementsPage() {
                 <Badge tone={a.audience === "all" ? "gray" : "brand"}>{AUDIENCE_LABELS[a.audience]}</Badge>
               </div>
               <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-gray-700">{a.body}</p>
-            </Card>
+            </Section>
           ))}
         </div>
       )}

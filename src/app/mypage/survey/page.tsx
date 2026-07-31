@@ -4,7 +4,7 @@ import { getLeadForUser } from "@/lib/data";
 import { adminDb } from "@/lib/supabase/admin";
 import { PRE_SCREENING_QUESTIONS, AI_JUDGEMENT_LABELS, AI_JUDGEMENT_MESSAGES } from "@/lib/constants";
 import { fmtDateTime } from "@/lib/format";
-import { Card, PageHeader, Badge, btnPrimary, type BadgeTone } from "@/components/ui";
+import { Section, PageHeader, Badge, btnPrimary, type BadgeTone } from "@/components/ui";
 import type { AiJudgement, PreScreeningSurvey } from "@/lib/types";
 import SurveyForm from "./survey-form";
 
@@ -22,7 +22,7 @@ export default async function SurveyPage() {
     return (
       <div>
         <PageHeader title="入学仮審査アンケート" />
-        <Card>
+        <Section>
           <div className="py-6 text-center">
             <p className="mt-3 text-sm font-bold text-gray-800">資料請求がまだ紐づいていません</p>
             <p className="mt-2 text-sm text-gray-500">まずは資料請求フォームからお申し込みください。</p>
@@ -30,7 +30,7 @@ export default async function SurveyPage() {
               資料請求フォームへ
             </Link>
           </div>
-        </Card>
+        </Section>
       </div>
     );
   }
@@ -69,7 +69,7 @@ export default async function SurveyPage() {
           </div>
         )}
 
-        <Card title={`ご回答内容 (${fmtDateTime(survey.submitted_at)} 送信)`}>
+        <Section title={`ご回答内容 (${fmtDateTime(survey.submitted_at)} 送信)`}>
           <div className="space-y-4">
             {PRE_SCREENING_QUESTIONS.map((q, i) => (
               <div key={q.id} className="border-b border-gray-50 pb-3 last:border-0 last:pb-0">
@@ -82,7 +82,7 @@ export default async function SurveyPage() {
               </div>
             ))}
           </div>
-        </Card>
+        </Section>
       </div>
     );
   }

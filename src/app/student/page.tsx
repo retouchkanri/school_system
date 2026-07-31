@@ -5,9 +5,9 @@ import { adminDb } from "@/lib/supabase/admin";
 import { fmtDateTime, toDateInput } from "@/lib/format";
 import { ATTENDANCE_STATUS_LABELS, AUDIENCE_LABELS } from "@/lib/constants";
 import {
-  Card,
+  Section,
   PageHeader,
-  StatCard,
+  Stat,
   EmptyState,
   Badge,
   InfoRow,
@@ -37,9 +37,9 @@ export default async function StudentHomePage() {
     return (
       <div>
         <PageHeader title="ホーム" description="在校生ポータル" />
-        <Card title="生徒情報">
+        <Section title="生徒情報">
           <EmptyState message="生徒情報が登録されていません。学校までお問い合わせください。" />
-        </Card>
+        </Section>
       </div>
     );
   }
@@ -97,7 +97,7 @@ export default async function StudentHomePage() {
       )}
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card title="プロフィール">
+        <Section title="プロフィール">
           <dl>
             <InfoRow label="氏名" value={student.kana ? `${student.name}(${student.kana})` : student.name} />
             <InfoRow label="学籍番号" value={student.student_number} />
@@ -108,9 +108,9 @@ export default async function StudentHomePage() {
               value={horse ? `${horse.name}(馬房: ${horse.stall ?? student.stall_number ?? "—"})` : "未設定"}
             />
           </dl>
-        </Card>
+        </Section>
 
-        <Card title="今日の出欠" action={<span className="text-xs text-gray-400">{today}</span>}>
+        <Section title="今日の出欠" action={<span className="text-xs text-gray-400">{today}</span>}>
           {todayAttendance ? (
             <div className="flex items-center gap-3 py-2">
               <Badge tone={ATTENDANCE_TONES[todayAttendance.status]}>
@@ -128,19 +128,19 @@ export default async function StudentHomePage() {
             </Link>{" "}
             から確認できます。
           </p>
-        </Card>
+        </Section>
       </div>
 
       <SectionTitle>今月の出欠サマリ</SectionTitle>
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard label="出席" value={counts.present} tone="success" sub="今月" />
-        <StatCard label="欠席" value={counts.absent} tone="danger" sub="今月" />
-        <StatCard label="遅刻" value={counts.late} tone="warning" sub="今月" />
-        <StatCard label="早退" value={counts.early_leave} sub="今月" />
+        <Stat label="出席" value={counts.present} tone="success" sub="今月" />
+        <Stat label="欠席" value={counts.absent} tone="danger" sub="今月" />
+        <Stat label="遅刻" value={counts.late} tone="warning" sub="今月" />
+        <Stat label="早退" value={counts.early_leave} sub="今月" />
       </div>
 
       <SectionTitle>最新のお知らせ</SectionTitle>
-      <Card>
+      <Section>
         {announcements.length === 0 ? (
           <EmptyState message="お知らせはまだありません" />
         ) : (
@@ -162,7 +162,7 @@ export default async function StudentHomePage() {
             すべて見る →
           </Link>
         </div>
-      </Card>
+      </Section>
     </div>
   );
 }

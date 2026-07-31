@@ -4,11 +4,11 @@ import { adminDb } from "@/lib/supabase/admin";
 import { fmtDate, toDateInput } from "@/lib/format";
 import { ABSENCE_REQUEST_STATUS_LABELS, ATTENDANCE_STATUS_LABELS } from "@/lib/constants";
 import {
-  Card,
+  Section,
   PageHeader,
   EmptyState,
   Badge,
-  Table,
+  SimpleTable,
   Td,
   SectionTitle,
   type BadgeTone,
@@ -41,9 +41,9 @@ export default async function ParentAbsencePage() {
     return (
       <div>
         <PageHeader title="欠席・遅刻の連絡" />
-        <Card>
+        <Section>
           <EmptyState message="お子様の生徒情報が登録されていません。学校までお問い合わせください。" />
-        </Card>
+        </Section>
       </div>
     );
   }
@@ -67,12 +67,12 @@ export default async function ParentAbsencePage() {
         description="体調不良などで欠席・遅刻・早退する場合は事前にご連絡ください"
       />
 
-      <Card title="欠席・遅刻を連絡する">
+      <Section title="欠席・遅刻を連絡する">
         <ParentAbsenceForm
           students={students.map((s) => ({ id: s.id, name: s.name, student_number: s.student_number }))}
           defaultDate={toDateInput()}
         />
-      </Card>
+      </Section>
 
       {students.map((student) => {
         const own = requests.filter((r) => r.student_id === student.id);
@@ -82,11 +82,11 @@ export default async function ParentAbsencePage() {
               {student.name}({student.student_number})の連絡履歴
             </SectionTitle>
             {own.length === 0 ? (
-              <Card>
+              <Section>
                 <EmptyState message="送信した連絡はまだありません" />
-              </Card>
+              </Section>
             ) : (
-              <Table headers={["日付", "区分", "理由", "提出者", "状態", "職員コメント", "提出日"]}>
+              <SimpleTable headers={["日付", "区分", "理由", "提出者", "状態", "職員コメント", "提出日"]}>
                 {own.map((r) => (
                   <tr key={r.id} className="hover:bg-gray-50">
                     <Td className="whitespace-nowrap text-gray-700">{fmtDate(r.date)}</Td>
@@ -109,7 +109,7 @@ export default async function ParentAbsencePage() {
                     <Td className="whitespace-nowrap text-gray-500">{fmtDate(r.created_at)}</Td>
                   </tr>
                 ))}
-              </Table>
+              </SimpleTable>
             )}
           </div>
         );

@@ -3,7 +3,7 @@ import { getStudentForUser } from "@/lib/data";
 import { adminDb } from "@/lib/supabase/admin";
 import { fmtDate, toDateInput, daysAgo } from "@/lib/format";
 import { MEAL_LABELS } from "@/lib/constants";
-import { Card, PageHeader, EmptyState, Table, Td } from "@/components/ui";
+import { Section, PageHeader, EmptyState, SimpleTable, Td } from "@/components/ui";
 import type { MealRecord, MealType } from "@/lib/types";
 
 const MEAL_ORDER: MealType[] = ["breakfast", "lunch", "dinner"];
@@ -30,9 +30,9 @@ export default async function StudentMealsPage() {
     return (
       <div>
         <PageHeader title="食事記録" />
-        <Card>
+        <Section>
           <EmptyState message="生徒情報が登録されていません。学校までお問い合わせください。" />
-        </Card>
+        </Section>
       </div>
     );
   }
@@ -57,7 +57,7 @@ export default async function StudentMealsPage() {
     <div>
       <PageHeader title="食事記録" description="直近7日間の食事記録です(○=喫食 / ×=欠食 / —=記録なし)" />
 
-      <Table headers={["日付", ...MEAL_ORDER.map((m) => MEAL_LABELS[m])]}>
+      <SimpleTable headers={["日付", ...MEAL_ORDER.map((m) => MEAL_LABELS[m])]}>
         {days.map((d) => (
           <tr key={d.iso} className="hover:bg-gray-50">
             <Td className="whitespace-nowrap text-gray-700">
@@ -70,7 +70,7 @@ export default async function StudentMealsPage() {
             ))}
           </tr>
         ))}
-      </Table>
+      </SimpleTable>
 
       <p className="mt-4 text-xs text-gray-400">
         ※ 記録は食堂スタッフが入力しています。誤りがある場合は寮スタッフまでお知らせください。

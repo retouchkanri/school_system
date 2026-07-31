@@ -1,6 +1,6 @@
 import { requireRole } from "@/lib/auth";
 import { getStudentForUser } from "@/lib/data";
-import { Card, PageHeader, EmptyState } from "@/components/ui";
+import { Section, PageHeader, EmptyState } from "@/components/ui";
 import PhotoGallery from "@/app/admin/photos/photo-gallery";
 import { loadPhotosForStudent } from "@/app/admin/photos/shared";
 
@@ -12,9 +12,9 @@ export default async function StudentPhotosPage() {
     return (
       <div>
         <PageHeader title="写真" description="学校で撮影した写真が届きます" />
-        <Card>
+        <Section>
           <EmptyState message="生徒情報が登録されていません。学校へお問い合わせください。" />
-        </Card>
+        </Section>
       </div>
     );
   }

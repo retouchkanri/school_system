@@ -4,7 +4,7 @@ import { getLeadForUser } from "@/lib/data";
 import { adminDb } from "@/lib/supabase/admin";
 import { DECISION_DOCUMENTS } from "@/lib/constants";
 import { fmtDate } from "@/lib/format";
-import { Card, PageHeader, btnPrimary } from "@/components/ui";
+import { Section, PageHeader, btnPrimary } from "@/components/ui";
 import type { AdmissionDecision } from "@/lib/types";
 
 export default async function ResultPage() {
@@ -15,7 +15,7 @@ export default async function ResultPage() {
     return (
       <div>
         <PageHeader title="合否確認" />
-        <Card>
+        <Section>
           <div className="py-6 text-center">
             <p className="mt-3 text-sm font-bold text-gray-800">資料請求がまだ紐づいていません</p>
             <p className="mt-2 text-sm text-gray-500">まずは資料請求フォームからお申し込みください。</p>
@@ -23,7 +23,7 @@ export default async function ResultPage() {
               資料請求フォームへ
             </Link>
           </div>
-        </Card>
+        </Section>
       </div>
     );
   }
@@ -36,7 +36,7 @@ export default async function ResultPage() {
     return (
       <div>
         <PageHeader title="合否確認" description="選考結果はこちらのページでご確認いただけます" />
-        <Card>
+        <Section>
           <div className="py-10 text-center">
             <p className="text-4xl">⏳</p>
             <p className="mt-4 text-base font-bold text-gray-800">現在、選考中です</p>
@@ -46,7 +46,7 @@ export default async function ResultPage() {
               今しばらくお待ちください。
             </p>
           </div>
-        </Card>
+        </Section>
       </div>
     );
   }
@@ -71,7 +71,7 @@ export default async function ResultPage() {
           </Link>
         </div>
 
-        <Card title="ご案内した書類">
+        <Section title="ご案内した書類">
           {sentDocs.length === 0 ? (
             <p className="text-sm text-gray-500">書類は準備中です。お手元に届くまでお待ちください。</p>
           ) : (
@@ -89,7 +89,7 @@ export default async function ResultPage() {
           <p className="mt-3 text-xs text-gray-400">
             ※ 書類の到着まで今しばらくお待ちください。届かない場合や紛失された場合は、学院までお問い合わせください。
           </p>
-        </Card>
+        </Section>
       </div>
     );
   }
@@ -120,7 +120,7 @@ export default async function ResultPage() {
   return (
     <div>
       <PageHeader title="合否確認" description={`通知日: ${fmtDate(decision.notified_at)}`} />
-      <Card className="mb-6">
+      <Section className="mb-6">
         <div className="px-2 py-8">
           <p className="text-center text-4xl">🍀</p>
           <h2 className="mt-4 text-center text-xl font-bold text-gray-800">選考結果のお知らせ</h2>
@@ -133,10 +133,10 @@ export default async function ResultPage() {
             教職員一同心よりお祈り申し上げます。再チャレンジのご相談も随時受け付けております。
           </p>
         </div>
-      </Card>
+      </Section>
 
       {rejectedSentDocs.length > 0 && (
-        <Card title="ご案内した書類">
+        <Section title="ご案内した書類">
           <ul className="grid gap-2 sm:grid-cols-2">
             {rejectedSentDocs.map((d) => (
               <li
@@ -147,7 +147,7 @@ export default async function ResultPage() {
               </li>
             ))}
           </ul>
-        </Card>
+        </Section>
       )}
     </div>
   );

@@ -12,7 +12,7 @@ import {
 import { getEnrollmentDocumentSignedUrl, isApplicationDocumentFile } from "@/lib/documents";
 import { fmtDateTime, fmtYen } from "@/lib/format";
 import {
-  Card,
+  Section,
   PageHeader,
   Badge,
   SectionTitle,
@@ -65,7 +65,7 @@ export default async function EnrollmentPage({
     return (
       <div>
         <PageHeader title="入学手続き" />
-        <Card>
+        <Section>
           <div className="py-6 text-center">
             <p className="mt-3 text-sm font-bold text-gray-800">資料請求がまだ紐づいていません</p>
             <p className="mt-2 text-sm text-gray-500">まずは資料請求フォームからお申し込みください。</p>
@@ -73,7 +73,7 @@ export default async function EnrollmentPage({
               資料請求フォームへ
             </Link>
           </div>
-        </Card>
+        </Section>
       </div>
     );
   }
@@ -92,7 +92,7 @@ export default async function EnrollmentPage({
     return (
       <div>
         <PageHeader title="入学手続き" />
-        <Card>
+        <Section>
           <div className="py-6 text-center">
             <p className="text-3xl">🗂️</p>
             <p className="mt-3 text-sm font-bold text-gray-800">入学手続きは合格された方のみご利用いただけます</p>
@@ -103,7 +103,7 @@ export default async function EnrollmentPage({
               合否確認ページへ →
             </Link>
           </div>
-        </Card>
+        </Section>
       </div>
     );
   }
@@ -183,7 +183,7 @@ export default async function EnrollmentPage({
         {FEES.map((fee) => {
           const payment = latestByType.get(fee.type) ?? null;
           return (
-            <Card key={fee.type} title={fee.label}>
+            <Section key={fee.type} title={fee.label}>
               <p className="text-2xl font-bold text-gray-900">{fmtYen(fee.amount)}</p>
               {payment ? (
                 <div className="mt-3 space-y-1.5 text-sm">
@@ -225,7 +225,7 @@ export default async function EnrollmentPage({
                   </form>
                 </div>
               )}
-            </Card>
+            </Section>
           );
         })}
       </div>

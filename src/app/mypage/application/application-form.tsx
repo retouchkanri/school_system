@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { APPLICATION_FILE_DOCUMENTS } from "@/lib/constants";
-import { Card, Label, inputCls, btnPrimary } from "@/components/ui";
+import { Section, Label, inputCls, btnPrimary } from "@/components/ui";
 import { showErrorToast, showSuccessToast } from "@/lib/toast";
 import { submitApplicationAction, type ActionState } from "./actions";
 
@@ -48,7 +48,7 @@ export default function ApplicationForm() {
 
   return (
     <form action={formAction} className="space-y-6">
-      <Card title="提出書類のアップロード">
+      <Section title="提出書類のアップロード">
         <p className="mb-3 text-xs text-gray-500">
           以下の書類をアップロードしてください(PDF・PNG・JPEG・WEBP、10MBまで)。ファイルの用意が難しい場合は郵送でもご提出いただけます。
         </p>
@@ -57,9 +57,9 @@ export default function ApplicationForm() {
             <FileField key={doc.key} docKey={doc.key} label={doc.label} />
           ))}
         </div>
-      </Card>
+      </Section>
 
-      <Card title="作文">
+      <Section title="作文">
         <Label required>「馬の学校で学びたいこと・将来の目標」(400字目安)</Label>
         <textarea
           name="essay"
@@ -70,7 +70,7 @@ export default function ApplicationForm() {
           onChange={(e) => setEssayLength(e.target.value.length)}
         />
         <p className="mt-1 text-right text-xs text-gray-400">{essayLength}字 / 400字目安</p>
-      </Card>
+      </Section>
 
       <button type="submit" disabled={pending} className={`${btnPrimary} w-full py-3`}>
         {pending ? "送信中…" : "出願する"}

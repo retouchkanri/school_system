@@ -5,7 +5,7 @@ import { adminDb } from "@/lib/supabase/admin";
 import { APPLICATION_DOCUMENTS, APPLICATION_STATUS_LABELS } from "@/lib/constants";
 import { fmtDate, fmtDateTime } from "@/lib/format";
 import { getApplicationDocumentSignedUrl, isApplicationDocumentFile } from "@/lib/documents";
-import { Card, PageHeader, Badge, btnPrimary, type BadgeTone } from "@/components/ui";
+import { Section, PageHeader, Badge, btnPrimary, type BadgeTone } from "@/components/ui";
 import type { Application, ApplicationStatus } from "@/lib/types";
 import ApplicationForm from "./application-form";
 import ApplicationDocumentsPanel from "./documents-panel";
@@ -26,7 +26,7 @@ export default async function ApplicationPage() {
     return (
       <div>
         <PageHeader title="出願" />
-        <Card>
+        <Section>
           <div className="py-6 text-center">
             <p className="mt-3 text-sm font-bold text-gray-800">資料請求がまだ紐づいていません</p>
             <p className="mt-2 text-sm text-gray-500">まずは資料請求フォームからお申し込みください。</p>
@@ -34,7 +34,7 @@ export default async function ApplicationPage() {
               資料請求フォームへ
             </Link>
           </div>
-        </Card>
+        </Section>
       </div>
     );
   }

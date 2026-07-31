@@ -4,11 +4,11 @@ import { adminDb } from "@/lib/supabase/admin";
 import { fmtDate, fmtYen } from "@/lib/format";
 import { INSURANCE_CLAIM_STATUS_LABELS } from "@/lib/constants";
 import {
-  Card,
+  Section,
   PageHeader,
   EmptyState,
   Badge,
-  Table,
+  SimpleTable,
   Td,
   SectionTitle,
 } from "@/components/ui";
@@ -30,9 +30,9 @@ export default async function ParentInsurancePage() {
     return (
       <div>
         <PageHeader title="怪我・保険" />
-        <Card>
+        <Section>
           <EmptyState message="お子様の生徒情報が登録されていません。学校までお問い合わせください。" />
-        </Card>
+        </Section>
       </div>
     );
   }
@@ -76,9 +76,9 @@ export default async function ParentInsurancePage() {
       />
 
       <SectionTitle>保険を申請する</SectionTitle>
-      <Card>
+      <Section>
         <ParentClaimForm students={childOptions} injuries={injuryOptions} />
-      </Card>
+      </Section>
 
       {students.map((student) => {
         const myInjuries = injuries.filter((i) => i.student_id === student.id);
@@ -89,11 +89,11 @@ export default async function ParentInsurancePage() {
               {student.name} さん({student.student_number})の怪我の記録
             </SectionTitle>
             {myInjuries.length === 0 ? (
-              <Card>
+              <Section>
                 <EmptyState message="記録されている怪我はありません" />
-              </Card>
+              </Section>
             ) : (
-              <Table headers={["発生日", "場面", "関連馬", "部位", "程度", "症状", "処置", "受診先"]}>
+              <SimpleTable headers={["発生日", "場面", "関連馬", "部位", "程度", "症状", "処置", "受診先"]}>
                 {myInjuries.map((i) => (
                   <tr key={i.id} className="hover:bg-gray-50">
                     <Td className="whitespace-nowrap text-gray-700">{fmtDate(i.date)}</Td>
@@ -116,16 +116,16 @@ export default async function ParentInsurancePage() {
                     <Td className="whitespace-nowrap text-gray-600">{i.hospital ?? "—"}</Td>
                   </tr>
                 ))}
-              </Table>
+              </SimpleTable>
             )}
 
             <SectionTitle>{student.name} さんの申請の状況</SectionTitle>
             {myClaims.length === 0 ? (
-              <Card>
+              <Section>
                 <EmptyState message="送信した保険申請はまだありません" />
-              </Card>
+              </Section>
             ) : (
-              <Table
+              <SimpleTable
                 headers={[
                   "申請日",
                   "申請者",
@@ -178,7 +178,7 @@ export default async function ParentInsurancePage() {
                     </Td>
                   </tr>
                 ))}
-              </Table>
+              </SimpleTable>
             )}
           </div>
         );
