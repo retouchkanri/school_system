@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Lock } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { getLeadForUser } from "@/lib/data";
 import { adminDb } from "@/lib/supabase/admin";
@@ -94,7 +95,7 @@ export default async function EnrollmentPage({
         <PageHeader title="入学手続き" />
         <Section>
           <div className="py-6 text-center">
-            <p className="text-3xl">🗂️</p>
+            <Lock className="mx-auto h-9 w-9 text-gray-300" />
             <p className="mt-3 text-sm font-bold text-gray-800">入学手続きは合格された方のみご利用いただけます</p>
             <p className="mt-2 text-sm text-gray-500">
               選考結果は合否確認ページでご確認ください。合格通知の到着後、こちらのページで手続きを進められます。

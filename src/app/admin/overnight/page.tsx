@@ -119,7 +119,7 @@ export default async function OvernightPage() {
                           title={parent ? "保護者へ承認依頼の通知を送ります" : "保護者アカウントが未連携のため送信できません"}
                           className={btnSmall}
                         >
-                          📨 保護者へ督促
+                         保護者へ督促
                         </button>
                       </form>
                     )}

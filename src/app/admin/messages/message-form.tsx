@@ -132,7 +132,7 @@ export default function MessageForm({ classOptions }: { classOptions: ClassOptio
             onChange={(e) => setViaEmail(e.target.checked)}
             className="accent-brand-600"
           />
-          📧 メールで送信
+         メールで送信
         </label>
         <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-700">
           <input
@@ -142,7 +142,7 @@ export default function MessageForm({ classOptions }: { classOptions: ClassOptio
             onChange={(e) => setViaLine(e.target.checked)}
             className="accent-brand-600"
           />
-          💬 LINEで送信
+         LINEで送信
         </label>
       </div>
 
@@ -164,7 +164,7 @@ export default function MessageForm({ classOptions }: { classOptions: ClassOptio
       )}
 
       <button type="submit" disabled={pending} className={`${btnPrimary} w-full`}>
-        {pending ? "送信中…" : "✉️ 一斉送信する"}
+        {pending ? "送信中…" : "一斉送信する"}
       </button>
     </form>
   );

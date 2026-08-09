@@ -12,10 +12,10 @@ export function GenerateSummaryForm({ horseId }: { horseId: string }) {
       <form action={formAction} className="flex flex-wrap items-center gap-2">
         <input type="hidden" name="horse_id" value={horseId} />
         <button type="submit" name="target" value="current" disabled={pending} className={btnSmall}>
-          {pending ? "生成中…" : "🤖 今月の要約を生成"}
+          {pending ? "生成中…" : "今月の要約を生成"}
         </button>
         <button type="submit" name="target" value="previous" disabled={pending} className={btnSmall}>
-          {pending ? "生成中…" : "🤖 先月の要約を生成"}
+          {pending ? "生成中…" : "先月の要約を生成"}
         </button>
       </form>
       {state.error && <span className="text-xs font-medium text-red-600">{state.error}</span>}
@@ -32,7 +32,7 @@ export function ShareForm({ summaryId, shared }: { summaryId: string; shared: bo
       <input type="hidden" name="summary_id" value={summaryId} />
       {!shared && (
         <button type="submit" disabled={pending} className={btnSmall}>
-          {pending ? "送信中…" : "💌 支援者と共有"}
+          {pending ? "送信中…" : "支援者と共有"}
         </button>
       )}
       {state.error && <span className="text-xs font-medium text-red-600">{state.error}</span>}
@@ -62,7 +62,7 @@ export function EditSummaryForm({
     return (
       <div className="mt-2 flex flex-wrap items-center gap-2">
         <button type="button" onClick={() => setOpen(true)} className={btnSmall}>
-          ✏️ 本文を編集
+         本文を編集
         </button>
         {state.ok && state.message && <span className="text-xs font-medium text-emerald-700">{state.message}</span>}
       </div>
@@ -87,7 +87,7 @@ export function EditSummaryForm({
       )}
       <div className="flex flex-wrap items-center gap-2">
         <button type="submit" disabled={pending} className={btnSmall}>
-          {pending ? "保存中…" : "💾 保存"}
+          {pending ? "保存中…" : "保存"}
         </button>
         <button type="button" onClick={() => setOpen(false)} disabled={pending} className={btnSmall}>
           閉じる

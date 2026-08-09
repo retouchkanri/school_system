@@ -1,29 +1,40 @@
 import Link from "next/link";
+import {
+  Lock,
+  CalendarCheck,
+  Backpack,
+  BedDouble,
+  Warehouse,
+  PawPrint,
+  Users,
+  CalendarDays,
+  Shirt,
+} from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { getLeadForUser } from "@/lib/data";
 import { isDevPhase } from "@/lib/dev";
 import { adminDb } from "@/lib/supabase/admin";
 import { fmtDate } from "@/lib/format";
-import { KOUTOU_IMAGES, KOUTOU_DETAIL, SENMON_IMAGES } from "@/lib/site-images";
 import { Section, PageHeader, Badge, EmptyState, InfoRow, btnPrimary } from "@/components/ui";
 import type { AdmissionDecision, Announcement, EnrollmentProcedure, Horse, Student } from "@/lib/types";
 
+type IconComponent = React.ComponentType<{ className?: string }>;
+
 function InfoSection({
-  image,
-  alt,
+  icon: Icon,
   title,
   content,
 }: {
-  image: string;
-  alt: string;
+  icon: IconComponent;
   title: string;
   content: string | null;
 }) {
   return (
-    <div className="overflow-hidden border border-gray-200 bg-white shadow-sm sm:flex">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={image} alt={alt} className="h-36 w-full object-cover sm:h-auto sm:w-40 sm:shrink-0" />
-      <div className="p-4">
+    <div className="flex gap-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-brand-200 bg-brand-50 text-brand-700">
+        <Icon className="h-5 w-5" />
+      </span>
+      <div className="min-w-0">
         <h3 className="text-sm font-bold text-gray-800">{title}</h3>
         {content ? (
           <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-gray-700">{content}</p>
@@ -75,7 +86,7 @@ export default async function EnrolleePage() {
         <PageHeader title="入学者専用ページ" />
         <Section>
           <div className="py-6 text-center">
-            <p className="text-3xl">🌸</p>
+            <Lock className="mx-auto h-9 w-9 text-gray-300" />
             <p className="mt-3 text-sm font-bold text-gray-800">
               このページは合格後、入学手続きを開始された方専用です
             </p>
@@ -118,12 +129,6 @@ export default async function EnrolleePage() {
 
   return (
     <div>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src="/images/visual-7.jpg"
-        alt="馬と未来を見つめること。"
-        className="mb-6 h-36 w-full rounded-xl object-cover sm:h-48"
-      />
       <PageHeader
         title="入学者専用ページ"
         description={`${lead.name}さん、ご入学おめでとうございます。学院からのお知らせをご確認ください。`}
@@ -135,8 +140,8 @@ export default async function EnrolleePage() {
         </div>
       )}
 
-      <div className="mb-6 border border-pink-200 bg-pink-50/60 p-6 shadow-sm">
-        <p className="text-xs font-bold text-pink-600">🌸 あなたの入学情報</p>
+      <div className="mb-6 rounded-lg border border-pink-200 bg-pink-50/60 p-6 shadow-sm">
+        <p className="text-xs font-bold text-pink-600">あなたの入学情報</p>
         <dl className="mt-3">
           <InfoRow label="お名前" value={lead.name} />
           <InfoRow label="合格した課程" value={lead.desired_course ?? "—"} />
@@ -158,21 +163,10 @@ export default async function EnrolleePage() {
 
       <h2 className="mb-3 text-base font-bold text-gray-800">入学に向けたご案内</h2>
       <div className="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <InfoSection icon={CalendarCheck} title="オリエンテーション情報" content={student?.orientation_info ?? null} />
+        <InfoSection icon={Backpack} title="持ち物" content={student?.items_to_bring ?? null} />
         <InfoSection
-          image={KOUTOU_DETAIL.tokucho1.src}
-          alt={KOUTOU_DETAIL.tokucho1.alt}
-          title="オリエンテーション情報"
-          content={student?.orientation_info ?? null}
-        />
-        <InfoSection
-          image={KOUTOU_IMAGES.campus2.src}
-          alt={KOUTOU_IMAGES.campus2.alt}
-          title="持ち物"
-          content={student?.items_to_bring ?? null}
-        />
-        <InfoSection
-          image={KOUTOU_DETAIL.shisetsuDorm.src}
-          alt={KOUTOU_DETAIL.shisetsuDorm.alt}
+          icon={BedDouble}
           title="寮情報"
           content={
             [student?.dorm_room ? `お部屋: ${student.dorm_room}` : null, student?.dorm_info ?? null]
@@ -180,36 +174,11 @@ export default async function EnrolleePage() {
               .join("\n") || null
           }
         />
-        <InfoSection
-          image={KOUTOU_DETAIL.shisetsuKyusha.src}
-          alt={KOUTOU_DETAIL.shisetsuKyusha.alt}
-          title="配属馬房"
-          content={student?.stall_number ?? null}
-        />
-        <InfoSection
-          image={SENMON_IMAGES.tokuchoTanto.src}
-          alt={SENMON_IMAGES.tokuchoTanto.alt}
-          title="担当馬"
-          content={horse ? `${horse.name}号` : null}
-        />
-        <InfoSection
-          image={KOUTOU_DETAIL.shisetsuKosha.src}
-          alt={KOUTOU_DETAIL.shisetsuKosha.alt}
-          title="クラス発表"
-          content={student?.class_name ?? null}
-        />
-        <InfoSection
-          image={KOUTOU_IMAGES.riding1.src}
-          alt={KOUTOU_IMAGES.riding1.alt}
-          title="授業スケジュール"
-          content={student?.class_schedule ?? null}
-        />
-        <InfoSection
-          image={KOUTOU_IMAGES.campus3.src}
-          alt={KOUTOU_IMAGES.campus3.alt}
-          title="制服発送状況"
-          content={student?.uniform_status ?? null}
-        />
+        <InfoSection icon={Warehouse} title="配属馬房" content={student?.stall_number ?? null} />
+        <InfoSection icon={PawPrint} title="担当馬" content={horse ? `${horse.name}号` : null} />
+        <InfoSection icon={Users} title="クラス発表" content={student?.class_name ?? null} />
+        <InfoSection icon={CalendarDays} title="授業スケジュール" content={student?.class_schedule ?? null} />
+        <InfoSection icon={Shirt} title="制服発送状況" content={student?.uniform_status ?? null} />
       </div>
 
       <h2 className="mb-3 text-base font-bold text-gray-800">学院からのお知らせ</h2>

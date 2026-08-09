@@ -43,7 +43,7 @@ export default async function StudentRidingPage() {
 
   return (
     <div>
-      <PageHeader title="騎乗報告" description="授業での騎乗内容と馬の状態を報告してください(🔁 はリタッチ馬)" />
+      <PageHeader title="騎乗報告" description="授業での騎乗内容と馬の状態を報告してください" />
 
       <Section title="騎乗報告を提出する">
         <RidingForm horses={horseOptions} defaultHorseId={student.assigned_horse_id} defaultDate={toDateInput()} />

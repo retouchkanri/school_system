@@ -42,7 +42,7 @@ export default async function AdminFollowUpsPage() {
         action={
           <form action={runAutoFollowUpsNowAction}>
             <button type="submit" className={btnSecondary}>
-              ⚡ 自動送信を今すぐ実行
+             自動送信を今すぐ実行
             </button>
           </form>
         }
@@ -88,7 +88,7 @@ export default async function AdminFollowUpsPage() {
                     <input type="hidden" name="rule" value={rule.key} />
                     <input type="hidden" name="lead_ids" value={unsent.map((r) => r.lead.id).join(",")} />
                     <button type="submit" className={btnPrimary}>
-                      ✉️ 未送信の{unsent.length}件へ一括送信
+                     未送信の{unsent.length}件へ一括送信
                     </button>
                   </form>
                 ) : rows.length > 0 ? (
@@ -181,7 +181,7 @@ export default async function AdminFollowUpsPage() {
                                 <input type="hidden" name="lead_id" value={lead.id} />
                                 <input type="hidden" name="rule" value={rule.key} />
                                 <button type="submit" className={btnSmall}>
-                                  ✉️ フォロー送信
+                                 フォロー送信
                                 </button>
                               </form>
                               {queued && <Badge tone="blue">自動送信待ち</Badge>}

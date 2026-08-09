@@ -79,17 +79,11 @@ export default async function StudentHomePage() {
 
   return (
     <div>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src="/images/banner-student.jpg"
-        alt="馬を信じること。"
-        className="mb-6 h-36 w-full rounded-xl object-cover sm:h-48"
-      />
       <PageHeader title="ホーム" description={`こんにちは、${student.name} さん`} />
 
       {pendingRequests.length > 0 && (
         <div className="mb-6 flex flex-wrap items-center justify-between gap-2 border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          <span>🌙 保護者の承認待ちの外泊届が {pendingRequests.length} 件あります。</span>
+          <span>保護者の承認待ちの外泊届が {pendingRequests.length} 件あります。</span>
           <Link href="/student/overnight" className="font-semibold text-amber-900 underline">
             外泊届を確認する →
           </Link>

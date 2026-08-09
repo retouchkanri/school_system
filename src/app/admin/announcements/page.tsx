@@ -1,3 +1,4 @@
+import { Mail, MessageCircle } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { adminDb } from "@/lib/supabase/admin";
 import { PageHeader, Card, Table, Td, Badge, EmptyState, SectionTitle, type BadgeTone } from "@/components/ui";
@@ -34,7 +35,7 @@ export default async function AdminAnnouncementsPage() {
 
       <div className="grid gap-6 lg:grid-cols-5">
         <div className="lg:col-span-2">
-          <Card title="📣 新規お知らせ作成">
+          <Card title="新規お知らせ作成">
             <AnnouncementForm stats={stats} />
           </Card>
         </div>
@@ -59,10 +60,10 @@ export default async function AdminAnnouncementsPage() {
                   </Td>
                   <Td className="whitespace-nowrap text-sm">
                     {!a.send_email && !a.send_line ? "—" : (
-                      <>
-                        {a.send_email && <span title="メール">📧</span>}
-                        {a.send_line && <span title="LINE"> 💬</span>}
-                      </>
+                      <span className="inline-flex items-center gap-1.5 text-gray-500">
+                        {a.send_email && <Mail className="h-3.5 w-3.5" aria-label="メール" />}
+                        {a.send_line && <MessageCircle className="h-3.5 w-3.5" aria-label="LINE" />}
+                      </span>
                     )}
                   </Td>
                 </tr>

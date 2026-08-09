@@ -60,7 +60,7 @@ export default async function AdminTuitionPage({
         description="学費の請求と納付状況 (納付日・未納) を一覧で管理します"
         action={
           <a href={exportHref} className={btnSmall}>
-            ⬇ CSVダウンロード
+           CSVダウンロード
           </a>
         }
       />

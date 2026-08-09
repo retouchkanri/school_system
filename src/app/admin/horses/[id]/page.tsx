@@ -159,13 +159,13 @@ export default async function HorseDetailPage({ params }: { params: Promise<{ id
 
         {horse.notes && (
           <p className="mt-4 whitespace-pre-wrap bg-amber-50 px-3 py-2 text-sm leading-relaxed text-amber-800">
-            📝 {horse.notes}
+           {horse.notes}
           </p>
         )}
 
         <details className="mt-4 border-t border-gray-100 pt-4">
           <summary className="cursor-pointer select-none text-sm font-semibold text-brand-600 hover:underline">
-            ✏️ 馬の情報を編集する
+           馬の情報を編集する
           </summary>
           <div className="mt-3 border border-gray-100 bg-gray-50 p-4">
             <HorseEditForm horse={horse} />
@@ -292,7 +292,7 @@ export default async function HorseDetailPage({ params }: { params: Promise<{ id
                 <p className="mt-1 whitespace-pre-wrap text-sm text-gray-800">{r.content}</p>
                 {r.incident?.trim() && (
                   <p className="mt-1 whitespace-pre-wrap bg-amber-50 px-2 py-1 text-xs text-amber-800">
-                    ⚠ {r.incident}
+                   {r.incident}
                   </p>
                 )}
               </li>

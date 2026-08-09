@@ -61,7 +61,7 @@ export default function ReportRow({ report, horses }: { report: ReportRowData; h
         <Td className="max-w-[18rem]">
           <p className="whitespace-pre-wrap text-gray-700">{report.content}</p>
           {report.incident?.trim() && (
-            <p className="mt-1 whitespace-pre-wrap bg-amber-50 px-2 py-1 text-xs text-amber-800">⚠ {report.incident}</p>
+            <p className="mt-1 whitespace-pre-wrap bg-amber-50 px-2 py-1 text-xs text-amber-800">{report.incident}</p>
           )}
         </Td>
         <Td className="max-w-[14rem]">
@@ -121,7 +121,7 @@ export default function ReportRow({ report, horses }: { report: ReportRowData; h
                   <select name="horse_id" required defaultValue={report.horse_id} className={inputCls}>
                     {horses.map((h) => (
                       <option key={h.id} value={h.id}>
-                        {h.is_retouch ? `🔁 ${h.name}` : h.name}
+                        {h.is_retouch ? `${h.name} (リタッチ)` : h.name}
                       </option>
                     ))}
                   </select>

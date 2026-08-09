@@ -5,6 +5,7 @@ import SiteLogo from "@/components/site-logo";
 import { btnPrimary, btnSecondary } from "@/components/ui";
 import MobileNav from "@/components/mobile-nav";
 import UserMenu from "@/components/user-menu";
+import HeaderActions from "@/components/header-actions";
 import type { UserRole } from "@/lib/types";
 
 const ROLE_LABELS: Record<UserRole, string> = {
@@ -38,6 +39,7 @@ export default async function SiteHeader({ showNav = true }: SiteHeaderProps) {
         <SiteLogo variant="brand" href="/" className="shrink-0" />
 
         <div className="flex min-w-0 flex-1 items-center justify-end gap-3 pl-3 pr-[calc(5vw_+_4rem)] sm:gap-5 sm:pl-6">
+          <HeaderActions />
           {showNav &&
             (profile ? (
               <UserMenu

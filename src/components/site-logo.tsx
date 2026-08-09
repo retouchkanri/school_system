@@ -13,7 +13,15 @@ type SiteLogoProps = {
   variant?: "full" | "mark" | "brand";
 };
 
-/** サイト共通ロゴ。brand バリアントはヘッダー左のブランド帯で使用 */
+/**
+ * サイト共通ロゴ。brand バリアントはヘッダー左のブランド帯で使用。
+ *
+ * img には suppressHydrationWarning を付けている。
+ * 広告ブロッカー等の拡張機能が React のハイドレーション前に data-* や
+ * style="visibility:hidden" を注入することがあり、そのままだと
+ * 「server rendered HTML didn't match the client」の警告が全ページで出るため。
+ * (属性の不一致のみを抑制するもので、描画内容には影響しない)
+ */
 export default function SiteLogo({
   className = "",
   height = 56,
@@ -32,6 +40,7 @@ export default function SiteLogo({
           src="/images/logo.png"
           alt="東関東馬事高等学院・東関東馬事専門学院 入学管理システム"
           className="h-full w-auto max-w-[min(70vw,432px)] object-contain object-left"
+          suppressHydrationWarning
         />
       </Link>
     );
@@ -43,7 +52,13 @@ export default function SiteLogo({
   return (
     <Link href={href} className={`inline-flex items-center ${className}`} aria-label="トップページへ">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={src} alt={alt} className="w-auto max-w-full object-contain" style={{ height }} />
+      <img
+        src={src}
+        alt={alt}
+        className="w-auto max-w-full object-contain"
+        style={{ height }}
+        suppressHydrationWarning
+      />
     </Link>
   );
 }

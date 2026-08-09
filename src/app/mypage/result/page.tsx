@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Clock, PartyPopper, Hourglass, HeartHandshake } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { getLeadForUser } from "@/lib/data";
 import { adminDb } from "@/lib/supabase/admin";
@@ -38,7 +39,7 @@ export default async function ResultPage() {
         <PageHeader title="合否確認" description="選考結果はこちらのページでご確認いただけます" />
         <Section>
           <div className="py-10 text-center">
-            <p className="text-4xl">⏳</p>
+            <Clock className="mx-auto h-10 w-10 text-gray-300" />
             <p className="mt-4 text-base font-bold text-gray-800">現在、選考中です</p>
             <p className="mt-2 text-sm leading-relaxed text-gray-500">
               結果が出ましたら、こちらのページとメール・LINEでお知らせいたします。
@@ -59,7 +60,7 @@ export default async function ResultPage() {
         <PageHeader title="合否確認" description={`通知日: ${fmtDate(decision.notified_at)}`} />
 
         <div className="mb-6 overflow-hidden border border-pink-200 bg-pink-50/60 p-8 text-center shadow-sm">
-          <p className="text-5xl">🌸</p>
+          <PartyPopper className="mx-auto h-12 w-12 text-pink-500" />
           <h2 className="mt-4 text-2xl font-bold text-pink-700">合格おめでとうございます!</h2>
           <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-gray-600">
             {lead.name}さん、厳正なる選考の結果、あなたの入学を心より歓迎いたします。
@@ -100,7 +101,7 @@ export default async function ResultPage() {
       <div>
         <PageHeader title="合否確認" description={`通知日: ${fmtDate(decision.notified_at)}`} />
         <div className="border border-amber-200 bg-amber-50/50 p-8 shadow-sm">
-          <p className="text-center text-4xl">📋</p>
+          <Hourglass className="mx-auto h-10 w-10 text-amber-500" />
           <h2 className="mt-4 text-center text-xl font-bold text-amber-700">補欠合格のお知らせ</h2>
           <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-gray-600">
             {lead.name}さん、選考の結果、補欠合格となりました。
@@ -122,7 +123,7 @@ export default async function ResultPage() {
       <PageHeader title="合否確認" description={`通知日: ${fmtDate(decision.notified_at)}`} />
       <Section className="mb-6">
         <div className="px-2 py-8">
-          <p className="text-center text-4xl">🍀</p>
+          <HeartHandshake className="mx-auto h-10 w-10 text-gray-300" />
           <h2 className="mt-4 text-center text-xl font-bold text-gray-800">選考結果のお知らせ</h2>
           <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-gray-600">
             {lead.name}さん、このたびは本学院への出願、誠にありがとうございました。

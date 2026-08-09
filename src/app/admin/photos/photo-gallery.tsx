@@ -71,7 +71,7 @@ export default function PhotoGallery({
                       download={file.name}
                       className="text-xs font-semibold text-brand-700 underline hover:text-brand-800"
                     >
-                      ⬇ 保存
+                     保存
                     </a>
                   </div>
                 </div>

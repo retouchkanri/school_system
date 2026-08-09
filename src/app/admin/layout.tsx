@@ -8,8 +8,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const profile = await requireRole("admin");
 
   return (
-    <div className="min-h-screen bg-white">
-      <header className="sticky top-0 z-40 flex w-full items-stretch border-b border-gray-200 bg-white shadow-sm">
+    <div className="app-shell flex h-dvh flex-col bg-white">
+      <header className="z-40 flex shrink-0 w-full items-stretch border-b border-gray-200 bg-white">
         <SiteLogo variant="brand" href="/" className="shrink-0" />
         <div className="flex flex-1 items-center justify-end px-4 sm:px-6">
           <UserMenu
@@ -22,9 +22,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           />
         </div>
       </header>
-      <AdminSidebar />
-      <div className="lg:pl-60">
-        <main className="mx-auto max-w-7xl px-6 py-6">{children}</main>
+
+      {/* 画面幅いっぱいに広げる (max-w で中央寄せしない)。左右それぞれが独立スクロール */}
+      <div className="flex min-h-0 flex-1 gap-4 px-4 py-5 sm:gap-6 sm:px-6">
+        <AdminSidebar />
+        <main className="min-w-0 flex-1 overflow-y-auto pb-6">{children}</main>
       </div>
     </div>
   );

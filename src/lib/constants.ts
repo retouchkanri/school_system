@@ -135,6 +135,29 @@ export function progressTitle(status: LeadStatus): string {
   return `入学までの進捗（${done} / ${total} 完了）`;
 }
 
+/**
+ * 18ステップを5つの章にまとめる区切り (マイページ「現在の状態」のアコーディオン表示用)。
+ * startKey はその章の先頭ステップ。次の章の先頭までを PROGRESS_STEPS から順に切り出すため、
+ * ステップを追加・削除しても必ずどれかの章に含まれ、18件の取りこぼしが起きない。
+ */
+const PROGRESS_GROUP_STARTS: { key: string; label: string; description: string; startKey: LeadStatus }[] = [
+  { key: "material", label: "資料請求", description: "パンフレットのお申し込みと発送", startKey: "material_requested" },
+  { key: "screening", label: "事前審査", description: "紹介動画の視聴と仮審査アンケート", startKey: "video_watched" },
+  { key: "visit", label: "見学・体験", description: "オープンキャンパスの予約から参加まで", startKey: "visit_reserved" },
+  { key: "selection", label: "出願・選考", description: "出願書類の提出から合否通知まで", startKey: "applied" },
+  { key: "enrollment", label: "入学準備", description: "入学手続きから入学式まで", startKey: "enrollment_procedure" },
+];
+
+/** 5つの章。steps は PROGRESS_STEPS の連続した部分列で、全章を合わせると全18ステップになる */
+export const PROGRESS_GROUPS = PROGRESS_GROUP_STARTS.map((g, i) => {
+  const startIndex = statusIndex(g.startKey);
+  const endIndex =
+    i + 1 < PROGRESS_GROUP_STARTS.length
+      ? statusIndex(PROGRESS_GROUP_STARTS[i + 1].startKey)
+      : PROGRESS_STEPS.length;
+  return { key: g.key, label: g.label, description: g.description, startIndex, steps: PROGRESS_STEPS.slice(startIndex, endIndex) };
+});
+
 export const VIDEO_STATUS_LABELS: Record<VideoStatus, string> = {
   unwatched: "未視聴",
   in_progress: "視聴途中",

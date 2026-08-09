@@ -144,7 +144,7 @@ const NEXT_ACTIONS: Record<LeadStatus, { title: string; description: string; hre
     button: "入学者専用ページへ",
   },
   enrolled: {
-    title: "ご入学おめでとうございます🌸",
+    title: "ご入学おめでとうございます",
     description: "入学者専用ページで学院からのお知らせをご確認ください。",
     href: "/mypage/enrollee",
     button: "入学者専用ページへ",
@@ -191,12 +191,6 @@ export default async function MypageHome() {
 
   return (
     <div>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src="/images/banner-trust.jpg"
-        alt="馬に委ねること。"
-        className="mb-6 h-36 w-full rounded-xl object-cover sm:h-48"
-      />
       <PageHeader
         title={`こんにちは、${profile.full_name}さん`}
         description="入学までの進捗と次のステップをご案内します"
@@ -205,7 +199,7 @@ export default async function MypageHome() {
       <Section title="ご利用いただける3つのメニュー" className="mb-6">
         <div className="grid gap-4 md:grid-cols-3">
           {WELCOME_MENU.map((item) => (
-            <div key={item.key} className="flex flex-col border border-gray-200 p-4">
+            <div key={item.key} className="flex flex-col rounded-lg border border-gray-200 p-4">
               <div className="mb-1 flex items-start justify-between gap-2">
                 <h3 className="min-w-0 flex-1 text-sm font-bold leading-snug text-gray-800">{item.title}</h3>
                 {menuDone[item.key] && <Badge tone="green">完了</Badge>}
@@ -219,7 +213,7 @@ export default async function MypageHome() {
         </div>
       </Section>
 
-      <div className="mb-6 border border-brand-200 bg-brand-50/50 p-6 shadow-sm">
+      <div className="mb-6 rounded-lg border border-brand-200 bg-white p-5">
         <p className="text-xs font-bold text-brand-600">
           現在のステップ: {(lead.status === "enrolled" ? PROGRESS_STEPS[idx] : PROGRESS_STEPS[idx + 1])?.label}
         </p>
@@ -231,8 +225,8 @@ export default async function MypageHome() {
       </div>
 
       {lead.ai_judgement && (
-        <div className="border border-purple-200 bg-purple-50/50 p-6 shadow-sm">
-          <p className="text-xs font-bold text-purple-600">入学仮審査結果</p>
+        <div className="rounded-lg border border-gray-200 bg-white p-5">
+          <p className="text-xs font-bold text-gray-500">入学仮審査結果</p>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <Badge tone={JUDGEMENT_TONE[lead.ai_judgement]}>{AI_JUDGEMENT_LABELS[lead.ai_judgement]}</Badge>
             {lead.ai_type && <span className="text-sm font-bold text-gray-700">{lead.ai_type}</span>}

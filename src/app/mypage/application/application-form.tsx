@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
+import { CheckCircle2 } from "lucide-react";
 import { APPLICATION_FILE_DOCUMENTS } from "@/lib/constants";
 import { Section, Label, inputCls, btnPrimary } from "@/components/ui";
 import { showErrorToast, showSuccessToast } from "@/lib/toast";
@@ -37,7 +38,7 @@ export default function ApplicationForm() {
   if (state.ok) {
     return (
       <div className="border border-emerald-200 bg-emerald-50 p-6 text-center">
-        <p className="text-3xl">📄</p>
+        <CheckCircle2 className="mx-auto h-9 w-9 text-emerald-600" />
         <p className="mt-2 text-sm font-bold text-emerald-800">出願を受け付けました</p>
         <p className="mt-1 text-sm text-emerald-700">
           郵送書類がまだの場合はお早めにご送付ください。続いて適性検査の受検をお願いします。

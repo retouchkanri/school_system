@@ -83,7 +83,7 @@ export default async function SurveysPage() {
                         title={survey.active ? "対象者へ回答依頼 (メール/LINE) を送ります" : "終了したアンケートは配信できません"}
                         className={btnSmall}
                       >
-                        📨 配信する
+                       配信する
                       </button>
                     </form>
                     <form action={toggleSurveyActive}>
@@ -107,7 +107,7 @@ export default async function SurveysPage() {
                       surveyResponses.map((res) => (
                         <div key={res.id} className="border border-gray-100 bg-gray-50 p-4">
                           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                            <p className="text-sm font-bold text-gray-800">👤 {res.student?.name ?? "不明な生徒"}</p>
+                            <p className="text-sm font-bold text-gray-800">{res.student?.name ?? "不明な生徒"}</p>
                             <p className="text-xs text-gray-400">{fmtDateTime(res.submitted_at)}</p>
                           </div>
                           <dl className="space-y-2">

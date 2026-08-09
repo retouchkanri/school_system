@@ -18,7 +18,7 @@ export function Card({
   className?: string;
 }) {
   return (
-    <div className={`border border-gray-200 bg-white shadow-sm ${className}`}>
+    <div className={`overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm ${className}`}>
       {(title || action) && (
         <div className="flex items-center justify-between border-b border-gray-100 px-5 py-3">
           {title && <h3 className="text-sm font-bold text-gray-700">{title}</h3>}
@@ -97,7 +97,7 @@ export function StatCard({
     danger: "text-red-600",
   };
   return (
-    <div className="border border-gray-200 bg-white p-4 shadow-sm">
+    <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
       <p className="text-xs font-medium text-gray-500">{label}</p>
       <p className={`mt-1 text-2xl font-bold ${tones[tone]}`}>{value}</p>
       {sub && <p className="mt-1 text-xs text-gray-400">{sub}</p>}
@@ -134,7 +134,7 @@ export function Stat({
 
 export function EmptyState({ message }: { message: string }) {
   return (
-    <div className="border border-dashed border-gray-300 bg-gray-50 py-10 text-center text-sm text-gray-400">
+    <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 py-10 text-center text-sm text-gray-400">
       {message}
     </div>
   );
@@ -228,7 +228,7 @@ export const btnCtaOutline =
 
 export function Table({ headers, children }: { headers: string[]; children: React.ReactNode }) {
   return (
-    <div className="overflow-x-auto border border-gray-200 bg-white shadow-sm">
+    <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
       <table className="w-full min-w-max text-left text-sm">
         <thead>
           <tr className="border-b border-gray-200 bg-gray-50">

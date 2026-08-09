@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useMemo, useState } from "react";
+import { CheckCircle2 } from "lucide-react";
 import { APTITUDE_QUESTIONS, LIKERT_OPTIONS } from "@/lib/aptitude";
 import { btnPrimary, btnSecondary } from "@/components/ui";
 import { showErrorToast, showSuccessToast } from "@/lib/toast";
@@ -31,7 +32,7 @@ export default function AptitudeForm() {
   if (state.ok) {
     return (
       <div className="border border-emerald-200 bg-emerald-50 p-6 text-center">
-        <p className="text-3xl">🧠</p>
+        <CheckCircle2 className="mx-auto h-9 w-9 text-emerald-600" />
         <p className="mt-2 text-sm font-bold text-emerald-800">受検が完了しました</p>
         <p className="mt-1 text-sm text-emerald-700">採点とAIレポートの生成が完了しました。ページの結果をご確認ください。</p>
       </div>

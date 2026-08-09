@@ -37,7 +37,7 @@ export default function RidingForm({
             </option>
             {horses.map((h) => (
               <option key={h.id} value={h.id}>
-                {h.is_retouch ? `🔁 ${h.name}` : h.name}
+                {h.is_retouch ? `${h.name} (リタッチ)` : h.name}
               </option>
             ))}
           </select>

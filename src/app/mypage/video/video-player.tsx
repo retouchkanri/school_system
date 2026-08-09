@@ -48,7 +48,8 @@ export default function VideoPlayer({ initialCompleted }: { initialCompleted: bo
 
   return (
     <div>
-      <div className="overflow-hidden bg-brand-900 shadow-md">
+      {/* 画面が広いと動画が大きくなりすぎるため、幅の上限を content の半分程度に抑える */}
+      <div className="max-w-xl overflow-hidden rounded-lg bg-brand-900 shadow-md">
         <video
           src={INTRO_VIDEO_URL}
           poster="/images/banner-video.jpg"
@@ -64,14 +65,14 @@ export default function VideoPlayer({ initialCompleted }: { initialCompleted: bo
         </video>
       </div>
 
-      <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
+      <div className="mt-3 flex max-w-xl items-center justify-between text-xs text-gray-500">
         <span>東関東馬事高等学院・専門学院 学院紹介（約5分）</span>
         <span className="font-semibold">{Math.floor(percent)}%</span>
       </div>
 
       {completed && (
-        <div className="mt-6 border border-emerald-200 bg-emerald-50 p-5 text-center">
-          <p className="text-sm font-bold text-emerald-800">動画のご視聴ありがとうございました🎉</p>
+        <div className="mt-6 max-w-xl rounded-lg border border-emerald-200 bg-emerald-50 p-5 text-center">
+          <p className="text-sm font-bold text-emerald-800">動画のご視聴ありがとうございました</p>
           <p className="mt-1 text-sm text-emerald-700">次は入学仮審査アンケートにご回答ください。</p>
           <Link href="/mypage/survey" className={`${btnPrimary} mt-4`}>
             仮審査アンケートへ進む →

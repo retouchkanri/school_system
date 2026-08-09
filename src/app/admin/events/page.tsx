@@ -73,7 +73,7 @@ export default async function AdminEventsPage() {
                 title={`${fmtDate(event.event_date)} ${event.title}`}
                 action={
                   <div className="flex items-center gap-3 text-xs text-gray-500">
-                    {event.start_time && <span>🕙 {event.start_time} 開始</span>}
+                    {event.start_time && <span>{event.start_time} 開始</span>}
                     <span>
                       予約 <span className="font-bold text-gray-700">{activeCount}</span> / 定員 {event.capacity}名
                     </span>

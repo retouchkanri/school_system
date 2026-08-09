@@ -40,7 +40,49 @@ body {
   font-family: var(--font-sans);
 }
 
-/* 見出しは Noto Serif JP */
+/* =========================================================================
+   ログイン後の画面 (管理画面・各ポータル) の共通スタイル調整
+   -------------------------------------------------------------------------
+   .app-shell を付けた要素の内側だけに適用される。
+   公開ページ (トップ・ログイン・資料請求・お問い合わせ) は対象外。
+   背景は白のまま。見出しフォントと文字サイズだけをダッシュボード向けに調整する。
+   ========================================================================= */
+
+/* 公開ページの見出しは装飾的な明朝体だが、管理画面・ポータルは日本語UIで
+   最も一般的なゴシック体 (Noto Sans JP ベース) に統一する */
+.app-shell h1,
+.app-shell h2,
+.app-shell h3 {
+  font-family: var(--font-sans);
+}
+
+/* --- 文字サイズの底上げ (画面全体が小さく詰まって見えないように) --- */
+.app-shell .text-\[10px\] {
+  font-size: 0.75rem;
+}
+.app-shell .text-\[11px\] {
+  font-size: 0.8125rem;
+}
+.app-shell .text-xs {
+  font-size: 0.875rem;
+}
+.app-shell .text-\[13px\] {
+  font-size: 0.9375rem;
+}
+.app-shell .text-sm {
+  font-size: 0.9375rem;
+}
+.app-shell .text-base {
+  font-size: 1.0625rem;
+}
+.app-shell .text-lg {
+  font-size: 1.1875rem;
+}
+.app-shell .text-xl {
+  font-size: 1.375rem;
+}
+
+/* 公開ページの見出しは装飾的な明朝体 (ブランドの雰囲気づくり) */
 h1,
 h2,
 h3 {

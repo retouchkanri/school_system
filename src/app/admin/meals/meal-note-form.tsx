@@ -54,7 +54,7 @@ export default function MealNoteForm({
             : "text-gray-400 hover:text-gray-700"
         }`}
       >
-        {note ? `📝 ${note}` : "＋理由"}
+        {note ? `${note}` : "＋理由"}
       </button>
     );
   }

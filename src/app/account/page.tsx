@@ -3,8 +3,6 @@ import { redirect } from "next/navigation";
 import { getSessionProfile, roleHome } from "@/lib/auth";
 import { adminDb } from "@/lib/supabase/admin";
 import SiteLogo from "@/components/site-logo";
-import FullPageBackground from "@/components/full-page-background";
-import { KOUTOU_IMAGES } from "@/lib/site-images";
 import { Section, PageHeader } from "@/components/ui";
 import AccountForm from "./account-form";
 
@@ -27,9 +25,8 @@ export default async function AccountPage() {
     .maybeSingle();
 
   return (
-    <div className="min-h-screen">
-      <FullPageBackground src={KOUTOU_IMAGES.campus1.src} alt={KOUTOU_IMAGES.campus1.alt} tone="neutral" />
-      <header className="sticky top-0 z-20 border-b border-gray-200 bg-white shadow-sm">
+    <div className="app-shell min-h-screen bg-white">
+      <header className="sticky top-0 z-20 border-b border-gray-200 bg-white">
         <div className="flex w-full items-stretch">
           <SiteLogo variant="brand" href="/" className="shrink-0" />
           <div className="flex flex-1 items-center justify-end px-[5vw]">

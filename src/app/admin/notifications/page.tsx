@@ -56,8 +56,8 @@ export default async function AdminNotificationsPage({
 
   const tabs = [
     { href: "/admin/notifications", label: "すべて", active: !channel },
-    { href: "/admin/notifications?channel=email", label: "📧 メール", active: channel === "email" },
-    { href: "/admin/notifications?channel=line", label: "💬 LINE", active: channel === "line" },
+    { href: "/admin/notifications?channel=email", label: "メール", active: channel === "email" },
+    { href: "/admin/notifications?channel=line", label: "LINE", active: channel === "line" },
   ];
 
   return (
@@ -69,8 +69,8 @@ export default async function AdminNotificationsPage({
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <StatCard label="総送信数" value={`${totalRes.count ?? 0}件`} />
-        <StatCard label="メール" value={`${emailRes.count ?? 0}件`} sub="📧 email" />
-        <StatCard label="LINE" value={`${lineRes.count ?? 0}件`} tone="success" sub="💬 line" />
+        <StatCard label="メール" value={`${emailRes.count ?? 0}件`} sub="email" />
+        <StatCard label="LINE" value={`${lineRes.count ?? 0}件`} tone="success" sub="line" />
       </div>
 
       <div className="mb-4 flex gap-2">

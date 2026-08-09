@@ -90,7 +90,7 @@ export default async function AttendancePage({
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <p className="text-sm font-semibold text-gray-700">
-          📅 {date.replace(/-/g, "/")} ({weekday}) の出欠
+         {date.replace(/-/g, "/")} ({weekday}) の出欠
           {unrecorded > 0 && <span className="ml-2 text-xs font-medium text-gray-400">未登録 {unrecorded}名</span>}
         </p>
         <BulkPresentButton date={date} unrecorded={unrecorded} />

@@ -69,12 +69,12 @@ export default async function MonthlyAttendancePage({
       />
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        <p className="text-sm font-semibold text-gray-700">📅 {monthLabel(month)} の出欠</p>
+        <p className="text-sm font-semibold text-gray-700">{monthLabel(month)} の出欠</p>
         <Link href={`/admin/attendance?date=${dayKey(month, 1)}`} className={btnSmall}>
           日次出欠登録へ
         </Link>
         <a href={`/admin/attendance/monthly/export?month=${month}`} className={btnSmall}>
-          ⬇ CSVダウンロード
+         CSVダウンロード
         </a>
       </div>
 

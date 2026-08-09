@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Crown } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { getLeadForUser } from "@/lib/data";
 import { adminDb } from "@/lib/supabase/admin";
@@ -73,8 +74,8 @@ export default async function AptitudePage() {
             {suitabilityRanked.map((s, i) => (
               <div key={s.key}>
                 <div className="mb-1 flex items-center justify-between text-sm">
-                  <span className="font-semibold text-gray-700">
-                    {i === 0 ? "👑 " : ""}
+                  <span className="inline-flex items-center gap-1 font-semibold text-gray-700">
+                    {i === 0 && <Crown className="h-3.5 w-3.5 text-amber-500" aria-hidden />}
                     {s.label}
                   </span>
                   <span className={`font-bold ${i === 0 ? "text-amber-600" : "text-gray-600"}`}>{s.score}点</span>

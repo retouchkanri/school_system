@@ -67,7 +67,7 @@ export default async function RidingReportsPage({
             {horses.map((h) => (
               <option key={h.id} value={h.id}>
                 {h.name}
-                {h.is_retouch ? " 🔁リタッチ" : ""}
+                {h.is_retouch ? " (リタッチ)" : ""}
               </option>
             ))}
           </select>

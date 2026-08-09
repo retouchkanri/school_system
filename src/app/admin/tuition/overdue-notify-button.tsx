@@ -34,7 +34,7 @@ export default function OverdueNotifyButton({ count }: { count: number }) {
         disabled={pending || count === 0}
         className="inline-flex items-center gap-1 border border-red-300 bg-white px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-600 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {pending ? "送信中…" : "✉ 期限超過のご家庭へ案内を送る"}
+        {pending ? "送信中…" : "期限超過のご家庭へ案内を送る"}
       </button>
     </form>
   );

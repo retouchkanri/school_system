@@ -78,7 +78,7 @@ export default async function ParentHomePage() {
       {pendingRequests.length > 0 && (
         <div className="mb-6 flex flex-wrap items-center justify-between gap-2 border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
           <span>
-            ⚠️ 承認待ちの外泊届が <strong>{pendingRequests.length} 件</strong> あります。内容をご確認のうえ、承認をお願いします。
+           承認待ちの外泊届が <strong>{pendingRequests.length} 件</strong> あります。内容をご確認のうえ、承認をお願いします。
           </span>
           <Link href="/parent/overnight" className="font-semibold text-red-800 underline">
             承認画面へ →

@@ -46,7 +46,7 @@ export default async function AdminPhotosPage() {
 
       <div className="grid gap-6 lg:grid-cols-5">
         <div className="lg:col-span-2">
-          <Card title="📷 写真を公開">
+          <Card title="写真を公開">
             <PhotoShareForm students={studentOptions} />
           </Card>
         </div>

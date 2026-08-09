@@ -146,7 +146,7 @@ export default function PhotoShareForm({ students }: { students: PhotoStudentOpt
 
       <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-700">
         <input type="checkbox" name="notify" defaultChecked className="accent-brand-600" />
-        📧 公開と同時にメール・LINEで通知する
+       公開と同時にメール・LINEで通知する
       </label>
 
       {state.error && <p className="border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">{state.error}</p>}
@@ -158,7 +158,7 @@ export default function PhotoShareForm({ students }: { students: PhotoStudentOpt
       )}
 
       <button type="submit" disabled={pending} className={`${btnPrimary} w-full`}>
-        {pending ? "アップロード中…" : "📷 写真を公開する"}
+        {pending ? "アップロード中…" : "写真を公開する"}
       </button>
     </form>
   );

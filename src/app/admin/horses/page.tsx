@@ -123,7 +123,7 @@ export default async function AdminHorsesPage({
       {alerts.length > 0 && (
         <div className="mb-6 border border-amber-300 bg-amber-50 p-5 shadow-sm">
           <h2 className="text-sm font-bold text-amber-800">
-            ⚠ 予防接種・装蹄の予定が近い/超過している馬 ({alerts.length}頭)
+           予防接種・装蹄の予定が近い/超過している馬 ({alerts.length}頭)
           </h2>
           <ul className="mt-3 space-y-2">
             {alerts.slice(0, 20).map((a) => (
@@ -277,7 +277,7 @@ export default async function AdminHorsesPage({
                       <input type="hidden" name="id" value={h.id} />
                       <input type="hidden" name="next" value={h.is_retouch ? "false" : "true"} />
                       <button type="submit" className={btnSmall}>
-                        {h.is_retouch ? "リタッチ解除" : "💜 リタッチ"}
+                        {h.is_retouch ? "リタッチ解除" : "リタッチ"}
                       </button>
                     </form>
                   </div>

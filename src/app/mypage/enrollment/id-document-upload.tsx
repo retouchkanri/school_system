@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState, type ChangeEvent } from "react";
-import { Check } from "lucide-react";
+import { Check, AlertTriangle } from "lucide-react";
 import { ENROLLMENT_ID_DOCUMENTS } from "@/lib/constants";
 import { showErrorToast } from "@/lib/toast";
 import { uploadEnrollmentDocumentAction, type ActionState } from "./actions";
@@ -104,7 +104,7 @@ export default function IdDocumentsSection({ documentUrls }: { documentUrls: Rec
   return (
     <div className="space-y-5">
       <div className="flex items-start gap-2 border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs leading-relaxed text-amber-800">
-        <span className="mt-0.5">⚠️</span>
+        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
         <p>
           書類の四隅が切れないよう、全体が写るように撮影してください。文字がはっきり読み取れる、ピントの合った鮮明な画像をご用意ください。
         </p>

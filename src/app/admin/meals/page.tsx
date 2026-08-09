@@ -90,7 +90,7 @@ export default async function MealsPage({
       />
 
       <p className="mb-4 text-sm font-semibold text-gray-700">
-        📅 {date.replace(/-/g, "/")} ({weekday}) の食事
+       {date.replace(/-/g, "/")} ({weekday}) の食事
         <span className="ml-3 text-xs font-medium text-gray-400">
           喫食 {eatenCount}件 / 欠食 {missedTodayCount}件
         </span>
@@ -99,7 +99,7 @@ export default async function MealsPage({
       {alertStudents.length > 0 && (
         <div className="mb-6 border border-red-200 bg-red-50 p-5 shadow-sm">
           <h3 className="text-sm font-bold text-red-700">
-            ⚠️ 欠食が続いている生徒 ({fmtDate(alertFrom)} 〜 {fmtDate(date)} の{MEAL_ALERT_DAYS}日間で
+           欠食が続いている生徒 ({fmtDate(alertFrom)} 〜 {fmtDate(date)} の{MEAL_ALERT_DAYS}日間で
             {MEAL_ALERT_THRESHOLD}回以上)
             <span className="ml-2 text-xs font-semibold text-red-500">(外泊中の欠食を除く)</span>
           </h3>

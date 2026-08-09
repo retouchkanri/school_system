@@ -54,16 +54,22 @@ export default async function VideoPage() {
         action={<Badge tone={STATUS_TONE[status]}>{VIDEO_STATUS_LABELS[status]}</Badge>}
       />
 
-      <VideoPlayer initialCompleted={status === "completed"} />
+      {/* 動画は幅を抑えているため、右側の空きに視聴状況パネルを並べて画面を無駄なく使う */}
+      <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
+        <VideoPlayer initialCompleted={status === "completed"} />
 
-      <Section title="視聴状況" className="mt-6">
-        <dl>
-          <InfoRow label="動画タイトル" value={VIDEO_TITLE} />
-          <InfoRow label="視聴状況" value={<Badge tone={STATUS_TONE[status]}>{VIDEO_STATUS_LABELS[status]}</Badge>} />
-          <InfoRow label="進捗" value={`${progress?.progress_percent ?? 0}%`} />
-          <InfoRow label="最終更新" value={progress ? fmtDateTime(progress.updated_at) : "—"} />
-        </dl>
-      </Section>
+        <Section title="視聴状況">
+          <dl className="rounded-lg border border-gray-200 bg-white p-5">
+            <InfoRow label="動画タイトル" value={VIDEO_TITLE} />
+            <InfoRow
+              label="視聴状況"
+              value={<Badge tone={STATUS_TONE[status]}>{VIDEO_STATUS_LABELS[status]}</Badge>}
+            />
+            <InfoRow label="進捗" value={`${progress?.progress_percent ?? 0}%`} />
+            <InfoRow label="最終更新" value={progress ? fmtDateTime(progress.updated_at) : "—"} />
+          </dl>
+        </Section>
+      </div>
     </div>
   );
 }

@@ -688,6 +688,7 @@ export default function HomePage() {
         </section>
 
         {/* CTA (パララックス) */}
+        {/* 背景写真を残しているのはトップページのこのセクションのみ (他ページは背景画像なし) */}
         <section
           className="relative bg-cover bg-fixed bg-center px-[6vw] py-28 text-center"
           style={{ backgroundImage: `url(${KOUTOU_IMAGES.cover.src})` }}

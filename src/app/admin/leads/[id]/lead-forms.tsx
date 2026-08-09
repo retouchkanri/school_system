@@ -75,7 +75,7 @@ export function LeadAdminForm({ lead, staff }: { lead: Lead; staff: Profile[] })
         <form action={sentAction} className="flex flex-wrap items-center gap-3">
           <input type="hidden" name="lead_id" value={lead.id} />
           <button type="submit" disabled={sentPending} className={btnSecondary}>
-            📦 {sentPending ? "送信中…" : "資料発送済にする(メール/LINE通知)"}
+           {sentPending ? "送信中…" : "資料発送済にする(メール/LINE通知)"}
           </button>
           <Feedback state={sentState} />
         </form>
@@ -94,7 +94,7 @@ export function AiJudgeButton({ leadId }: { leadId: string }) {
     <form action={formAction} className="flex flex-wrap items-center gap-3">
       <input type="hidden" name="lead_id" value={leadId} />
       <button type="submit" disabled={pending} className={btnPrimary}>
-        🤖 {pending ? "AI判定中…" : "AI判定を実行"}
+       {pending ? "AI判定中…" : "AI判定を実行"}
       </button>
       <Feedback state={state} />
     </form>
@@ -132,7 +132,7 @@ export function CreateAccountButton({ leadId }: { leadId: string }) {
       <form action={formAction} className="flex flex-wrap items-center gap-3">
         <input type="hidden" name="lead_id" value={leadId} />
         <button type="submit" disabled={pending} className={btnPrimary}>
-          🔑 {pending ? "発行中…" : "マイページアカウントを発行"}
+         {pending ? "発行中…" : "マイページアカウントを発行"}
         </button>
         <Feedback state={state} />
       </form>

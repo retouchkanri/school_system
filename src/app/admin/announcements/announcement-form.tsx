@@ -101,7 +101,7 @@ export default function AnnouncementForm({ stats }: { stats: AnnouncementStats }
             onChange={(e) => setSendEmail(e.target.checked)}
             className="accent-brand-600"
           />
-          📧 メールで送信
+         メールで送信
         </label>
         <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-700">
           <input
@@ -111,7 +111,7 @@ export default function AnnouncementForm({ stats }: { stats: AnnouncementStats }
             onChange={(e) => setSendLine(e.target.checked)}
             className="accent-brand-600"
           />
-          💬 LINEで送信
+         LINEで送信
         </label>
       </div>
 
@@ -133,7 +133,7 @@ export default function AnnouncementForm({ stats }: { stats: AnnouncementStats }
       )}
 
       <button type="submit" disabled={pending} className={`${btnPrimary} w-full`}>
-        {pending ? "送信中…" : "📣 配信する"}
+        {pending ? "送信中…" : "配信する"}
       </button>
     </form>
   );
