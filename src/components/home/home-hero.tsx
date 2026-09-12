@@ -49,12 +49,19 @@ function CatchHeadline({ text }: { text: string }) {
 export default function HomeHero({ slides }: { slides: Slide[] }) {
   const [index, setIndex] = useState(0);
   const [loaded, setLoaded] = useState(false);
+  /** ホバー中・キーボードフォーカス中は自動送りを止める (読んでいる途中で切り替わらないように) */
+  const [paused, setPaused] = useState(false);
+
+  useEffect(() => setLoaded(true), []);
 
   useEffect(() => {
-    setLoaded(true);
-    const id = setInterval(() => setIndex((i) => (i + 1) % slides.length), 6000);
-    return () => clearInterval(id);
-  }, [slides.length]);
+    if (paused) return;
+    // OS で「視差効果を減らす」を選んでいる場合は自動送りしない
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+    // index を依存に入れているため、手動で切り替えたときも待ち時間がリセットされる
+    const id = setTimeout(() => setIndex((i) => (i + 1) % slides.length), 6000);
+    return () => clearTimeout(id);
+  }, [index, paused, slides.length]);
 
   const current = slides[index];
   const catchCharCount = current.catch.replace(/\n/g, "").length;
@@ -64,13 +71,26 @@ export default function HomeHero({ slides }: { slides: Slide[] }) {
   const next = () => setIndex((i) => (i + 1) % slides.length);
 
   return (
-    <section className="relative h-[92vh] min-h-[620px] w-full overflow-hidden bg-brand-900">
+    <section
+      className="relative h-[92vh] min-h-[620px] w-full overflow-hidden bg-brand-900"
+      aria-roledescription="カルーセル"
+      aria-label="学院紹介スライド"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocusCapture={() => setPaused(true)}
+      onBlurCapture={() => setPaused(false)}
+    >
       {slides.map((slide, i) => (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           key={slide.src}
           src={slide.src}
-          alt={slide.alt}
+          alt={i === index ? slide.alt : ""}
+          aria-hidden={i === index ? undefined : true}
+          // 1枚目はファーストビューなので先読み、2枚目以降は遅延読み込みにする
+          loading={i === 0 ? "eager" : "lazy"}
+          fetchPriority={i === 0 ? "high" : "auto"}
+          decoding="async"
           className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-[1800ms] ease-in-out ${
             i === index ? "opacity-100 animate-kenburns" : "opacity-0"
           }`}

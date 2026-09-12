@@ -2,12 +2,14 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Menu, X } from "lucide-react";
+import { ArrowUpRight, Menu, X } from "lucide-react";
 
 type MobileNavItem = {
   href: string;
   label: string;
   className: string;
+  /** 外部サイト (公式サイト) へのリンクは別タブで開く */
+  external?: boolean;
 };
 
 /**
@@ -41,16 +43,30 @@ export default function MobileNav({ items }: { items: readonly MobileNavItem[] }
 
       {open && (
         <div className="absolute right-0 z-50 mt-2 flex w-48 flex-col gap-2 border border-gray-200 bg-white p-3 shadow-xl">
-          {items.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => setOpen(false)}
-              className={`${item.className} w-full`}
-            >
-              {item.label}
-            </Link>
-          ))}
+          {items.map((item) =>
+            item.external ? (
+              <a
+                key={item.href}
+                href={item.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setOpen(false)}
+                className={`${item.className} w-full`}
+              >
+                {item.label}
+                <ArrowUpRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+              </a>
+            ) : (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setOpen(false)}
+                className={`${item.className} w-full`}
+              >
+                {item.label}
+              </Link>
+            )
+          )}
         </div>
       )}
     </div>

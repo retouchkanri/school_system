@@ -239,3 +239,26 @@ h3 {
 .img-zoom:hover img {
   transform: scale(1.07);
 }
+
+/* キーボード操作時のフォーカス位置を全ページで分かるようにする。
+   :where() で詳細度0にしているため、各コンポーネント側の指定が優先される。 */
+:where(a, button, [role="button"], input, select, textarea, summary):focus-visible {
+  outline: 2px solid var(--color-brand-600);
+  outline-offset: 2px;
+}
+
+/* OS で「視差効果を減らす」を選んでいる利用者には、装飾のアニメーションを止める */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .img-zoom:hover img {
+    transform: none;
+  }
+}

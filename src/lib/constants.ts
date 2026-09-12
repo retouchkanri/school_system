@@ -19,6 +19,7 @@ import type {
   InsuranceClaimStatus,
   HorseMovementKind,
 } from "@/lib/types";
+import { OFFICIAL_SITE_LIST, openCampusUrl } from "@/lib/official-sites";
 
 /** 入学までの進捗ステップ (管理画面ダッシュボードの18項目) */
 export const PROGRESS_STEPS: { key: LeadStatus; label: string; description: string }[] = [
@@ -275,13 +276,17 @@ export const RELATIONSHIP_OPTIONS = ["本人", "保護者", "学校の先生", "
 
 export const GRADES = ["中学1年", "中学2年", "中学3年", "高校1年", "高校2年", "高校3年", "既卒・社会人"];
 
-export const COURSES = ["東関東馬事高等学院(高等課程)", "東関東馬事専門学院(専門課程)"];
+/** 希望学科の選択肢。公式サイト定義 (official-sites.ts) と同じ表記で揃えている */
+export const COURSES: string[] = OFFICIAL_SITE_LIST.map((site) => site.course);
 
-/** 希望学科ごとの「体験入学申込」外部フォームURL */
-export const EXPERIENCE_APPLICATION_URLS: Record<string, string> = {
-  "東関東馬事高等学院(高等課程)": "https://bajigaku.net/taiken-1/",
-  "東関東馬事専門学院(専門課程)": "https://bajigaku.site/taiken/",
-};
+/**
+ * 希望学科ごとの「体験入学・オープンキャンパス申込」導線 (各学院の公式サイト)。
+ * リンク先は src/lib/official-sites.ts で一元管理しているため、
+ * 公式サイトのURLが変わった場合もこのファイルの修正は不要。
+ */
+export const EXPERIENCE_APPLICATION_URLS: Record<string, string> = Object.fromEntries(
+  OFFICIAL_SITE_LIST.map((site) => [site.course, openCampusUrl(site)])
+);
 
 export const INTERESTED_JOBS = [
   "騎手",

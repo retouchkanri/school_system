@@ -4,7 +4,16 @@ type MarqueeItem = { src: string; alt: string; caption?: string };
  * 写真が横に流れ続けるマーキー。CSS アニメーションのみで動作。
  * ホバーで一時停止。リストを2周分並べて -50% まで移動しループさせる。
  */
-export default function PhotoMarquee({ items, className = "" }: { items: MarqueeItem[]; className?: string }) {
+export default function PhotoMarquee({
+  items,
+  className = "",
+  fadeFrom = "from-white",
+}: {
+  items: MarqueeItem[];
+  className?: string;
+  /** 両端フェードの色 (セクションの背景色に合わせる) */
+  fadeFrom?: string;
+}) {
   const doubled = [...items, ...items];
   return (
     <div className={`group relative w-full overflow-hidden ${className}`}>
@@ -25,8 +34,8 @@ export default function PhotoMarquee({ items, className = "" }: { items: Marquee
         ))}
       </div>
       {/* 両端をふわっとフェード */}
-      <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-white to-transparent" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-white to-transparent" />
+      <div className={`pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r ${fadeFrom} to-transparent`} />
+      <div className={`pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l ${fadeFrom} to-transparent`} />
     </div>
   );
 }

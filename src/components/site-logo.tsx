@@ -39,7 +39,7 @@ export default function SiteLogo({
         <img
           src="/images/logo.png"
           alt="東関東馬事高等学院・東関東馬事専門学院 入学管理システム"
-          className="h-full w-auto max-w-[min(70vw,432px)] object-contain object-left"
+          className="h-full w-auto max-w-[min(46vw,432px)] object-contain object-left sm:max-w-[min(70vw,432px)]"
           suppressHydrationWarning
         />
       </Link>

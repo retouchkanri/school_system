@@ -1,7 +1,9 @@
 /**
- * 公式サイト (bajigaku.net / bajigaku.site) から取得した画像データベース。
- * 画像本体は public/images/bajigaku/ に保存済み。
- * source は取得元 URL（公式サイト側で差し替えがあった場合の再取得用）。
+ * 学院の写真データベース。画像本体は public/images/bajigaku/ に保存済み。
+ * source は取得当時の取得元 URL (旧CMS: bajigaku.net / bajigaku.site) の記録。
+ *
+ * ※ 公式サイトの URL とリンク導線は src/lib/official-sites.ts で一元管理している
+ *    (現行の公式サイトは bajigakuin.jp / bajigakuin.net)。このファイルは画像専用。
  */
 
 export type SiteImage = {
@@ -170,9 +172,3 @@ export const ALL_SITE_IMAGES: SiteImage[] = [
   ...Object.values(SENMON_IMAGES),
   ...SENMON_ICONS,
 ];
-
-/** 公式サイトの URL */
-export const OFFICIAL_SITES = {
-  koutou: { name: "東関東馬事高等学院", url: "https://bajigaku.net/", tagline: "馬と過ごせる広大なキャンパスが学習の舞台" },
-  senmon: { name: "東関東馬事専門学院", url: "https://bajigaku.site/", tagline: "未経験からJRA厩務員へ。業界一体型の信頼と実績" },
-} as const;

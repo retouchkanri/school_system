@@ -6,7 +6,8 @@
     "dev": "next dev -p 3000",
     "build": "next build",
     "start": "next start -p 3000",
-    "setup": "node scripts/setup.mjs"
+    "setup": "node scripts/setup.mjs",
+    "import:csv": "node scripts/import-csv-data.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.111.0",

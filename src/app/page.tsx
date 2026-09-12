@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   ArrowRight,
+  ArrowUpRight,
   Bell,
   Brain,
   Building2,
@@ -10,8 +11,10 @@ import {
   CreditCard,
   ExternalLink,
   FileText,
+  Globe,
   GraduationCap,
   HeartHandshake,
+  MapPin,
   Moon,
   Phone,
   PlayCircle,
@@ -29,7 +32,10 @@ import Reveal from "@/components/home/reveal";
 import Counter from "@/components/home/counter";
 import PhotoMarquee from "@/components/home/photo-marquee";
 import AdminStepsAccordion, { type AdminStepGroup } from "@/components/home/admin-steps-accordion";
-import { KOUTOU_IMAGES, KOUTOU_DETAIL, KOUTOU_FUTURE, SENMON_IMAGES, OFFICIAL_SITES } from "@/lib/site-images";
+import SectionHeading from "@/components/home/section-heading";
+import { OfficialLinkChips, OfficialSiteSitemap } from "@/components/home/official-site-links";
+import { KOUTOU_IMAGES, KOUTOU_DETAIL, KOUTOU_FUTURE, SENMON_IMAGES } from "@/lib/site-images";
+import { OFFICIAL_SITES, OFFICIAL_SITE_LIST, officialUrl, openCampusUrl } from "@/lib/official-sites";
 
 /* ============ セクションデータ ============ */
 
@@ -73,26 +79,46 @@ const HERO_SLIDES: Slide[] = [
 
 const SCHOOLS = [
   {
-    key: "koutou",
+    site: OFFICIAL_SITES.koutou,
     logo: KOUTOU_IMAGES.logo.src,
     photo: KOUTOU_DETAIL.tokucho1.src,
-    name: "東関東馬事高等学院",
-    en: "HIGASHIKANTO BAJI HIGH SCHOOL",
-    tagline: "勉強は最低限！夢は最大限！",
     desc: "千葉県山武市の小学校跡地をリノベーションした広大なキャンパスで、朝から晩まで馬と過ごせる高校。ほぼ毎日騎乗授業があり、乗馬ライセンスや騎乗者資格も高校授業として取得できます。",
     chips: ["一般高校乗馬コース", "騎手受験特別コース", "競走馬厩務員コース", "全寮制"],
-    url: OFFICIAL_SITES.koutou.url,
   },
   {
-    key: "senmon",
+    site: OFFICIAL_SITES.senmon,
     logo: SENMON_IMAGES.logo.src,
     photo: SENMON_IMAGES.kankyoMain.src,
-    name: "東関東馬事専門学院",
-    en: "HIGASHIKANTO BAJI COLLEGE",
-    tagline: "未経験からJRA厩務員へ。業界一体型の信頼と実績",
     desc: "関東と関西の4つの教育施設で約120頭の馬を学生が管理。未経験から最短1年4ヶ月でJRA競馬学校厩務員課程合格を目指せる、実践型カリキュラムの専門学院です。",
     chips: ["JRA厩務員課程", "10年連続合格実績", "報酬型の業界実習", "学生寮完備"],
-    url: OFFICIAL_SITES.senmon.url,
+  },
+];
+
+/**
+ * 公式サイト → 本システム のつながり。
+ * 学院の紹介は各公式サイト、資料請求から先の手続きはこのシステム、という役割分担を示す。
+ */
+const CONNECT_FLOW = [
+  {
+    step: "01",
+    icon: Globe,
+    title: "公式サイトで知る",
+    desc: "学院の特徴・コース・募集要項・オープンキャンパスの日程は、各学院の公式サイトに最新情報があります。",
+    links: OFFICIAL_SITE_LIST.map((site) => ({ href: officialUrl(site), label: site.name, external: true })),
+  },
+  {
+    step: "02",
+    icon: FileText,
+    title: "このシステムで資料請求",
+    desc: "どちらの学院を志望する場合も、資料請求フォームはひとつ。送信と同時にマイページアカウントが発行されます。",
+    links: [{ href: "/request", label: "資料請求フォーム", external: false }],
+  },
+  {
+    step: "03",
+    icon: UserCheck,
+    title: "マイページで手続き",
+    desc: "動画視聴・仮審査・見学予約・出願・合否確認・入学手続きまで、その後はすべてマイページで完結します。",
+    links: [{ href: "/mypage", label: "マイページ", external: false }],
   },
 ];
 
@@ -275,17 +301,19 @@ export default function HomePage() {
         <HomeHero slides={HERO_SLIDES} />
 
         {/* コンセプト */}
-        <section className="px-[6vw] py-20 text-center sm:py-24">
-          <Reveal>
-            <p className="text-xs font-bold tracking-[0.35em] text-accent-600">INTEGRATED PLATFORM</p>
-            <h2 className="heading-underline mt-4 text-2xl font-bold leading-relaxed text-gray-900 sm:text-3xl">
-              出会いから、卒業まで。
-              <br />
-              すべてを、ひとつのシステムで。
-            </h2>
-          </Reveal>
+        <section className="px-[6vw] py-20 text-center sm:py-28">
+          <SectionHeading
+            eyebrow="INTEGRATED PLATFORM"
+            title={
+              <>
+                出会いから、卒業まで。
+                <br />
+                すべてを、ひとつのシステムで。
+              </>
+            }
+          />
           <Reveal delay={200}>
-            <p className="mx-auto mt-8 max-w-3xl text-sm leading-loose text-gray-600 sm:text-base">
+            <p className="mx-auto mt-8 max-w-3xl text-pretty text-sm leading-loose text-gray-600 sm:text-base">
               騎手、厩務員、乗馬インストラクター――馬のプロフェッショナルを目指す一人ひとりのために。
               資料請求から AI 事前審査、オープンキャンパス、出願、入学手続き、そして毎日の学院生活と一口支援者への報告まで。
               CRM・マーケティングオートメーション・入試管理・在校生管理を統合した、馬事学院独自のプラットフォームです。
@@ -293,40 +321,42 @@ export default function HomePage() {
           </Reveal>
         </section>
 
-        {/* ふたつの学院 */}
-        <section className="bg-brand-50/60 px-[6vw] py-20">
-          <Reveal>
-            <p className="text-center text-xs font-bold tracking-[0.35em] text-accent-600">OUR SCHOOLS</p>
-            <h2 className="heading-underline mt-3 text-center text-2xl font-bold text-gray-900 sm:text-3xl">ふたつの学院</h2>
-          </Reveal>
+        {/* ふたつの学院 (公式サイトへの導線つき) */}
+        <section className="bg-brand-50/60 px-[6vw] py-20 sm:py-28">
+          <SectionHeading
+            eyebrow="OUR SCHOOLS"
+            title="ふたつの学院"
+            lead="高校から入学する「高等課程」と、高校卒業後・社会人から目指す「専門課程」。学院そのものの情報はそれぞれの公式サイトに、資料請求から先の手続きと学院生活はこのシステムにまとまっています。"
+          />
           <div className="mx-auto mt-12 grid max-w-6xl gap-8 lg:grid-cols-2">
             {SCHOOLS.map((school, i) => (
-              <Reveal key={school.key} variant={i === 0 ? "right" : "left"} delay={i * 150}>
-                <div className="group h-full overflow-hidden border border-gray-200 bg-white shadow-sm transition-all duration-500 hover:-translate-y-1 hover:shadow-xl">
+              <Reveal key={school.site.key} variant={i === 0 ? "right" : "left"} delay={i * 150}>
+                <div className="group flex h-full flex-col overflow-hidden border border-gray-200 bg-white shadow-sm transition-all duration-500 hover:-translate-y-1 hover:border-brand-300 hover:shadow-xl">
                   <div className="img-zoom relative h-56 sm:h-64">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={school.photo} alt={school.name} className="h-full w-full object-cover" loading="lazy" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                    <img src={school.photo} alt={school.site.name} className="h-full w-full object-cover" loading="lazy" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/15 to-transparent" />
+                    <span className="absolute left-5 top-5 border border-white/60 bg-black/35 px-2.5 py-1 text-[10px] font-bold tracking-[0.2em] text-white backdrop-blur-[2px]">
+                      {school.site.division}
+                    </span>
                     <div className="absolute bottom-4 left-5 right-5">
-                      <p className="text-[10px] font-bold tracking-[0.25em] text-white/80">{school.en}</p>
-                      <h3 className="mt-1 text-xl font-bold text-white drop-shadow">{school.name}</h3>
+                      <p className="text-[10px] font-bold tracking-[0.25em] text-white/80">{school.site.en}</p>
+                      <h3 className="mt-1 text-xl font-bold text-white drop-shadow sm:text-2xl">{school.site.name}</h3>
                     </div>
                   </div>
-                  <div className="p-6 sm:p-7">
-                    <div className="flex items-center justify-between gap-4">
+
+                  <div className="flex flex-1 flex-col p-6 sm:p-7">
+                    <div className="flex items-center justify-between gap-4 border-b border-gray-100 pb-4">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={school.logo} alt={`${school.name} ロゴ`} className="h-9 w-auto object-contain" loading="lazy" />
-                      <a
-                        href={school.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-xs font-semibold text-brand-600 hover:underline"
-                      >
-                        公式サイト <ExternalLink className="h-3.5 w-3.5" />
-                      </a>
+                      <img src={school.logo} alt={`${school.site.name} ロゴ`} className="h-9 w-auto object-contain" loading="lazy" />
+                      <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-gray-400">
+                        <Globe className="h-3.5 w-3.5" aria-hidden="true" />
+                        {school.site.domain}
+                      </span>
                     </div>
-                    <p className="mt-4 font-serif text-base font-bold text-brand-700">{school.tagline}</p>
-                    <p className="mt-3 text-sm leading-relaxed text-gray-600">{school.desc}</p>
+
+                    <p className="mt-5 font-serif text-base font-bold text-brand-700">{school.site.tagline}</p>
+                    <p className="mt-3 text-pretty text-sm leading-relaxed text-gray-600">{school.desc}</p>
                     <div className="mt-5 flex flex-wrap gap-2">
                       {school.chips.map((chip) => (
                         <span key={chip} className="rounded-full bg-brand-100 px-3 py-1 text-xs font-semibold text-brand-700">
@@ -334,25 +364,104 @@ export default function HomePage() {
                         </span>
                       ))}
                     </div>
+
+                    <div className="mt-6 border-t border-gray-100 pt-5">
+                      <p className="text-[11px] font-bold tracking-[0.2em] text-gray-400">公式サイトの主要ページ</p>
+                      <div className="mt-3">
+                        <OfficialLinkChips site={school.site} />
+                      </div>
+                    </div>
+
+                    <div className="mt-auto flex flex-col gap-3 pt-6 sm:flex-row">
+                      <a
+                        href={officialUrl(school.site)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex min-h-[48px] flex-1 items-center justify-center gap-1.5 bg-brand-600 px-5 text-sm font-bold text-white transition-colors duration-300 hover:bg-accent-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700"
+                      >
+                        公式サイトを見る <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                      </a>
+                      <a
+                        href={openCampusUrl(school.site)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex min-h-[48px] flex-1 items-center justify-center gap-1.5 border border-brand-600 px-5 text-sm font-bold text-brand-700 transition-colors duration-300 hover:bg-brand-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700"
+                      >
+                        オープンキャンパス <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+                      </a>
+                    </div>
                   </div>
                 </div>
               </Reveal>
             ))}
           </div>
+
+          {/* 公式サイトとシステムの役割分担 */}
+          <Reveal delay={150}>
+            <div className="mx-auto mt-10 max-w-6xl border border-brand-200 bg-white p-6 sm:mt-12 sm:p-8">
+              <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-10">
+                <div className="lg:w-[30%]">
+                  <p className="text-[11px] font-bold tracking-[0.3em] text-accent-600">CONNECTED</p>
+                  <h3 className="mt-2 text-lg font-bold text-gray-900">ふたつの公式サイトと、ひとつのシステム</h3>
+                  <p className="mt-3 text-pretty text-xs leading-relaxed text-gray-500">
+                    学院を知るのは公式サイト、そこから先の手続きと学院生活はこのシステム。
+                    どちらの学院を志望する方も、同じ入り口でお迎えします。
+                  </p>
+                </div>
+                <ol className="grid flex-1 gap-4 sm:grid-cols-3">
+                  {CONNECT_FLOW.map((item) => (
+                    <li key={item.step} className="flex h-full flex-col border border-gray-200 bg-brand-50/40 p-5">
+                      <div className="flex items-center gap-2.5">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-600 text-white">
+                          <item.icon className="h-4 w-4" aria-hidden="true" />
+                        </span>
+                        <span className="text-[11px] font-bold tracking-widest text-accent-600">{item.step}</span>
+                      </div>
+                      <h4 className="mt-3 text-sm font-bold text-gray-900">{item.title}</h4>
+                      <p className="mt-2 flex-1 text-[11px] leading-relaxed text-gray-500">{item.desc}</p>
+                      <div className="mt-4 flex flex-col gap-1.5">
+                        {item.links.map((link) =>
+                          link.external ? (
+                            <a
+                              key={link.href}
+                              href={link.href}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-xs font-bold text-brand-600 transition-colors duration-200 hover:text-brand-800"
+                            >
+                              {link.label} <ArrowUpRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                            </a>
+                          ) : (
+                            <Link
+                              key={link.href}
+                              href={link.href}
+                              className="inline-flex items-center gap-1 text-xs font-bold text-brand-600 transition-all duration-200 hover:gap-2 hover:text-brand-800"
+                            >
+                              {link.label} <ArrowRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                            </Link>
+                          )
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </div>
+          </Reveal>
         </section>
 
         {/* 数字で見る学院 */}
-        <section className="border-y border-brand-100 bg-brand-50/60 px-[6vw] py-16">
-          <div className="mx-auto grid max-w-5xl grid-cols-2 gap-10 text-center lg:grid-cols-4">
+        <section className="bg-brand-800 px-[6vw] py-16 sm:py-20">
+          <div className="mx-auto grid max-w-5xl grid-cols-2 gap-x-8 gap-y-10 text-center lg:grid-cols-4">
             {SCHOOL_STATS.map((stat, i) => (
               <Reveal key={stat.label} delay={i * 120}>
-                <p className="font-serif text-4xl font-bold text-brand-700 sm:text-5xl">
+                <p className="font-serif text-4xl font-bold tabular-nums text-white sm:text-5xl">
                   <Counter value={stat.value} />
-                  <span className="ml-1 text-xl text-accent-600 sm:text-2xl">{stat.suffix}</span>
+                  <span className="ml-1 text-xl text-accent-500 sm:text-2xl">{stat.suffix}</span>
                 </p>
-                <p className="mt-2 text-xs leading-relaxed text-gray-500 sm:text-sm">{stat.label}</p>
+                <p className="mt-3 text-xs leading-relaxed text-brand-100/85 sm:text-sm">{stat.label}</p>
                 {"note" in stat && stat.note && (
-                  <p className="mt-0.5 text-[10px] leading-relaxed text-gray-400 sm:text-xs">{stat.note}</p>
+                  <p className="mt-1 text-[10px] leading-relaxed text-brand-200/60 sm:text-xs">{stat.note}</p>
                 )}
               </Reveal>
             ))}
@@ -360,13 +469,12 @@ export default function HomePage() {
         </section>
 
         {/* プラットフォーム3本柱 */}
-        <section className="px-[6vw] py-20">
-          <Reveal>
-            <p className="text-center text-xs font-bold tracking-[0.35em] text-accent-600">WHAT WE DO</p>
-            <h2 className="heading-underline mt-3 text-center text-2xl font-bold text-gray-900 sm:text-3xl">
-              システムができる、3つのこと
-            </h2>
-          </Reveal>
+        <section className="px-[6vw] py-20 sm:py-28">
+          <SectionHeading
+            eyebrow="WHAT WE DO"
+            title="システムができる、3つのこと"
+            lead="入学前の出会いから、入学後の毎日、そして支援者への報告まで。ばらばらだった業務をひとつの流れにまとめます。"
+          />
           <div className="mx-auto mt-12 grid max-w-5xl gap-6 sm:grid-cols-3">
             {PILLARS.map((pillar, i) => (
               <Reveal key={pillar.title} delay={i * 150} variant="zoom">
@@ -383,17 +491,12 @@ export default function HomePage() {
         </section>
 
         {/* 入学までの流れ (8ステップ タイムライン) */}
-        <section className="bg-brand-50/40 px-[6vw] py-20">
-          <Reveal>
-            <p className="text-center text-xs font-bold tracking-[0.35em] text-accent-600">ADMISSION FLOW</p>
-            <h2 className="heading-underline mt-3 text-center text-2xl font-bold text-gray-900 sm:text-3xl">
-              資料請求から入学までの8ステップ
-            </h2>
-            <p className="mx-auto mt-6 max-w-2xl text-center text-sm leading-relaxed text-gray-600">
-              すべてのステップがオンラインでつながっているから、迷わない。
-              あなたの「今」に合わせて、システムが次の一歩をご案内します。
-            </p>
-          </Reveal>
+        <section className="bg-brand-50/40 px-[6vw] py-20 sm:py-28">
+          <SectionHeading
+            eyebrow="ADMISSION FLOW"
+            title="資料請求から入学までの8ステップ"
+            lead="すべてのステップがオンラインでつながっているから、迷わない。あなたの「今」に合わせて、システムが次の一歩をご案内します。"
+          />
 
           <div className="relative mx-auto mt-14 max-w-5xl">
             {/* 縦のタイムライン線 */}
@@ -450,17 +553,12 @@ export default function HomePage() {
         </section>
 
         {/* AI機能 */}
-        <section className="px-[6vw] py-20">
-          <Reveal>
-            <p className="text-center text-xs font-bold tracking-[0.35em] text-accent-600">AI POWERED</p>
-            <h2 className="heading-underline mt-3 text-center text-2xl font-bold text-gray-900 sm:text-3xl">
-              AIが、担当者の目と手になる。
-            </h2>
-            <p className="mx-auto mt-6 max-w-2xl text-center text-sm leading-relaxed text-gray-600">
-              アンケートも適性検査も騎乗報告も、読み込んでまとめるのはAIの仕事。
-              職員は「読むだけ」で、一人ひとりに向き合う時間が増えます。
-            </p>
-          </Reveal>
+        <section className="px-[6vw] py-20 sm:py-28">
+          <SectionHeading
+            eyebrow="AI POWERED"
+            title="AIが、担当者の目と手になる。"
+            lead="アンケートも適性検査も騎乗報告も、読み込んでまとめるのはAIの仕事。職員は「読むだけ」で、一人ひとりに向き合う時間が増えます。"
+          />
           <div className="mx-auto mt-12 grid max-w-5xl gap-6 sm:grid-cols-2">
             {AI_FEATURES.map((feature, i) => (
               <Reveal key={feature.title} delay={i * 130}>
@@ -479,21 +577,21 @@ export default function HomePage() {
         </section>
 
         {/* 在校生・保護者管理 */}
-        <section className="px-[6vw] py-20">
+        <section className="bg-brand-50/40 px-[6vw] py-20 sm:py-28">
           <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-2">
             <div>
-              <Reveal>
-                <p className="text-xs font-bold tracking-[0.35em] text-accent-600">SCHOOL LIFE</p>
-                <h2 className="mt-3 text-2xl font-bold leading-relaxed text-gray-900 sm:text-3xl">
-                  入学してからも、
-                  <br />
-                  毎日をまるごとサポート。
-                </h2>
-                <p className="mt-5 text-sm leading-loose text-gray-600">
-                  全寮制だからこそ、日々の記録と保護者との連携が大切。
-                  出欠から騎乗報告、外泊届の承認、食事の記録まで、学院生活のすべてをメールよりも身近な LINE 連動でつなぎます。
-                </p>
-              </Reveal>
+              <SectionHeading
+                align="left"
+                eyebrow="SCHOOL LIFE"
+                title={
+                  <>
+                    入学してからも、
+                    <br />
+                    毎日をまるごとサポート。
+                  </>
+                }
+                lead="全寮制だからこそ、日々の記録と保護者との連携が大切。出欠から騎乗報告、外泊届の承認、食事の記録まで、学院生活のすべてをメールよりも身近な LINE 連動でつなぎます。"
+              />
               <div className="mt-8 grid grid-cols-2 gap-4">
                 {STUDENT_FEATURES.map((feature, i) => (
                   <Reveal key={feature.title} delay={i * 80} variant="up">
@@ -556,7 +654,7 @@ export default function HomePage() {
         </section>
 
         {/* リタッチ馬 × 一口支援者 */}
-        <section className="bg-brand-50/50 px-[6vw] py-20">
+        <section className="px-[6vw] py-20 sm:py-28">
           <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-2">
             <Reveal variant="right">
               <div className="img-zoom relative overflow-hidden shadow-lg">
@@ -570,13 +668,13 @@ export default function HomePage() {
             </Reveal>
             <div>
               <Reveal variant="left">
-                <p className="text-xs font-bold tracking-[0.35em] text-accent-600">RETOUCH HORSES</p>
-                <h2 className="mt-3 text-2xl font-bold leading-relaxed text-gray-900 sm:text-3xl">
+                <p className="text-[11px] font-bold tracking-[0.35em] text-accent-600">RETOUCH HORSES</p>
+                <h2 className="mt-3 text-balance text-2xl font-bold leading-relaxed text-gray-900 sm:text-[2rem]">
                   リタッチ馬の「今月」を、
                   <br />
                   一口支援者のもとへ。
                 </h2>
-                <p className="mt-5 text-sm leading-loose text-gray-600">
+                <p className="mt-6 text-pretty text-sm leading-loose text-gray-600">
                   学院では引退競走馬(リタッチ馬)を受け入れ、生徒たちが日々ケアと調教を行っています。
                   毎日の騎乗報告からリタッチ馬の情報をシステムが自動でピックアップ。
                   AIがひと月の様子を読みやすく要約し、その馬を支える一口支援者の皆さまへ毎月お届けします。
@@ -601,18 +699,13 @@ export default function HomePage() {
         </section>
 
         {/* 職員ダッシュボード */}
-        <section className="px-[6vw] py-20">
+        <section className="bg-brand-50/40 px-[6vw] py-20 sm:py-28">
           <div className="mx-auto max-w-6xl">
-            <Reveal>
-              <p className="text-center text-xs font-bold tracking-[0.35em] text-accent-600">STAFF DASHBOARD</p>
-              <h2 className="heading-underline mt-3 text-center text-2xl font-bold text-gray-900 sm:text-3xl">
-                対応漏れを、ゼロへ。
-              </h2>
-              <p className="mx-auto mt-6 max-w-2xl text-center text-sm leading-relaxed text-gray-600">
-                生徒ごとの進捗を5つの主要ステップでひと目に把握できる職員用ダッシュボード。
-                フォローが必要な生徒はシステムが自動で抽出し、メール・LINEでアプローチできます。
-              </p>
-            </Reveal>
+            <SectionHeading
+              eyebrow="STAFF DASHBOARD"
+              title="対応漏れを、ゼロへ。"
+              lead="生徒ごとの進捗を5つの主要ステップでひと目に把握できる職員用ダッシュボード。フォローが必要な生徒はシステムが自動で抽出し、メール・LINEでアプローチできます。"
+            />
 
             <Reveal delay={150}>
               <div className="mt-12 border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
@@ -642,13 +735,12 @@ export default function HomePage() {
         </section>
 
         {/* 6つのポータル */}
-        <section className="bg-brand-50/60 px-[6vw] py-20">
-          <Reveal>
-            <p className="text-center text-xs font-bold tracking-[0.35em] text-accent-600">PORTALS</p>
-            <h2 className="heading-underline mt-3 text-center text-2xl font-bold text-gray-900 sm:text-3xl">
-              あなた専用の入り口
-            </h2>
-          </Reveal>
+        <section className="px-[6vw] py-20 sm:py-28">
+          <SectionHeading
+            eyebrow="PORTALS"
+            title="あなた専用の入り口"
+            lead="入学希望者・在校生・保護者・一口支援者・職員。それぞれの立場に合わせた6つのポータルを用意しています。"
+          />
           <div className="mx-auto mt-12 grid max-w-5xl gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {PORTALS.map((portal, i) => (
               <Reveal key={portal.name} delay={i * 100} variant="zoom">
@@ -671,19 +763,15 @@ export default function HomePage() {
         </section>
 
         {/* 目指せる進路 (マーキー) */}
-        <section className="py-20">
-          <Reveal>
-            <p className="text-center text-xs font-bold tracking-[0.35em] text-accent-600">FUTURE</p>
-            <h2 className="heading-underline mt-3 text-center text-2xl font-bold text-gray-900 sm:text-3xl">
-              生徒たちの未来 — 目指せる進路
-            </h2>
-            <p className="mx-auto mt-6 max-w-2xl px-[6vw] text-center text-sm leading-relaxed text-gray-600">
-              JRA騎手・NAR騎手・厩務員から、生産・育成牧場、乗馬クラブ、観光牧場、養老牧場まで。
-              性格・適性検査のAI分析が、一人ひとりに合った馬の仕事への道を照らします。
-            </p>
-          </Reveal>
+        <section className="bg-brand-50 py-20 sm:py-28">
+          <SectionHeading
+            className="px-[6vw]"
+            eyebrow="FUTURE"
+            title="生徒たちの未来 — 目指せる進路"
+            lead="JRA騎手・NAR騎手・厩務員から、生産・育成牧場、乗馬クラブ、観光牧場、養老牧場まで。性格・適性検査のAI分析が、一人ひとりに合った馬の仕事への道を照らします。"
+          />
           <Reveal delay={200} className="mt-10">
-            <PhotoMarquee items={FUTURE_MARQUEE} />
+            <PhotoMarquee items={FUTURE_MARQUEE} fadeFrom="from-brand-50" />
           </Reveal>
         </section>
 
@@ -703,16 +791,33 @@ export default function HomePage() {
             <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
               <Link
                 href="/request"
-                className="inline-flex min-h-[56px] min-w-[220px] items-center justify-center bg-brand-600 px-10 text-base font-semibold text-white transition duration-300 ease-out hover:bg-accent-500"
+                className="inline-flex min-h-[56px] min-w-[220px] items-center justify-center bg-brand-600 px-10 text-base font-semibold text-white transition duration-300 ease-out hover:bg-accent-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
               >
                 無料で資料請求する
               </Link>
               <a
                 href="tel:05068753336"
-                className="inline-flex min-h-[56px] min-w-[220px] items-center justify-center gap-2 border border-white bg-transparent px-8 text-sm font-semibold text-white transition duration-300 ease-out hover:bg-white hover:text-brand-800"
+                className="inline-flex min-h-[56px] min-w-[220px] items-center justify-center gap-2 border border-white bg-transparent px-8 text-sm font-semibold text-white transition duration-300 ease-out hover:bg-white hover:text-brand-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
               >
-                <Phone className="h-4 w-4" /> 050-6875-3336
+                <Phone className="h-4 w-4" aria-hidden="true" /> 050-6875-3336
               </a>
+            </div>
+
+            {/* 学院そのものを詳しく知りたい方は公式サイトへ */}
+            <div className="mx-auto mt-10 flex max-w-3xl flex-col items-center gap-3 border-t border-white/25 pt-8 sm:flex-row sm:justify-center sm:gap-8">
+              <span className="text-[11px] font-bold tracking-[0.3em] text-brand-100/70">OFFICIAL SITES</span>
+              {OFFICIAL_SITE_LIST.map((site) => (
+                <a
+                  key={site.key}
+                  href={officialUrl(site)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-white transition-colors duration-300 hover:text-accent-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                >
+                  {site.name}
+                  <ArrowUpRight className="h-4 w-4 shrink-0" aria-hidden="true" />
+                </a>
+              ))}
             </div>
           </Reveal>
         </section>
@@ -721,25 +826,30 @@ export default function HomePage() {
       {/* フッター */}
       <footer className="border-t border-brand-100 bg-brand-50/60 px-[6vw] pb-10 pt-14 text-gray-600">
         <div className="mx-auto grid max-w-6xl gap-10 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="lg:col-span-2">
+          <div className="sm:col-span-2">
             <p className="font-serif text-lg font-bold text-gray-900">東関東馬事学院 統合プラットフォーム</p>
             <p className="mt-3 max-w-md text-xs leading-relaxed text-gray-500">
               東関東馬事高等学院・東関東馬事専門学院の入学管理から在校生管理、一口支援者への報告までを一元化する統合管理システムです。
             </p>
-            <div className="mt-5 flex flex-col gap-2 text-xs">
-              {Object.values(OFFICIAL_SITES).map((site) => (
-                <a
-                  key={site.url}
-                  href={site.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-gray-600 transition hover:text-brand-700"
-                >
-                  <ExternalLink className="h-3 w-3" /> {site.name} 公式サイト
-                </a>
-              ))}
-            </div>
+            <dl className="mt-5 space-y-2 text-xs">
+              <div className="flex items-start gap-2">
+                <dt className="sr-only">電話</dt>
+                <Phone className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand-600" aria-hidden="true" />
+                <dd>
+                  <a href="tel:05068753336" className="font-semibold text-gray-700 transition-colors duration-200 hover:text-brand-700">
+                    050-6875-3336
+                  </a>
+                  <span className="ml-2 text-gray-400">10:00 - 17:00</span>
+                </dd>
+              </div>
+              <div className="flex items-start gap-2">
+                <dt className="sr-only">所在地</dt>
+                <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand-600" aria-hidden="true" />
+                <dd className="text-gray-500">{OFFICIAL_SITES.koutou.address}</dd>
+              </div>
+            </dl>
           </div>
+
           <div>
             <p className="text-xs font-bold tracking-widest text-brand-700">入学をお考えの方</p>
             <ul className="mt-4 space-y-2.5 text-xs">
@@ -759,6 +869,16 @@ export default function HomePage() {
             </ul>
           </div>
         </div>
+        {/* 公式サイトのページ一覧 (official-sites.ts の定義から生成) */}
+        <div className="mx-auto mt-12 max-w-6xl border-t border-brand-100 pt-10">
+          <p className="text-[11px] font-bold tracking-[0.3em] text-gray-400">OFFICIAL SITES</p>
+          <div className="mt-6 grid gap-10 lg:grid-cols-2">
+            {OFFICIAL_SITE_LIST.map((site) => (
+              <OfficialSiteSitemap key={site.key} site={site} />
+            ))}
+          </div>
+        </div>
+
         <div className="mx-auto mt-12 max-w-6xl border-t border-brand-100 pt-6 text-center text-[11px] text-gray-400">
           © 東関東馬事高等学院・東関東馬事専門学院 入学・在校生統合管理システム
         </div>

@@ -1,9 +1,31 @@
 import { NextResponse } from "next/server";
+import { OFFICIAL_SITE_LIST, officialUrl, openCampusUrl } from "@/lib/official-sites";
+
+/** 学院ごとの公式サイト案内。official-sites.ts の定義からプロンプト用の一覧を組み立てる */
+const OFFICIAL_SITE_GUIDE = OFFICIAL_SITE_LIST.map((site) =>
+  [
+    `■ ${site.name} (${site.division}) — ${officialUrl(site)}`,
+    `  ${site.tagline}`,
+    `  オープンキャンパス・体験入学の申込: ${openCampusUrl(site)}`,
+    ...site.links.map((link) => `  ${link.label}: ${officialUrl(site, link.path)}`),
+  ].join("\n")
+).join("\n");
 
 const SYSTEM_PROMPT = `あなたは東関東馬事高等学院・東関東馬事専門学院の公式サイトアシスタントです。
 入学、見学予約、資料請求、学費、寮生活、馬とのふれあい、進路などについて、丁寧な日本語で回答してください。
 サイト上でできること(資料請求、マイページ、お問い合わせフォームなど)があれば案内してください。
-確実な情報がない場合や個別の判断が必要な場合は、学院へのお問い合わせを案内してください。`;
+確実な情報がない場合や個別の判断が必要な場合は、学院へのお問い合わせを案内してください。
+
+【2つの学院と公式サイト】
+高校から入学するなら東関東馬事高等学院(高等課程)、高校卒業後・社会人からJRA厩務員を目指すなら東関東馬事専門学院(専門課程)です。
+学院ごとの詳しい内容を聞かれたときは、下記の公式サイトの該当ページを URL 付きで案内してください。
+${OFFICIAL_SITE_GUIDE}
+
+【本サイト(統合管理システム)でできること】
+資料請求: /request (どちらの学院もこのフォームで受け付けます)
+マイページ (動画視聴・仮審査・見学予約・出願・入学手続き): /mypage
+お問い合わせ: /contact
+※ 上記は本サイト内のパスです。公式サイトの情報を案内するときは公式サイトの URL を使ってください。`;
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
 
