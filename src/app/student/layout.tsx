@@ -1,44 +1,25 @@
-import {
-  Home,
-  CalendarCheck,
-  CalendarX,
-  ClipboardList,
-  GraduationCap,
-  BedDouble,
-  UtensilsCrossed,
-  FileBarChart,
-  Sparkles,
-  Compass,
-  Images,
-  HeartPulse,
-  Wallet,
-  Receipt,
-  MessageSquare,
-  Megaphone,
-} from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import PortalLayout from "@/components/portal-layout";
+import { portalNavIcons } from "@/components/nav-icons";
 import type { PortalNavItem } from "@/components/portal-shell";
 
-const ICON = "h-4 w-4";
-
 const NAV: PortalNavItem[] = [
-  { href: "/student", label: "ホーム", icon: <Home className={ICON} /> },
-  { href: "/student/attendance", label: "出欠", icon: <CalendarCheck className={ICON} /> },
-  { href: "/student/absence", label: "欠席連絡", icon: <CalendarX className={ICON} /> },
-  { href: "/student/riding", label: "騎乗報告", icon: <ClipboardList className={ICON} /> },
-  { href: "/student/trainings", label: "研修", icon: <GraduationCap className={ICON} /> },
-  { href: "/student/overnight", label: "外泊届", icon: <BedDouble className={ICON} /> },
-  { href: "/student/meals", label: "食事", icon: <UtensilsCrossed className={ICON} /> },
-  { href: "/student/grades", label: "成績表", icon: <FileBarChart className={ICON} /> },
-  { href: "/student/competency", label: "社会人基礎力", icon: <Sparkles className={ICON} /> },
-  { href: "/student/career", label: "進路", icon: <Compass className={ICON} /> },
-  { href: "/student/photos", label: "写真", icon: <Images className={ICON} /> },
-  { href: "/student/insurance", label: "怪我・保険", icon: <HeartPulse className={ICON} /> },
-  { href: "/student/tuition", label: "学費", icon: <Wallet className={ICON} /> },
-  { href: "/student/reimbursements", label: "諸経費返金", icon: <Receipt className={ICON} /> },
-  { href: "/student/surveys", label: "アンケート", icon: <MessageSquare className={ICON} /> },
-  { href: "/student/announcements", label: "お知らせ", icon: <Megaphone className={ICON} /> },
+  { href: "/student", label: "ホーム", icon: portalNavIcons.home },
+  { href: "/student/attendance", label: "出欠", icon: portalNavIcons.attendance },
+  { href: "/student/absence", label: "欠席連絡", icon: portalNavIcons.absence },
+  { href: "/student/riding", label: "騎乗報告", icon: portalNavIcons.riding },
+  { href: "/student/trainings", label: "研修", icon: portalNavIcons.trainings },
+  { href: "/student/overnight", label: "外泊届", icon: portalNavIcons.overnight },
+  { href: "/student/meals", label: "食事", icon: portalNavIcons.meals },
+  { href: "/student/grades", label: "成績表", icon: portalNavIcons.grades },
+  { href: "/student/competency", label: "社会人基礎力", icon: portalNavIcons.competency },
+  { href: "/student/career", label: "進路", icon: portalNavIcons.career },
+  { href: "/student/photos", label: "写真", icon: portalNavIcons.photos },
+  { href: "/student/insurance", label: "怪我・保険", icon: portalNavIcons.insurance },
+  { href: "/student/tuition", label: "学費", icon: portalNavIcons.tuition },
+  { href: "/student/reimbursements", label: "諸経費返金", icon: portalNavIcons.reimbursements },
+  { href: "/student/surveys", label: "アンケート", icon: portalNavIcons.surveys },
+  { href: "/student/announcements", label: "お知らせ", icon: portalNavIcons.announcements },
 ];
 
 export default async function StudentLayout({ children }: { children: React.ReactNode }) {

@@ -183,7 +183,9 @@ export default function PortalSidebar({
           title={item.label}
           aria-current={i === activeIndex ? "page" : undefined}
           className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold transition ${
-            i === activeIndex ? "bg-brand-600 text-white shadow-sm" : "text-gray-500 hover:bg-white hover:text-brand-700"
+            i === activeIndex
+              ? "bg-brand-600 text-white shadow-sm [&_svg]:text-white"
+              : "bg-white text-gray-500 shadow-sm hover:bg-brand-50"
           }`}
         >
           {item.icon ?? item.label.slice(0, 1)}
@@ -210,7 +212,7 @@ export default function PortalSidebar({
                   aria-current={active ? "page" : undefined}
                   className={`flex items-center gap-2.5 rounded-lg px-2.5 py-2.5 text-sm font-semibold transition ${
                     active
-                      ? "bg-brand-600 text-white shadow-sm"
+                      ? "bg-brand-600 text-white shadow-sm [&_svg]:text-white"
                       : "text-gray-600 hover:bg-gray-100 hover:text-brand-700"
                   }`}
                 >

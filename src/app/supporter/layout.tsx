@@ -1,13 +1,11 @@
-import { FileText, Megaphone } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import PortalLayout from "@/components/portal-layout";
+import { supporterNavIcons } from "@/components/nav-icons";
 import type { PortalNavItem } from "@/components/portal-shell";
 
-const ICON = "h-4 w-4";
-
 const NAV: PortalNavItem[] = [
-  { href: "/supporter", label: "月次報告", icon: <FileText className={ICON} /> },
-  { href: "/supporter/announcements", label: "お知らせ", icon: <Megaphone className={ICON} /> },
+  { href: "/supporter", label: "月次報告", icon: supporterNavIcons.reports },
+  { href: "/supporter/announcements", label: "お知らせ", icon: supporterNavIcons.announcements },
 ];
 
 export default async function SupporterLayout({ children }: { children: React.ReactNode }) {

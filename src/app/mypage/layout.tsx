@@ -1,8 +1,8 @@
-import { Compass, PlayCircle, CalendarDays, ClipboardCheck, Package } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { getLeadForUser } from "@/lib/data";
 import { statusIndex } from "@/lib/constants";
 import PortalLayout from "@/components/portal-layout";
+import { mypageNavIcons } from "@/components/nav-icons";
 import type { PortalNavItem } from "@/components/portal-shell";
 
 /**
@@ -10,14 +10,12 @@ import type { PortalNavItem } from "@/components/portal-shell";
  * 章の中の個別ページは、その章を開いている間だけサブ項目として表示される。
  * アイコンはモバイルのアイコンレールでも使うため、全項目に指定する。
  */
-const ICON_CLS = "h-4 w-4";
-
 const NAV: PortalNavItem[] = [
-  { href: "/mypage", label: "進捗", icon: <Compass className={ICON_CLS} /> },
+  { href: "/mypage", label: "進捗", icon: mypageNavIcons.progress },
   {
     href: "/mypage/video",
     label: "事前審査",
-    icon: <PlayCircle className={ICON_CLS} />,
+    icon: mypageNavIcons.screening,
     children: [
       { href: "/mypage/video", label: "紹介動画" },
       { href: "/mypage/survey", label: "仮審査" },
@@ -26,7 +24,7 @@ const NAV: PortalNavItem[] = [
   {
     href: "/mypage/events",
     label: "見学・体験",
-    icon: <CalendarDays className={ICON_CLS} />,
+    icon: mypageNavIcons.visit,
     children: [
       { href: "/mypage/events", label: "見学予約" },
       { href: "/mypage/experience", label: "体験アンケート" },
@@ -35,7 +33,7 @@ const NAV: PortalNavItem[] = [
   {
     href: "/mypage/application",
     label: "出願・選考",
-    icon: <ClipboardCheck className={ICON_CLS} />,
+    icon: mypageNavIcons.selection,
     children: [
       { href: "/mypage/application", label: "出願" },
       { href: "/mypage/aptitude", label: "適性検査" },
@@ -45,7 +43,7 @@ const NAV: PortalNavItem[] = [
   {
     href: "/mypage/enrollment",
     label: "入学準備",
-    icon: <Package className={ICON_CLS} />,
+    icon: mypageNavIcons.enrollment,
     children: [{ href: "/mypage/enrollment", label: "入学手続き" }],
   },
 ];
