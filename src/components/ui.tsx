@@ -18,14 +18,14 @@ export function Card({
   className?: string;
 }) {
   return (
-    <div className={`overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm ${className}`}>
+    <div className={`overflow-hidden rounded-xl border border-gray-200/80 bg-white shadow-sm ${className}`}>
       {(title || action) && (
-        <div className="flex items-center justify-between border-b border-gray-100 px-5 py-3">
-          {title && <h3 className="text-sm font-bold text-gray-700">{title}</h3>}
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 bg-gray-50/60 px-4 py-3.5 sm:px-5">
+          {title && <h3 className="text-sm font-bold tracking-tight text-gray-800">{title}</h3>}
           {action}
         </div>
       )}
-      <div className="p-5">{children}</div>
+      <div className="p-4 sm:p-5">{children}</div>
     </div>
   );
 }
@@ -69,12 +69,12 @@ export function PageHeader({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-      <div>
-        <h1 className="text-xl font-bold text-gray-900">{title}</h1>
-        {description && <p className="mt-1 text-sm text-gray-500">{description}</p>}
+    <div className="mb-5 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
+      <div className="min-w-0">
+        <h1 className="text-xl font-bold tracking-tight text-gray-900 sm:text-2xl">{title}</h1>
+        {description && <p className="mt-1 text-sm leading-relaxed text-gray-500">{description}</p>}
       </div>
-      {action}
+      {action && <div className="shrink-0">{action}</div>}
     </div>
   );
 }
@@ -91,16 +91,37 @@ export function StatCard({
   tone?: "default" | "success" | "warning" | "danger";
 }) {
   const tones = {
-    default: "text-gray-900",
-    success: "text-brand-600",
-    warning: "text-amber-600",
-    danger: "text-red-600",
+    default: {
+      value: "text-gray-900",
+      accent: "bg-gray-300",
+      wash: "from-gray-50/90",
+    },
+    success: {
+      value: "text-brand-700",
+      accent: "bg-brand-500",
+      wash: "from-brand-50",
+    },
+    warning: {
+      value: "text-amber-700",
+      accent: "bg-amber-500",
+      wash: "from-amber-50",
+    },
+    danger: {
+      value: "text-red-700",
+      accent: "bg-red-500",
+      wash: "from-red-50",
+    },
   };
+  const t = tones[tone];
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-      <p className="text-xs font-medium text-gray-500">{label}</p>
-      <p className={`mt-1 text-2xl font-bold ${tones[tone]}`}>{value}</p>
-      {sub && <p className="mt-1 text-xs text-gray-400">{sub}</p>}
+    <div className="relative overflow-hidden rounded-xl border border-gray-200/80 bg-white p-4 shadow-sm sm:p-5">
+      <div className={`absolute inset-y-0 left-0 w-1 ${t.accent}`} aria-hidden />
+      <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${t.wash} to-transparent`} aria-hidden />
+      <div className="relative pl-1.5">
+        <p className="text-xs font-semibold text-gray-500">{label}</p>
+        <p className={`mt-2 text-2xl font-bold tabular-nums tracking-tight sm:text-3xl ${t.value}`}>{value}</p>
+        {sub && <p className="mt-1.5 text-xs leading-snug text-gray-400">{sub}</p>}
+      </div>
     </div>
   );
 }

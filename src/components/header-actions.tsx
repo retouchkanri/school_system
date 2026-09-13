@@ -9,7 +9,7 @@ import ChatPanel from "@/components/chatbot";
  * ヘッダー右側の「LINE / お問い合わせ / AIチャット」。
  * 画面上の面積を取らないよう、3つともアイコンのみで並べる (文字ラベルは持たない)。
  * ラベルは aria-label と title で読み上げ・ツールチップに残している。
- * AIチャットはヘッダー直下に吹き出しで開くため、包む要素を relative にしている。
+ * AIチャットは画面中央のモーダルで開く。
  */
 const ICON_BTN =
   "flex h-9 w-9 shrink-0 items-center justify-center border border-gray-300 bg-white transition hover:border-gray-800 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500";
@@ -40,8 +40,8 @@ export default function HeaderActions() {
         type="button"
         onClick={() => setChatOpen((v) => !v)}
         aria-expanded={chatOpen}
-        aria-label={chatOpen ? "AIチャットを閉じる" : "AIチャットで質問する"}
-        title={chatOpen ? "AIチャットを閉じる" : "AIチャットで質問する"}
+        aria-label={chatOpen ? "AIビデオチャットを閉じる" : "あかりにビデオチャットで質問する"}
+        title={chatOpen ? "AIビデオチャットを閉じる" : "あかりにビデオチャットで質問する"}
         className={`${ICON_BTN} ${chatOpen ? "border-brand-600 bg-brand-600 text-white hover:bg-brand-700" : "text-brand-600"}`}
       >
         {chatOpen ? <X className="h-5 w-5" aria-hidden="true" /> : <MessageCircle className="h-5 w-5" aria-hidden="true" />}

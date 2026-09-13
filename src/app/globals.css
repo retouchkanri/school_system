@@ -247,6 +247,42 @@ h3 {
   outline-offset: 2px;
 }
 
+/* AIビデオチャット: アバターの待機・発話時の体のゆらぎ */
+@keyframes akari-idle-breathe {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(0, -1.5%, 0) scale(1.012) rotate(0.2deg);
+  }
+}
+
+@keyframes akari-speak-sway {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1.02) rotate(-0.35deg);
+  }
+  33% {
+    transform: translate3d(0.6%, -0.8%, 0) scale(1.028) rotate(0.45deg);
+  }
+  66% {
+    transform: translate3d(-0.5%, -1.2%, 0) scale(1.024) rotate(-0.25deg);
+  }
+}
+
+.akari-avatar-idle {
+  animation: akari-idle-breathe 4.2s ease-in-out infinite;
+  transform-origin: 50% 65%;
+  will-change: transform;
+}
+
+.akari-avatar-speak {
+  animation: akari-speak-sway 2.4s ease-in-out infinite;
+  transform-origin: 50% 58%;
+  will-change: transform;
+}
+
 /* OS で「視差効果を減らす」を選んでいる利用者には、装飾のアニメーションを止める */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -260,5 +296,10 @@ h3 {
 
   .img-zoom:hover img {
     transform: none;
+  }
+
+  .akari-avatar-idle,
+  .akari-avatar-speak {
+    animation: none !important;
   }
 }

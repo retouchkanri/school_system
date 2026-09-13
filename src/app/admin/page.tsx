@@ -7,6 +7,14 @@ import { findFollowUpTargets, getFollowUpSettings } from "@/lib/follow-ups";
 import { Card, PageHeader, StatCard, LeadStatusBadge, Table, Td, EmptyState, Badge } from "@/components/ui";
 import type { Lead, Application, Payment, OvernightLeaveRequest } from "@/lib/types";
 
+/** スキャンしやすいよう 18 ステップを 4 フェーズに分割 */
+const FUNNEL_PHASES = [
+  { title: "資料・仮審査", from: 0, to: 4 },
+  { title: "見学・体験", from: 5, to: 8 },
+  { title: "出願・選考", from: 9, to: 12 },
+  { title: "入学準備", from: 13, to: 17 },
+] as const;
+
 export default async function AdminDashboardPage() {
   await requireRole("admin");
   const db = adminDb();
@@ -70,31 +78,73 @@ export default async function AdminDashboardPage() {
     <div>
       <PageHeader title="ダッシュボード" description="入学希望者の状況をひと目で確認できます" />
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">
         <StatCard label="今月の資料請求" value={monthlyRequests} sub={`${now.getMonth() + 1}月の新規リード`} />
         <StatCard label="見学予約中" value={visitReserved} sub="オープンキャンパス予約済" tone="warning" />
         <StatCard label="出願〜面接中" value={applying} sub="選考プロセス進行中" />
         <StatCard label="入学確定" value={enrolled} sub="入学式まで到達" tone="success" />
       </div>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-3">
-        <Card title="入学ファネル (18ステップ到達人数)" className="lg:col-span-2">
-          <div className="space-y-1.5">
-            {PROGRESS_STEPS.map((s, i) => (
-              <div key={s.key} className="flex items-center gap-2">
-                <span className="w-24 shrink-0 text-right text-[11px] font-medium text-gray-500">
-                  {i + 1}. {s.label}
-                </span>
-                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-gray-100">
-                  <div
-                    className="h-1.5 rounded-full bg-brand-500"
-                    style={{ width: `${Math.round((funnel[i] / funnelMax) * 100)}%` }}
-                  />
+      <div className="mt-6 grid gap-4 sm:gap-6 lg:grid-cols-3">
+        <Card title="入学ファネル（18ステップ到達人数）" className="lg:col-span-2">
+          <div className="space-y-5">
+            {FUNNEL_PHASES.map((phase) => (
+              <section key={phase.title}>
+                <div className="mb-2.5 flex items-center gap-2">
+                  <h4 className="text-xs font-bold tracking-wide text-brand-700">{phase.title}</h4>
+                  <div className="h-px flex-1 bg-gradient-to-r from-brand-200 to-transparent" aria-hidden />
                 </div>
-                <span className="w-8 shrink-0 text-right text-xs font-bold text-gray-700">{funnel[i]}</span>
-              </div>
+                <ol className="space-y-2.5">
+                  {PROGRESS_STEPS.slice(phase.from, phase.to + 1).map((s, offset) => {
+                    const i = phase.from + offset;
+                    const count = funnel[i];
+                    const pct = Math.round((count / funnelMax) * 100);
+                    const prev = i > 0 ? funnel[i - 1] : count;
+                    const drop = prev - count;
+                    const stepConv = prev > 0 ? Math.round((count / prev) * 100) : 100;
+
+                    return (
+                      <li key={s.key} className="min-w-0">
+                        <div className="mb-1 flex items-baseline justify-between gap-3">
+                          <div className="flex min-w-0 items-baseline gap-2">
+                            <span className="w-5 shrink-0 text-right font-mono text-[11px] font-semibold tabular-nums text-gray-400">
+                              {String(i + 1).padStart(2, "0")}
+                            </span>
+                            <span className="truncate text-xs font-semibold text-gray-700 sm:text-sm">{s.label}</span>
+                            {drop > 0 && (
+                              <span className="hidden shrink-0 text-[11px] font-medium text-amber-600 sm:inline">
+                                −{drop}（維持率 {stepConv}%）
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex shrink-0 items-baseline gap-1.5">
+                            <span className="text-sm font-bold tabular-nums text-gray-900">{count}</span>
+                            <span className="hidden text-[11px] tabular-nums text-gray-400 sm:inline">{pct}%</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 pl-7">
+                          <div className="h-2.5 min-w-0 flex-1 overflow-hidden rounded-full bg-gray-100 ring-1 ring-inset ring-gray-200/60">
+                            <div
+                              className="h-full rounded-full bg-gradient-to-r from-brand-400 to-brand-600 transition-[width] duration-500 ease-out"
+                              style={{ width: `${Math.max(pct, count > 0 ? 2 : 0)}%` }}
+                            />
+                          </div>
+                          {drop > 0 && (
+                            <span className="shrink-0 text-[11px] font-medium text-amber-600 sm:hidden">−{drop}</span>
+                          )}
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ol>
+              </section>
             ))}
           </div>
+          {funnel[0] > 0 && (
+            <p className="mt-5 border-t border-gray-100 pt-3 text-[11px] leading-relaxed text-gray-400">
+              棒の長さはステップ1（資料請求）到達人数を100%とした相対値です。離脱があるステップには減少人数を表示します。
+            </p>
+          )}
         </Card>
 
         <div className="space-y-6">
@@ -106,10 +156,10 @@ export default async function AdminDashboardPage() {
               </Link>
             }
           >
-            <ul className="space-y-3">
+            <ul className="space-y-3.5">
               {followStats.map(({ rule, total, unsent, autoEnabled }) => (
                 <li key={rule.key} className="flex items-start justify-between gap-3">
-                  <span className="text-xs text-gray-600">
+                  <span className="min-w-0 text-xs leading-snug text-gray-600 sm:text-sm">
                     {rule.label}
                     <span className="mt-0.5 block text-[11px] text-gray-400">
                       未送信 {unsent}件 ・ {autoEnabled ? "自動送信ON" : "自動送信OFF"}
@@ -122,15 +172,21 @@ export default async function AdminDashboardPage() {
           </Card>
 
           <Card title="承認待ち・要対応">
-            <ul className="space-y-3">
+            <ul className="space-y-3.5">
               <li className="flex items-center justify-between gap-3">
-                <Link href="/admin/payments" className="text-xs text-gray-600 hover:text-brand-600 hover:underline">
+                <Link
+                  href="/admin/payments"
+                  className="min-w-0 text-xs leading-snug text-gray-600 hover:text-brand-600 hover:underline sm:text-sm"
+                >
                   銀行振込の入金確認待ち
                 </Link>
                 <Badge tone={bankTransferWaiting > 0 ? "red" : "gray"}>{bankTransferWaiting}件</Badge>
               </li>
               <li className="flex items-center justify-between gap-3">
-                <Link href="/admin/overnight" className="text-xs text-gray-600 hover:text-brand-600 hover:underline">
+                <Link
+                  href="/admin/overnight"
+                  className="min-w-0 text-xs leading-snug text-gray-600 hover:text-brand-600 hover:underline sm:text-sm"
+                >
                   外泊届の保護者承認待ち
                 </Link>
                 <Badge tone={overnightPending > 0 ? "amber" : "gray"}>{overnightPending}件</Badge>
@@ -138,7 +194,7 @@ export default async function AdminDashboardPage() {
               <li className="flex items-center justify-between gap-3">
                 <Link
                   href="/admin/applications"
-                  className="text-xs text-gray-600 hover:text-brand-600 hover:underline"
+                  className="min-w-0 text-xs leading-snug text-gray-600 hover:text-brand-600 hover:underline sm:text-sm"
                 >
                   出願書類の審査待ち
                 </Link>
