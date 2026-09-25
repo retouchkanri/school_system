@@ -45,7 +45,7 @@ body {
    -------------------------------------------------------------------------
    .app-shell を付けた要素の内側だけに適用される。
    公開ページ (トップ・ログイン・資料請求・お問い合わせ) は対象外。
-   背景は白のまま。見出しフォントと文字サイズだけをダッシュボード向けに調整する。
+   背景は白のまま。見出しフォント・文字サイズ・文字の太さだけをダッシュボード向けに調整する。
    ========================================================================= */
 
 /* 公開ページの見出しは装飾的な明朝体だが、管理画面・ポータルは日本語UIで
@@ -80,6 +80,36 @@ body {
 }
 .app-shell .text-xl {
   font-size: 1.375rem;
+}
+
+/* 情報量の多い管理画面の一部 (ダッシュボード・管理サイドバー) は、
+   .admin-compact を付けて底上げを一段控えめにし、一覧性を優先する */
+.app-shell .admin-compact .text-\[11px\] {
+  font-size: 0.75rem;
+}
+.app-shell .admin-compact .text-xs {
+  font-size: 0.8125rem;
+}
+.app-shell .admin-compact .text-sm {
+  font-size: 0.875rem;
+}
+.app-shell .admin-compact .text-xl {
+  font-size: 1.25rem;
+}
+
+/* --- 文字の太さ: 細い本文は少し太く、太字は少し細くして濃淡の差を穏やかにそろえる。
+   Noto Sans JP は可変フォントのため中間の太さも指定できる (font-medium は 500 のまま) --- */
+.app-shell {
+  font-weight: 450;
+}
+.app-shell .font-normal {
+  font-weight: 450;
+}
+.app-shell .font-semibold {
+  font-weight: 560;
+}
+.app-shell .font-bold {
+  font-weight: 640;
 }
 
 /* 公開ページの見出しは装飾的な明朝体 (ブランドの雰囲気づくり) */

@@ -8,12 +8,13 @@ import {
   Table,
   Td,
   LeadStatusBadge,
+  Badge,
   ProgressTracker,
   EmptyState,
   inputCls,
   btnSecondary,
 } from "@/components/ui";
-import type { Lead, LeadStatus, Profile } from "@/lib/types";
+import type { Lead, LeadStatus, Profile, Student } from "@/lib/types";
 
 export default async function AdminLeadsPage({
   searchParams,
@@ -35,12 +36,17 @@ export default async function AdminLeadsPage({
     query = query.eq("status", status);
   }
 
-  const [{ data: leadsData }, { data: staffData }] = await Promise.all([
+  const [{ data: leadsData }, { data: staffData }, { data: studentsData }] = await Promise.all([
     query,
     db.from("profiles").select("*").eq("role", "admin"),
+    // 在籍中の生徒に紐付くリードは、ステータスを「在校生」とし学籍番号を表示する
+    db.from("students").select("lead_id, student_number").eq("status", "enrolled").not("lead_id", "is", null),
   ]);
   const leads = (leadsData ?? []) as Lead[];
   const staffMap = new Map(((staffData ?? []) as Profile[]).map((p) => [p.id, p.full_name]));
+  const studentNumberByLead = new Map(
+    ((studentsData ?? []) as Pick<Student, "lead_id" | "student_number">[]).map((s) => [s.lead_id, s.student_number])
+  );
 
   return (
     <div>
@@ -85,31 +91,35 @@ export default async function AdminLeadsPage({
         <EmptyState message="条件に一致するリードがありません" />
       ) : (
         <Table
-          headers={["氏名", "学年", "希望学科", "ステータス", "進捗", "資料送付日", "担当者", "登録日"]}
+          headers={["No.", "氏名", "学年", "希望学科", "ステータス", "進捗", "資料送付日", "担当者", "登録日"]}
         >
-          {leads.map((lead) => (
-            <tr key={lead.id} className="hover:bg-gray-50">
-              <Td>
-                <Link href={`/admin/leads/${lead.id}`} className="font-semibold text-brand-700 hover:underline">
-                  {lead.name}
-                </Link>
-                {lead.kana && <p className="text-[11px] text-gray-400">{lead.kana}</p>}
-              </Td>
-              <Td className="text-gray-600">{lead.grade ?? "—"}</Td>
-              <Td className="text-gray-600">{lead.desired_course ?? "—"}</Td>
-              <Td>
-                <LeadStatusBadge status={lead.status} />
-              </Td>
-              <Td>
-                <ProgressTracker status={lead.status} compact />
-              </Td>
-              <Td className="text-gray-500">{fmtDate(lead.material_sent_date)}</Td>
-              <Td className="text-gray-600">
-                {lead.assigned_staff ? (staffMap.get(lead.assigned_staff) ?? "—") : "未割当"}
-              </Td>
-              <Td className="text-gray-500">{fmtDate(lead.created_at)}</Td>
-            </tr>
-          ))}
+          {leads.map((lead, index) => {
+            const studentNumber = studentNumberByLead.get(lead.id);
+            return (
+              <tr key={lead.id} className="hover:bg-gray-50">
+                <Td className="whitespace-nowrap tabular-nums text-gray-500">{index + 1}</Td>
+                <Td>
+                  <Link href={`/admin/leads/${lead.id}`} className="font-semibold text-brand-700 hover:underline">
+                    {lead.name}
+                  </Link>
+                  {lead.kana && <p className="text-[11px] text-gray-400">{lead.kana}</p>}
+                </Td>
+                <Td className="text-gray-600">{lead.grade ?? "—"}</Td>
+                <Td className="text-gray-600">{lead.desired_course ?? "—"}</Td>
+                <Td>
+                  {studentNumber ? <Badge tone="brand">在校生</Badge> : <LeadStatusBadge status={lead.status} />}
+                </Td>
+                <Td>
+                  <ProgressTracker status={lead.status} compact />
+                </Td>
+                <Td className="text-gray-500">{fmtDate(lead.material_sent_date)}</Td>
+                <Td className="text-gray-600">
+                  {lead.assigned_staff ? (staffMap.get(lead.assigned_staff) ?? "—") : "未割当"}
+                </Td>
+                <Td className="text-gray-500">{fmtDate(lead.created_at)}</Td>
+              </tr>
+            );
+          })}
         </Table>
       )}
     </div>

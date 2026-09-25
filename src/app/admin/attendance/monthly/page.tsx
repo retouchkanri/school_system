@@ -91,30 +91,35 @@ export default async function MonthlyAttendancePage({
         <Card title="月間グリッド (出=出席 / 欠=欠席 / 遅=遅刻 / 早=早退 / ・=未登録)">
           <div className="overflow-x-auto">
             <table className="w-full min-w-max text-left text-sm">
-              <thead>
+              <tbody className="divide-y divide-gray-100">
                 <tr className="border-b border-gray-200 bg-gray-50">
-                  <th className="sticky left-0 z-10 whitespace-nowrap bg-gray-50 px-4 py-2 text-xs font-bold text-gray-500">
+                  <th
+                    scope="col"
+                    className="sticky left-0 z-10 whitespace-nowrap bg-gray-50 px-4 py-2 text-xs font-bold text-gray-500"
+                  >
                     生徒
                   </th>
                   {dayList.map((d) => {
                     const w = weekdayIndex(month, d);
                     const tone = w === 0 ? "text-red-500" : w === 6 ? "text-blue-500" : "text-gray-500";
                     return (
-                      <th key={d} className={`px-1 py-2 text-center text-[11px] font-bold ${tone}`}>
+                      <th key={d} scope="col" className={`px-1 py-2 text-center text-[11px] font-bold ${tone}`}>
                         <span className="block">{d}</span>
                         <span className="block text-[10px] font-medium">{WEEKDAYS[w]}</span>
                       </th>
                     );
                   })}
                   {STATUS_ORDER.map((s) => (
-                    <th key={s} className="border-l border-gray-200 px-2 py-2 text-center text-[11px] font-bold text-gray-500">
+                    <th
+                      key={s}
+                      scope="col"
+                      className="border-l border-gray-200 px-2 py-2 text-center text-[11px] font-bold text-gray-500"
+                    >
                       {/* 集計列: 出/欠/遅/早 */}
                       {STATUS_CHARS[s]}
                     </th>
                   ))}
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
                 {rows.map((row) => (
                   <tr key={row.student.id} className="hover:bg-gray-50">
                     <td className="sticky left-0 z-10 whitespace-nowrap bg-white px-4 py-2">

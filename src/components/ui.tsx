@@ -247,20 +247,26 @@ export const btnCtaOutline =
 
 /* ============ テーブル ============ */
 
+/**
+ * thead + tbody の二段構成は、SSR ストリーミング時にブラウザが
+ * 行を thead 内へ繰り込んでしまい、ハイドレーション不一致
+ * (tbody ↔ tr) を起こすことがある。ヘッダー行も含めて tbody に
+ * まとめることでパーサ補正を避ける。
+ */
 export function Table({ headers, children }: { headers: string[]; children: React.ReactNode }) {
   return (
     <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
       <table className="w-full min-w-max text-left text-sm">
-        <thead>
+        <tbody className="divide-y divide-gray-100">
           <tr className="border-b border-gray-200 bg-gray-50">
             {headers.map((h, i) => (
-              <th key={i} className="whitespace-nowrap px-4 py-3 text-xs font-bold text-gray-500">
+              <th key={i} scope="col" className="whitespace-nowrap px-4 py-3 text-xs font-bold text-gray-500">
                 {h}
               </th>
             ))}
           </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-100">{children}</tbody>
+          {children}
+        </tbody>
       </table>
     </div>
   );
@@ -271,16 +277,16 @@ export function SimpleTable({ headers, children }: { headers: string[]; children
   return (
     <div className="overflow-x-auto">
       <table className="w-full min-w-max text-left text-sm">
-        <thead>
+        <tbody className="divide-y divide-gray-100">
           <tr className="border-b border-gray-200">
             {headers.map((h, i) => (
-              <th key={i} className="whitespace-nowrap px-3 py-2.5 text-xs font-bold text-gray-500">
+              <th key={i} scope="col" className="whitespace-nowrap px-4 py-2.5 text-xs font-bold text-gray-500">
                 {h}
               </th>
             ))}
           </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-100">{children}</tbody>
+          {children}
+        </tbody>
       </table>
     </div>
   );

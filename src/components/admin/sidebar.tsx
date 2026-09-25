@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { ChevronDown } from "lucide-react";
 import SideRail from "@/components/side-rail";
 import { adminNavIcons, adminSectionIcons } from "@/components/nav-icons";
 
@@ -81,6 +83,20 @@ function isActive(pathname: string, href: string): boolean {
   return href === "/admin" ? pathname === "/admin" : pathname.startsWith(href);
 }
 
+function sectionHasActive(group: (typeof NAV)[number], pathname: string): boolean {
+  return group.items.some((item) => isActive(pathname, item.href));
+}
+
+function initialOpenSections(pathname: string): Set<string> {
+  const open = new Set<string>();
+  for (const group of NAV) {
+    if (sectionHasActive(group, pathname)) open.add(group.section);
+  }
+  // どのグループにも属さない場合は先頭を開く
+  if (open.size === 0 && NAV[0]) open.add(NAV[0].section);
+  return open;
+}
+
 const linkBase =
   "flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-medium transition";
 const linkActive = "bg-brand-600 font-bold text-white shadow-sm [&_svg]:text-white";
@@ -88,15 +104,42 @@ const linkIdle = "text-gray-600 hover:bg-gray-100 hover:text-brand-700";
 
 /**
  * 管理画面の左サイドバー。ポータル (components/portal-sidebar.tsx) と同じ作りにそろえている。
+ * セクション見出しをクリックするとグループ単位で開閉できる。
+ * 現在ページを含むグループは自動的に開く。
  * モバイルではセクションのアイコンだけのレールになり、スワイプで中身が開く。
  */
 export default function AdminSidebar() {
   const pathname = usePathname();
+  const [openSections, setOpenSections] = useState<Set<string>>(() => initialOpenSections(pathname));
+
+  // 遷移先のグループは必ず開く (他グループの開閉状態は維持)
+  useEffect(() => {
+    setOpenSections((prev) => {
+      let changed = false;
+      const next = new Set(prev);
+      for (const group of NAV) {
+        if (sectionHasActive(group, pathname) && !next.has(group.section)) {
+          next.add(group.section);
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [pathname]);
+
+  function toggleSection(section: string) {
+    setOpenSections((prev) => {
+      const next = new Set(prev);
+      if (next.has(section)) next.delete(section);
+      else next.add(section);
+      return next;
+    });
+  }
 
   const railIcons = (
     <>
       {NAV.map((group) => {
-        const active = group.items.some((item) => isActive(pathname, item.href));
+        const active = sectionHasActive(group, pathname);
         return (
           <Link
             key={group.section}
@@ -117,32 +160,75 @@ export default function AdminSidebar() {
   );
 
   const content = (
-    <nav className="overflow-hidden rounded-xl bg-white shadow-sm">
-      {NAV.map((group) => (
-        <div key={group.section} className="px-2 pt-2.5 pb-1 first:pt-2">
-          <p className="flex items-center gap-2 px-1.5 pb-1.5 text-xs font-bold uppercase tracking-wider text-gray-400">
-            {group.icon}
-            {group.section}
-          </p>
-          <ul className="space-y-0.5">
-            {group.items.map((item) => {
-              const active = isActive(pathname, item.href);
-              return (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    aria-current={active ? "page" : undefined}
-                    className={`${linkBase} ${active ? linkActive : linkIdle}`}
-                  >
-                    {item.icon}
-                    <span className="min-w-0 truncate">{item.label}</span>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      ))}
+    // admin-compact: globals.css で文字サイズを一段小さくしている (ダッシュボード本文とそろえる)
+    <nav className="admin-compact overflow-hidden rounded-xl bg-white shadow-sm">
+      {NAV.map((group) => {
+        // 項目が1つだけのグループは折りたたみ見出しを出さず、そのリンクを直置きする
+        if (group.items.length === 1) {
+          const item = group.items[0];
+          const active = isActive(pathname, item.href);
+          return (
+            <div key={group.section} className="border-b border-gray-50 px-2 py-1 last:border-b-0">
+              <Link
+                href={item.href}
+                aria-current={active ? "page" : undefined}
+                className={`${linkBase} ${active ? linkActive : linkIdle}`}
+              >
+                {item.icon}
+                <span className="min-w-0 truncate">{item.label}</span>
+              </Link>
+            </div>
+          );
+        }
+
+        const open = openSections.has(group.section);
+        const groupActive = sectionHasActive(group, pathname);
+        const panelId = `admin-nav-${group.section}`;
+
+        return (
+          <div key={group.section} className="border-b border-gray-50 px-2 py-1 last:border-b-0">
+            <button
+              type="button"
+              onClick={() => toggleSection(group.section)}
+              aria-expanded={open}
+              aria-controls={panelId}
+              className={`flex w-full items-center gap-2 rounded-lg px-1.5 py-1.5 text-left transition hover:bg-gray-50 ${
+                groupActive ? "text-brand-700" : "text-gray-500"
+              }`}
+            >
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center [&_svg]:h-3.5 [&_svg]:w-3.5">
+                {group.icon}
+              </span>
+              <span className="min-w-0 flex-1 truncate text-[11px] font-bold tracking-wide">{group.section}</span>
+              <span className="shrink-0 text-[10px] tabular-nums text-gray-400">{group.items.length}</span>
+              <ChevronDown
+                className={`h-3.5 w-3.5 shrink-0 text-gray-400 transition-transform ${open ? "rotate-180" : ""}`}
+                aria-hidden
+              />
+            </button>
+
+            {open && (
+              <ul id={panelId} className="ml-3 space-y-0.5 border-l border-gray-100 pb-1.5 pl-2.5 pt-0.5">
+                {group.items.map((item) => {
+                  const active = isActive(pathname, item.href);
+                  return (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        aria-current={active ? "page" : undefined}
+                        className={`${linkBase} ${active ? linkActive : linkIdle}`}
+                      >
+                        {item.icon}
+                        <span className="min-w-0 truncate">{item.label}</span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+        );
+      })}
     </nav>
   );
 

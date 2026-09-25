@@ -33,7 +33,7 @@ import Counter from "@/components/home/counter";
 import PhotoMarquee from "@/components/home/photo-marquee";
 import AdminStepsAccordion, { type AdminStepGroup } from "@/components/home/admin-steps-accordion";
 import SectionHeading from "@/components/home/section-heading";
-import { OfficialLinkChips, OfficialSiteSitemap } from "@/components/home/official-site-links";
+import { OfficialLinkChips } from "@/components/home/official-site-links";
 import { KOUTOU_IMAGES, KOUTOU_DETAIL, KOUTOU_FUTURE, SENMON_IMAGES } from "@/lib/site-images";
 import { OFFICIAL_SITES, OFFICIAL_SITE_LIST, officialUrl, openCampusUrl } from "@/lib/official-sites";
 
@@ -867,15 +867,6 @@ export default function HomePage() {
               <li><Link href="/supporter" className="transition hover:text-brand-700">一口支援者ポータル</Link></li>
               <li><Link href="/admin" className="transition hover:text-brand-700">職員ダッシュボード</Link></li>
             </ul>
-          </div>
-        </div>
-        {/* 公式サイトのページ一覧 (official-sites.ts の定義から生成) */}
-        <div className="mx-auto mt-12 max-w-6xl border-t border-brand-100 pt-10">
-          <p className="text-[11px] font-bold tracking-[0.3em] text-gray-400">OFFICIAL SITES</p>
-          <div className="mt-6 grid gap-10 lg:grid-cols-2">
-            {OFFICIAL_SITE_LIST.map((site) => (
-              <OfficialSiteSitemap key={site.key} site={site} />
-            ))}
           </div>
         </div>
 
